@@ -1154,8 +1154,18 @@ try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () =
 new MutationObserver(() => render()).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 
 /* ============ data loading (API Apps Script, gọi từ GitHub Pages) ============ */
-/* Có thể điền sẵn link API ở đây để khỏi nhập lần đầu: const API_DEFAULT = 'https://script.google.com/macros/s/…/exec'; */
+/* Link API (…/exec) được mã hoá bằng tài khoản + mật khẩu (PBKDF2-SHA256 → AES-GCM), repo công khai không lộ link.
+   Đổi tài khoản / mật khẩu / link: mở tools/ma-hoa-link.html trên máy, dán kết quả đè dòng API_ENC bên dưới. */
+const API_ENC = {s:'1lfngolqoIDymNqHxI7n9Q==', iv:'/4nRv2jE2Q/+rZYS', c:'DXTxUgHjxbdracCi0Fgg+7Qteni6/AaofMYpN7KbitQ8I3MC0wRs+4jLcN/zTQNx1gHaWbAQlNzz708tqvTXNBCTd01ac3rBB4DkVsnVYx6FA+VdDQo0lK92Cjs+1GQaPdjA3rf6JZHcUTLakMzHU/gBF2O2nBXlf5ZKMrwhgv4=', n:310000};
 const API_DEFAULT = '';
+const b64d = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+async function unlockApi(acc, pw){
+  const raw = new TextEncoder().encode(acc.trim().toLowerCase() + '\u0000' + pw.trim());
+  const base = await crypto.subtle.importKey('raw', raw, 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt:b64d(API_ENC.s), iterations:API_ENC.n}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+  const out = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64d(API_ENC.iv)}, key, b64d(API_ENC.c));   // sai tài khoản/mật khẩu → lỗi
+  return new TextDecoder().decode(out);
+}
 let API = '', KEY = '', LOADED_AT = null, BUSY = false;
 try { API = localStorage.getItem('kai_dash_api') || ''; KEY = localStorage.getItem('kai_dash_key') || ''; } catch(e){}
 if (!API) API = API_DEFAULT;
@@ -1171,18 +1181,21 @@ function showState(title, body){ $('status').hidden = false; $('status').innerHT
 function askKey(msg){
   D = null; hideViews(); $('fbar').style.display = 'none'; $('tdbar').hidden = true;
   const needApi = !HAS_API();
-  showState('🔒 Đăng nhập dashboard', msg || (needApi ? 'Lần đầu trên máy này: dán <b>link API</b> (…/exec, lấy bằng hàm taoLinkDashboard trong Apps Script) và <b>mật khẩu</b>. Máy sẽ nhớ.' : 'Nhập mật khẩu xem dashboard. Máy sẽ nhớ.'));
+  showState('🔒 Đăng nhập dashboard', msg || (needApi ? 'Lần đầu trên máy này: nhập <b>tài khoản</b> và <b>mật khẩu</b>. Máy sẽ nhớ.' : 'Nhập mật khẩu xem dashboard. Máy sẽ nhớ.'));
   $('status').insertAdjacentHTML('beforeend', `<form id="keyForm" style="display:grid;gap:8px;margin-top:6px;width:min(520px,100%)">
-    <input id="apiIn" type="url" inputmode="url" aria-label="Link API" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(API)}" ${needApi ? '' : 'hidden'} style="font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);min-width:0">
+    <input id="apiIn" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" aria-label="Tài khoản" placeholder="Tài khoản…" ${needApi ? '' : 'hidden'} style="font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);min-width:0">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
     <input id="keyIn" type="password" autocomplete="current-password" aria-label="Mật khẩu" placeholder="Mật khẩu…" style="font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);min-width:0;flex:1 1 180px">
     <button class="reload" type="submit"><span class="ic" aria-hidden="true">🔓</span><span>Mở dashboard</span></button></div>
-    ${needApi ? '' : '<button type="button" class="lnk" id="chgApi" style="justify-self:start">Đổi link API</button>'}</form>`);
+    ${needApi ? '' : '<button type="button" class="lnk" id="chgApi" style="justify-self:start">Đổi tài khoản</button>'}</form>`);
   if ($('chgApi')) $('chgApi').onclick = () => { $('apiIn').hidden = false; $('chgApi').remove(); $('apiIn').focus(); };
-  $('keyForm').onsubmit = e => { e.preventDefault();
-    const a = $('apiIn').value.trim(); if (a) API = a.replace(/\?.*$/, '');
-    if (!HAS_API()){ $('apiIn').hidden = false; $('apiIn').focus(); toast('⚠ Link API phải có dạng https://script.google.com/macros/s/…/exec', true); return; }
-    KEY = $('keyIn').value.trim(); if (KEY) load(true); };
+  $('keyForm').onsubmit = async e => { e.preventDefault();
+    const a = $('apiIn').value.trim(), pw = $('keyIn').value.trim();
+    if (!pw) return;
+    if (/^https:\/\//.test(a)) API = a.replace(/\?.*$/, '');          // vẫn cho dán thẳng link …/exec nếu cần
+    else if (a){ try { API = await unlockApi(a, pw); } catch(err){ $('keyIn').select(); toast('⚠ Sai tài khoản hoặc mật khẩu.', true); return; } }
+    if (!HAS_API()){ $('apiIn').hidden = false; $('apiIn').focus(); toast('⚠ Nhập tài khoản.', true); return; }
+    KEY = pw; load(true); };
   setTimeout(() => { try { (needApi ? $('apiIn') : $('keyIn')).focus(); } catch(e){} }, 50);
   setUpd('err', 'Cần đăng nhập');
 }
@@ -1227,8 +1240,8 @@ function load(manual){
   apiGet({api:'data', k:KEY}).then(r => onData(r, manual)).catch(e => {
     setBusy(false); const m = esc((e && e.message) || 'Lỗi không rõ');
     if (D){ setUpd('err', 'Lỗi tải · đang hiện số lần trước'); if (manual) toast('⚠ ' + m + ' – thử lại sau ít giây.', true); }
-    else { showState('Không kết nối được API', m + '<br>Kiểm tra link API (…/exec), đã dán <b>Dashboard.gs</b> và đã <b>triển khai bản mới</b>.'); setUpd('err', 'Lỗi');
-      $('status').insertAdjacentHTML('beforeend', '<button class="lnk" id="reLogin" style="justify-self:start">Nhập lại link API / mật khẩu</button>'); $('reLogin').onclick = () => { API = ''; askKey(); }; }
+    else { showState('Không kết nối được API', m + '<br>Kiểm tra đã dán <b>Dashboard.gs</b> và đã <b>triển khai bản mới</b> trong Apps Script.'); setUpd('err', 'Lỗi');
+      $('status').insertAdjacentHTML('beforeend', '<button class="lnk" id="reLogin" style="justify-self:start">Nhập lại tài khoản / mật khẩu</button>'); $('reLogin').onclick = () => { API = ''; askKey(); }; }
   });
 }
 document.querySelectorAll('[data-reload]').forEach(b => b.onclick = () => load(true));

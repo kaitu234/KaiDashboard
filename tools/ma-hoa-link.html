@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mã hoá link API</title>
+<style>
+:root{--bg:#F3EADB;--surface:#FFFBF4;--ink:#2E1D12;--muted:#7D6654;--line:#E2D2BA;--brand:#5E3B25;--brand-ink:#FFFBF4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17100B;--surface:#241911;--ink:#F2E6D5;--muted:#B39E89;--line:#3D2E22;--brand:#E3C39A;--brand-ink:#241911}}
+:root[data-theme="dark"]{--bg:#17100B;--surface:#241911;--ink:#F2E6D5;--muted:#B39E89;--line:#3D2E22;--brand:#E3C39A;--brand-ink:#241911}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,'Segoe UI',sans-serif}
+main{max-width:640px;margin:0 auto;padding:24px 16px;display:grid;gap:10px}
+h1{font-size:20px;margin:0}
+p{margin:0;color:var(--muted)}
+label{display:grid;gap:4px;font-weight:600}
+input,textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+textarea{font-family:ui-monospace,Consolas,monospace;font-size:12px;min-height:90px}
+button{font:inherit;font-weight:600;padding:9px 14px;border:0;border-radius:6px;background:var(--brand);color:var(--brand-ink);cursor:pointer;justify-self:start}
+</style>
+</head>
+<body>
+<main>
+  <h1>Mã hoá link API cho dashboard</h1>
+  <p>Chạy trên máy, không gửi gì đi đâu. Dùng khi đổi tài khoản, mật khẩu (DASH_KEY) hoặc link …/exec. Copy dòng kết quả, dán đè dòng <code>const API_ENC = …</code> trong index.html rồi push.</p>
+  <form id="f" style="display:grid;gap:10px">
+    <label>Link API (…/exec)<input id="url" type="url" required placeholder="https://script.google.com/macros/s/…/exec"></label>
+    <label>Tài khoản<input id="acc" required autocomplete="off"></label>
+    <label>Mật khẩu (DASH_KEY)<input id="pw" type="password" required autocomplete="off"></label>
+    <button type="submit">Mã hoá</button>
+  </form>
+  <label>Kết quả<textarea id="out" readonly></textarea></label>
+</main>
+<script>
+const N = 310000;   // phải khớp với index.html (API_ENC.n)
+const b64 = u => btoa(String.fromCharCode(...u));
+async function encrypt(url, acc, pw){
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const raw = new TextEncoder().encode(acc.trim().toLowerCase() + '\u0000' + pw.trim());
+  const base = await crypto.subtle.importKey('raw', raw, 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt, iterations:N}, base, {name:'AES-GCM', length:256}, false, ['encrypt']);
+  const c = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(url.trim().replace(/\?.*$/, ''))));
+  return `const API_ENC = {s:'${b64(salt)}', iv:'${b64(iv)}', c:'${b64(c)}', n:${N}};`;
+}
+document.getElementById('f').onsubmit = async e => {
+  e.preventDefault();
+  const v = id => document.getElementById(id).value;
+  document.getElementById('out').value = await encrypt(v('url'), v('acc'), v('pw'));
+  document.getElementById('pw').value = '';
+};
+</script>
+</body>
+</html>
