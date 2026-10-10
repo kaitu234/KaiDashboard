@@ -16,19 +16,19 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* Layout kiểu Squad: thanh bên trái (nhóm tab) + vùng chính (tiêu đề tab · mục lục · thẻ). Nhận diện Kai Café bản nâu – trắng – be, hệ chữ Every Half (Space Mono + IBM Plex Mono). */
+/* Layout kiểu Squad: thanh bên trái (nhóm tab) + vùng chính (tiêu đề tab · mục lục · thẻ). Nhận diện Kai Café bản nâu – trắng – be, hệ chữ chính (Barlow Condensed + Be Vietnam Pro). */
 :root{
   --bg:#F6EFE3; --paper:#EBDCC3; --surface:#FFFFFF; --surface-2:#F6EFE3; --ink:#5E3B25; --muted:#8A6B55; --line:#E2D2BA;
   --brand:#5E3B25; --brand-ink:#FFFFFF; --beige:#EBDCC3; --caramel:#B7793A;
   --s1:#5E3B25; --s2:#00809C; --s3:#B7793A; --ghost:#C9B49A;
   --good:#2F7A4B; --good-bg:#DDEFE2; --warn:#9A6A10; --warn-bg:#F6E8C7; --bad:#B23A2E; --bad-bg:#F7DEDA;
   --heat:94,59,37;
-  --f-display:'Space Mono','IBM Plex Mono','Courier New',monospace;
-  --f-body:'IBM Plex Mono','Space Mono','Courier New',monospace;
-  --f-mono:'IBM Plex Mono','Space Mono','Courier New',monospace;
+  --f-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --f-body:'Be Vietnam Pro','Segoe UI',system-ui,sans-serif;
+  --f-mono:'Be Vietnam Pro','Segoe UI',system-ui,sans-serif;
   --shadow:0 1px 2px rgba(94,59,37,.05),0 6px 18px rgba(94,59,37,.06);
   --panel:#5E3B25; --panel-line:#8A6B55; --panel-mute:#EBDCC3;
 }
@@ -282,16 +282,32 @@ body.focus-on{overflow:hidden}
 .km.bad{border-left-color:var(--bad);background:var(--bad-bg)}.km.bad .t{color:var(--bad)}
 @media (max-width:560px){.km{flex-direction:column;gap:2px}.km .t{flex:none}}
 
-/* ---------- hệ chữ Every Half: chỉ Space Mono 400/700 + IBM Plex Mono 400/500; chữ đậm luôn là Space Mono ---------- */
-body{font-size:12.5px;letter-spacing:.01em}
-b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.guide summary,.tdbar .live,.alert .fix,.kpi .v,.out .v,.pk .vl{font-family:var(--f-display)}
-.fi label,.kpi .lb,.lbl,th,.pk .lb,.km .t{font-family:var(--f-body);font-weight:500}
-.ct,th,.kpi .lb,.lbl,.fi label,.km .t,.pill,.tabs button,.presets button,.lnk,.reload{text-transform:uppercase;letter-spacing:.06em}
-.ct{font-size:12px;letter-spacing:.05em}
-.ct .nt{text-transform:none;letter-spacing:.02em;font-family:var(--f-body)}
-.kpi .v{font-size:clamp(20px,2.1vw,27px);letter-spacing:.02em}
-.hero p{font-size:clamp(15px,1.35vw,19px);letter-spacing:.01em}
-.cmt,.alert .d,.km p,.hero p.sm,.msub{letter-spacing:.02em}
+/* ---------- hệ chữ chính Kai Café: Barlow Condensed (tiêu đề, số lớn, nhãn – in hoa) + Be Vietnam Pro (nội dung, bảng) ---------- */
+body{font-size:13px;letter-spacing:0}
+b,strong{font-family:var(--f-body);font-weight:700}
+.num,td.r,.kv b,.feed .o .am,tfoot td{font-family:var(--f-body);font-size:1em;font-variant-numeric:tabular-nums}
+.mhead h1,.ct,.kpi .v,.pk .vl,.out .v,.tdbar .day,.tier .big,.side .tabs button,.side .bn,.km .t,th,.pill,.reload,.lnk,.presets button,
+.kpi .lb,.pk .lb,.lbl,.fi label,.sgrp,details.guide summary,.state .t,.alert .t,.jnav a,.shttl{font-family:var(--f-display);font-weight:700;letter-spacing:.03em}
+.ct,th,.kpi .lb,.pk .lb,.lbl,.fi label,.km .t,.pill,.tabs button,.presets button,.lnk,.reload,.sgrp,.jnav a{text-transform:uppercase}
+.mhead h1{font-size:clamp(26px,2.8vw,36px);font-weight:800}
+.ct{font-size:15px}
+.ct .nt{text-transform:none;letter-spacing:0;font-family:var(--f-body);font-weight:400;font-size:12px}
+.kpi .lb,.pk .lb,.lbl,.fi label{font-size:12px;font-weight:600;letter-spacing:.06em}
+.kpi .v{font-size:clamp(26px,2.7vw,36px);font-weight:700}
+.pk .vl{font-size:clamp(24px,2.4vw,32px)}
+.out .v{font-size:28px}
+th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
+.side .tabs button{font-size:15.5px;font-weight:700}
+.side .tabs button small{font-size:11px}
+.side .bn{font-size:15px}
+.pill{font-size:11.5px;font-weight:600}
+.lnk,.presets button{font-size:13px;font-weight:600}
+.reload{font-size:14px}
+.jnav a{font-size:12px;font-weight:600}
+.km .t{font-size:13px}
+.hero p{font-family:var(--f-body);font-weight:700;font-size:clamp(15px,1.4vw,19px);letter-spacing:-.005em}
+.hero p.sm{font-weight:400}
+@media (max-width:899px){.side .tabs button{font-size:15px}.ct{font-size:14px}}
 
 /* ---------- khung: thanh bên + vùng chính ---------- */
 .shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
