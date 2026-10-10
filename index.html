@@ -529,9 +529,9 @@ const VAT_TU = [{ten:'Ly', re:/^ly\b/i}, {ten:'Nắp', re:/^nắp\b/i}, {ten:'�
 /* Định lượng nguyên liệu pha mỗi ly. mon = món nào dùng (theo tên món); mua = dòng nào trong sổ Chi tháng là mua nguyên liệu này;
    quyDoi = 1 đơn vị cột SL trong sổ chi bằng bao nhiêu g/ml (null = chưa biết quy cách → chỉ tính lượng đã dùng, chưa tính tồn). */
 const CONG_THUC = [
-  {ten:'Cà phê', dv:'g', luong:18, ghi:'18g → 45ml', mon:/^cà phê|bạc xỉu|phindi/i, mua:r => /^cà phê \((hạt|bột)\)/i.test(r.cat), quyDoi:1000},   // SL sổ chi tính theo kg
-  {ten:'Sữa đặc', dv:'ml', luong:25, mon:/cà phê sữa (máy|phin)|bạc xỉu|cà phê muối|cacao sữa|phindi/i, mua:r => /sữa đặc/i.test(r.desc), quyDoi:null},
-  {ten:'Sữa tươi', dv:'ml', luong:40, mon:/sữa tươi|bạc xỉu|latte/i, mua:r => /sữa tươi/i.test(r.desc), quyDoi:null},
+  {ten:'Cà phê hạt', dv:'g', luong:18, ghi:'18g → 45ml', mon:/^cà phê|bạc xỉu|phindi/i, mua:r => /^cà phê \(hạt\)/i.test(r.cat), quyDoi:1000},   // chỉ cà phê hạt bên HCN; SL sổ chi tính theo kg
+  {ten:'Sữa đặc', dv:'ml', luong:25, ghi:'hộp NSPN 1,284kg ≈ 1 lít', mon:/cà phê sữa (máy|phin)|bạc xỉu|cà phê muối|cacao sữa|phindi/i, mua:r => /sữa đặc/i.test(r.desc), quyDoi:1000},   // sữa đặc ~1,28 g/ml
+  {ten:'Sữa tươi', dv:'ml', luong:40, ghi:'bịch 220ml', mon:/sữa tươi|bạc xỉu|latte/i, mua:r => /sữa tươi/i.test(r.desc), quyDoi:220},
 ];
 const BAC = [{tren:85, ten:'35k/h', cls:'good'}, {tren:50, ten:'30k/h', cls:'good'}];
 const THU = ['CN','T2','T3','T4','T5','T6','T7'];
@@ -706,7 +706,7 @@ function vatTu(){
   const ly7 = D.orders.filter(o => o.k >= tu && o.k <= tk).reduce((s, o) => s + o.sl, 0), nhip = tu <= tk ? ly7 / nDays(tu, tk) : 0;
   return VAT_TU.map(v => { const mua = D.chi.filter(r => v.re.test(r.desc)).reduce((s, r) => s + r.qty, 0);
     if (!mua) return null;
-    if (mua < 50) return {ten:v.ten, mua, chuaRo:true};   // SL nhỏ = mua theo bịch/hộp, chưa biết 1 bịch bao nhiêu cái → không đoán
+    if (mua < 50) return null;   // SL nhỏ = mua theo bịch/hộp, chưa biết 1 bịch bao nhiêu cái → coi như chưa có số liệu
     return {ten:v.ten, mua, dung:ly, con:mua - ly, nhip, ngay: nhip ? (mua - ly) / nhip : null}; }).filter(Boolean);
 }
 /** Nguyên liệu pha: lượng đã dùng = Σ ly món có dùng × định lượng; tồn = lượng mua (SL × quy đổi) − đã dùng */
@@ -1134,9 +1134,8 @@ function renderFin(){
       {k:'con', l:'Còn (ước tính)', r:1, f:(v, r) => v == null ? (r.muaSL ? `<span class="muted" title="Sổ chi ghi SL ${fmt(r.muaSL)} nhưng chưa biết 1 SL = bao nhiêu ${r.dv}">chưa rõ quy cách</span>` : '<span class="muted">chưa thấy dòng mua</span>') : kl(v, r.dv), cls:v => v != null && v < 0 ? 'dn' : ''},
       {k:'ngay', l:'Đủ ~ngày', r:1, f:v => v == null ? '—' : fmt(Math.max(0, v)), cls:v => v != null && v < 7 ? 'dn' : ''}]});
   $('nlNote').innerHTML = 'Món dùng từng nguyên liệu (kiểm tra lại): ' + NL.map(n => `<b>${esc(n.c.ten)}</b>: ${esc(n.mons.join(', ') || '—')}`).join(' · ')
-    + '. Cà phê: cột SL trong sổ chi tính theo kg.';
-  $('vatTu').innerHTML = VT.length ? VT.map(v => v.chuaRo ? `<span>${esc(v.ten)}</span><b class="muted">sổ chi ghi SL ${fmt(v.mua)} (theo bịch?) · ghi SL theo số cái để tính tồn</b>`
-    : `<span>${esc(v.ten)}</span><b>${fmt(Math.max(0, v.con))} / ${fmt(v.mua)}${v.ngay != null ? ` · ~${fmt(Math.max(0, v.ngay))} ngày` : ''}</b>`).join('')
+    + '. Tồn cà phê chỉ tính cà phê hạt (SL theo kg); sữa đặc 1 hộp ≈ 1 lít; sữa tươi 1 bịch = 220ml.';
+  $('vatTu').innerHTML = VT.length ? VT.map(v => `<span>${esc(v.ten)}</span><b>${fmt(Math.max(0, v.con))} / ${fmt(v.mua)}${v.ngay != null ? ` · ~${fmt(Math.max(0, v.ngay))} ngày` : ''}</b>`).join('')
     : '<span class="muted">Chưa thấy dòng mua Ly / Nắp / Ống hút (cột SL) trong sổ Chi tháng.</span>';
   $('alerts').innerHTML = A.map(([lv, tag, t, d, fix]) => `<div class="alert ${lv}"><span class="pill ${lv}">${tag}</span><div><div class="t">${t}</div><div class="d">${d}</div></div><span class="fix">${fix}</span></div>`).join('');
 
