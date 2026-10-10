@@ -322,25 +322,62 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
 .fbar{top:0;margin-top:0;border-top:1px solid var(--line);border-radius:8px}
 .tdbar{margin-top:0;border-top:1px solid var(--line);border-radius:8px}
 .fab{display:none}
-/* điện thoại: thanh bên thành thanh trên cùng, tab cuộn ngang */
+/* điện thoại: 1 thanh gọn dính trên cùng (logo · giờ cập nhật · ⋯ + hàng tab cuộn ngang); số liệu lên ngay màn hình đầu */
+.mmore,.ftog{display:none}
 @media (max-width:899px){
   .shell{display:block}
-  .side{position:static;height:auto;padding:8px 0 0;border-right:0;border-bottom:2px solid var(--brand);overflow:visible}
-  .side .brand{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 10px;padding:0 12px 8px;margin:0}
-  .blogo{width:92px;grid-row:span 2}
-  .side .bn{margin:0;font-size:11px}
-  .side .updchip{grid-column:1/-1}
-  .side .tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;padding:0 6px}
+  .side{position:sticky;top:0;z-index:20;height:auto;padding:6px 0 0;border-right:0;border-bottom:2px solid var(--brand);overflow:visible;box-shadow:0 4px 14px rgba(94,59,37,.10)}
+  .side .brand{display:flex;align-items:center;gap:8px;padding:0 10px 6px;margin:0;border-bottom:0}
+  .blogo{width:68px;flex:none}
+  .side .bn,.side .bv{display:none}
+  .side .updchip{margin-left:auto;font-size:10px;padding:2px 8px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .mmore{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;font-size:18px;flex:none}
+  .side .tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;padding:0 4px;scroll-behavior:smooth}
   .side .tabs::-webkit-scrollbar{display:none}
-  .sgrp,.side .tabs button small{display:none}
-  .side .tabs button{width:auto;padding:9px 12px;border-left:0;border-bottom:3px solid transparent;white-space:nowrap}
+  .sgrp,.side .tabs button small,.side .tabs .ic{display:none}
+  .side .tabs button{width:auto;padding:9px 11px;border-left:0;border-bottom:3px solid transparent;white-space:nowrap;font-size:12px}
   .side .tabs button[aria-selected="true"]{border-bottom-color:var(--caramel)}
-  .side .tabs .ic{display:none}
-  .sfoot{display:block;margin:0;padding:6px 12px 8px;border-top:1px solid var(--line)}
-  .sfoot .reload,.sfoot p{display:none}
-  .page{padding:12px 12px 80px}
-  .fab{display:inline-flex}
-  .fbar{position:static}
+  .sfoot{display:none;position:absolute;right:8px;top:44px;width:min(260px,calc(100vw - 16px));background:var(--surface);border:1.5px solid var(--brand);border-radius:10px;padding:10px;box-shadow:0 12px 30px rgba(0,0,0,.2);z-index:21}
+  .side.more .sfoot{display:grid}
+  .sfoot .sacts{flex-direction:column}
+  .sfoot .sacts .lnk{width:100%;text-align:left;padding:9px 10px}
+  .sfoot p{display:block}
+  /* vùng chính */
+  .page{display:flex;flex-direction:column;gap:10px;padding:10px 10px 84px}
+  .mhead{display:none}
+  details.guide{order:99}
+  .jnav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -10px;padding:0 10px}
+  .jnav::-webkit-scrollbar{display:none}
+  .jnav a{white-space:nowrap;flex:none}
+  .card{padding:10px 11px}
+  .ct{font-size:11px;position:relative;padding-right:64px;min-height:24px}
+  .ct .cbtns{position:absolute;top:-2px;right:0;margin:0}
+  .card.focused .ct{padding-right:0}
+  .card.focused .ct .cbtns{position:static;margin-left:auto}
+  .tier .track{margin-top:26px!important}
+  .kpis{gap:8px}
+  .kpi{padding:9px 10px}
+  table{font-size:11.5px}
+  th,td{padding:5px 7px}
+  .tblwrap{max-height:360px}
+  /* bộ lọc: chỉ hàng chọn kỳ + nút mở phần còn lại */
+  .fbar{position:static;padding:8px 10px;gap:8px}
+  .ftog{display:inline-flex;align-items:center;margin-left:auto;align-self:flex-end}
+  .fbar:not(.open) .fi:not(.fi-ky),.fbar:not(.open) .clr{display:none}
+  .fi-ky{flex:1 1 auto;min-width:0}
+  .fi-ky .presets{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .fi-ky .presets::-webkit-scrollbar{display:none}
+  .presets button{padding:6px 8px;flex:none}
+  /* thanh chọn ngày tab Hôm nay */
+  .tdbar{padding:8px 10px;gap:6px 8px}
+  .tdbar .day{font-size:16px;width:100%}
+  .tdbar .live,.tdbar .ago,.tdnote,.tdbar .fi label{display:none}
+  .tdbar .fi{flex:1 1 130px}
+  .tdbar .presets{flex-wrap:nowrap}
+  /* nút tải lại nổi: tròn, chỉ icon */
+  .fab{display:inline-flex;width:52px;height:52px;padding:0;justify-content:center;border-radius:50%}
+  .fab span:last-child{display:none}
+  .fab .ic{font-size:20px}
 }
 
 /* ---------- in ---------- */
@@ -364,6 +401,7 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
     <div class="bn">Internal dashboard</div>
     <div class="bv">429 Phan Huy Ích · <span id="hdrRange"></span></div>
     <span class="updchip" id="upd"><span class="dot"></span><span id="updTxt">Đang kết nối Google Sheet…</span></span>
+    <button class="cbtn mmore" id="mMore" aria-expanded="false" aria-controls="sfoot" title="Mở sheet · Cài app · Đăng xuất">⋯</button>
   </div>
   <nav class="tabs" role="tablist" aria-label="Chọn trang">
     <div class="sgrp">Bắt đầu</div>
@@ -378,7 +416,7 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
     <button role="tab" id="tab-fin" aria-selected="false" data-v="fin"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2"/></svg><span class="nm">Thu chi<small>quỹ · lãi · sổ chi</small></span></button>
     <button role="tab" id="tab-kho" aria-selected="false" data-v="kho"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span class="nm">Kho<small>nguyên liệu · vật tư</small></span></button>
   </nav>
-  <div class="sfoot">
+  <div class="sfoot" id="sfoot">
     <button class="reload" id="refresh" data-reload disabled title="Đọc lại Google Sheet ngay"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại dữ liệu</span></button>
     <div class="sacts">
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
@@ -402,15 +440,16 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
     <span class="ago" data-ago></span>
     <div class="fi"><label for="tdPick">Xem ngày khác</label><input type="date" id="tdPick"></div>
     <div class="presets"><button id="tdPrev">◀ Hôm trước</button><button id="tdNow">Hôm nay</button><button id="tdNext">Hôm sau ▶</button></div>
-    <span class="muted" style="margin-left:auto;font-size:12px">Số liệu từ bot Telegram (tab DonHang) · đơn huỷ không tính · so sánh = <b>cùng thứ tuần trước, tới cùng giờ</b></span>
+    <span class="muted tdnote" style="margin-left:auto;font-size:12px">Số liệu từ bot Telegram (tab DonHang) · đơn huỷ không tính · so sánh = <b>cùng thứ tuần trước, tới cùng giờ</b></span>
   </div>
 
   <div class="fbar" id="fbar">
-    <div class="fi"><label>Kỳ xem</label>
+    <div class="fi fi-ky"><label>Kỳ xem</label>
       <div class="presets" id="presets">
         <button data-p="today">Hôm nay</button><button data-p="yday">Hôm qua</button><button data-p="7d">7 ngày</button><button data-p="mtd">Tháng này</button><button data-p="all">Tất cả</button>
       </div>
     </div>
+    <button class="lnk ftog" id="fTog" aria-expanded="false">Bộ lọc ▾</button>
     <div class="fi"><label for="dFrom">Từ ngày</label><input type="date" id="dFrom"></div>
     <div class="fi"><label for="dTo">Đến ngày</label><input type="date" id="dTo"></div>
     <div class="fi"><label for="fNv">Nhân viên</label><select id="fNv"><option value="">Tất cả</option></select></div>
@@ -1611,14 +1650,21 @@ function setView(v){
   $('fbar').style.display = coLoc ? '' : 'none';
   $('tdbar').hidden = v !== 'today';
   $('chips').style.display = coLoc ? '' : 'none';
+  $('tab-' + v).scrollIntoView({block:'nearest', inline:'center'});   // điện thoại: tab đang chọn luôn nằm trong hàng tab
   if (D) render();
 }
+/* ---- điện thoại: nút ⋯ (mở sheet · cài app · đăng xuất) và nút thu/mở bộ lọc ---- */
+$('mMore').onclick = e => { e.stopPropagation(); const on = document.querySelector('.side').classList.toggle('more'); $('mMore').setAttribute('aria-expanded', on); };
+document.addEventListener('click', e => { const sd = document.querySelector('.side'); if (sd.classList.contains('more') && !e.target.closest('#sfoot')){ sd.classList.remove('more'); $('mMore').setAttribute('aria-expanded', false); } });
+$('fTog').onclick = () => { const on = $('fbar').classList.toggle('open'); $('fTog').setAttribute('aria-expanded', on); demLoc(); };
+function demLoc(){ const n = [S.nv, S.pt, S.mon, S.day].filter(Boolean).length + (S.preset ? 0 : 1);
+  $('fTog').textContent = `Bộ lọc${n ? ' (' + n + ')' : ''} ${$('fbar').classList.contains('open') ? '▴' : '▾'}`; }
 function render(){
   if (!D) return;
   chartBase();
   $('hdrRange').textContent = S.view === 'today' ? `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`
     : ['ov', 'fin', 'kho'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
-  renderChips();
+  renderChips(); demLoc();
   ({ov:renderOv, today:renderToday, sales:renderSales, mon:() => { renderSales(); renderMon(); }, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
   nangCapThe($('v-' + S.view));
 }
