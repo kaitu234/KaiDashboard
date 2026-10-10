@@ -532,7 +532,7 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
         <div class="tier" id="tdTier"></div>
       </div>
       <div class="card">
-        <div class="ct">Tiền hôm nay <span class="nt">· két phải có = bán tiền mặt − chi từ két</span></div>
+        <div class="ct">Tiền &amp; lãi hôm nay <span class="nt">· két phải có = bán tiền mặt − chi từ két · lãi = doanh thu − giá vốn − lương ca</span></div>
         <div class="kv" id="tdMoney"></div>
       </div>
     </div>
@@ -611,7 +611,7 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
 
     <div class="g2">
       <div class="card">
-        <div class="ct">Nhân viên nhập đơn <span class="nt">· click dòng để lọc</span></div>
+        <div class="ct">Nhân viên nhập đơn <span class="nt">· click dòng để lọc · không tính đơn chủ nhập</span></div>
         <div class="tblwrap" style="max-height:300px"><table id="tNv"></table></div>
       </div>
       <div class="card">
@@ -727,7 +727,7 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
     <nav class="jnav" aria-label="Mục lục"></nav>
     <div class="kpis" id="hrKpis"></div>
     <div class="card">
-      <div class="ct">Nhân viên trong kỳ <span class="nt">· giờ &amp; tiền công từ ChamCong · ly trong ca = đơn nằm giữa giờ vào và giờ ra · ly/giờ = ly trong ca ÷ giờ làm</span></div>
+      <div class="ct">Nhân viên trong kỳ <span class="nt">· giờ &amp; tiền công từ ChamCong · ly trong ca = đơn nằm giữa giờ vào và giờ ra · ly/giờ = ly trong ca ÷ giờ làm · chủ quán: tính lương, không tính hiệu suất</span></div>
       <div class="tblwrap"><table id="tHr"></table></div>
       <div class="cmt" id="hrCmt" hidden></div>
     </div>
@@ -778,6 +778,21 @@ const CONG_THUC = [
 ];
 /* Mốc thưởng ly: API gửi kèm (res.bac = {bang:{1:[…], 2:[…]}, nguoi:{ngày: số NV làm}}) – ca 2+ người mốc cao hơn. Thiếu thì dùng mốc 1 người. */
 let BAC_SV = null;
+/* Chủ quán (res.chu = [{id, ten}]): vẫn tính lương, nhưng KHÔNG tính vào hiệu suất bán hàng (ly/giờ, bảng nhân viên nhập đơn, đơn ngoài ca). */
+let CHU_SV = null;
+const laChu = ten => !!(D && D.chuTen && D.chuTen.has(ten));
+/** Lãi / lỗ ước tính 1 ngày: doanh thu − giá vốn theo ly (ô Giá vốn/ly) − lương các ca (ca chưa checkout: tạm tính tới giờ hiện tại).
+ *  canLy = số ly cần bán ở giá TB hôm đó để đủ trả lương (hoà vốn trong ngày, chưa tính thuê/điện nước). */
+function laiNgay(k){
+  const L = D.orders.filter(o => o.k === k), a = agg(L), cogs = Math.max(0, parseFloat($('cogs').value) || 0);
+  let luong = 0, tam = false;
+  D.cong.filter(c => c.k === k).forEach(c => {
+    if (c.tien != null) luong += c.tien;
+    else if (c.luongGio){ const het = c.ra || (k === today() ? new Date() : null); if (het){ luong += Math.max(0, (het - c.vao) / 36e5) * c.luongGio; tam = true; } }
+  });
+  const gv = a.ly * cogs, laiLy = (a.asp || D.giaThuong || 0) - cogs;
+  return {dt:a.dt, ly:a.ly, gv, luong, tam, lai:a.dt - gv - luong, laiLy, canLy: laiLy > 0 ? Math.ceil(luong / laiLy) : null, cogs};
+}
 function bacNgay(k){
   const n = (BAC_SV && BAC_SV.nguoi && BAC_SV.nguoi[k]) || 1, bang = BAC_SV && BAC_SV.bang;
   const ks = bang ? Object.keys(bang).map(Number).sort((a, b) => a - b) : [];
@@ -865,6 +880,9 @@ function parseWorkbook(wb){
   D.cong.forEach(c => { if (c.id && c.nv !== tenMoi[c.id]) alias[c.nv] = tenMoi[c.id]; });
   const ten = n => alias[n] || n;
   D.cong.forEach(c => c.nv = ten(c.nv)); D.orders.forEach(o => o.nv = ten(o.nv)); D.chot.forEach(c => c.nv = ten(c.nv)); D.botChi.forEach(c => c.ai = ten(c.ai));
+  const chuId = new Set((CHU_SV || []).map(x => String(x.id)));
+  D.cong.forEach(c => c.chu = chuId.has(c.id));
+  D.chuTen = new Set([...(CHU_SV || []).map(x => ten(x.ten)), ...D.cong.filter(c => c.chu).map(c => c.nv)]);
   // Thu chi: Chi T..
   wb.SheetNames.forEach(n => {
     const m = n.match(/^Chi\s*T(\d{1,2})-(\d{4})$/i); if (!m) return;
@@ -1190,10 +1208,10 @@ function renderSales(){
 
   /* --- staff (orders entered) --- */
   const byNv = groupBy(sel(new Set(['nv'])), o => o.nv);
-  const nvRows = [...byNv].map(([nv, l]) => { const a = agg(l); return {nv, don:a.don, ly:a.ly, dt:a.dt, ck: a.dt ? a.ck / a.dt : null, nd:a.nd}; });
+  const nvRows = [...byNv].filter(([nv]) => !laChu(nv)).map(([nv, l]) => { const a = agg(l); return {nv, don:a.don, ly:a.ly, dt:a.dt, ck: a.dt ? a.ck / a.dt : null, nd:a.nd}; });
   table({id:'tNv', rows:nvRows, sortDefault:{k:'ly', d:-1}, rowKey:r => r.nv, selKey:S.nv,
     onRow:k => { S.nv = S.nv === k ? '' : k; syncFilters(); render(); },
-    total:(() => { const a = agg(sel(new Set(['nv']))); return {don:a.don, ly:a.ly, dt:a.dt, ck: a.dt ? a.ck / a.dt : null, nd:a.nd}; })(),
+    total:(() => { const a = agg(sel(new Set(["nv"])).filter(o => !laChu(o.nv))); return {don:a.don, ly:a.ly, dt:a.dt, ck: a.dt ? a.ck / a.dt : null, nd:a.nd}; })(),
     cols:[{k:'nv', l:'Nhân viên'}, {k:'nd', l:'Ngày', r:1, f:fmt}, {k:'don', l:'Đơn', r:1, heat:1, f:fmt}, {k:'ly', l:'Ly', r:1, heat:1, f:fmt}, {k:'dt', l:'Doanh thu', r:1, f:fmt}, {k:'ck', l:'%CK', r:1, f:v => pct(v)}]});
 
   /* --- heat weekday × hour --- */
@@ -1270,7 +1288,14 @@ function renderToday(){
     <span>Tỉ lệ chuyển khoản</span><b>${pct(A.dt ? A.ck / A.dt : null)}</b>
     <span class="sep"></span>
     <span>Chi từ két</span><b>${chiKet ? '−' + fmt(chiKet) + ' đ' : '0 đ'}</b>
-    <span><b style="text-align:left">Két phải có (chưa tính tiền đầu ca)</b></span><b>${fmt(A.tm - chiKet)} đ</b>`;
+    <span><b style="text-align:left">Két phải có (chưa tính tiền đầu ca)</b></span><b>${fmt(A.tm - chiKet)} đ</b>
+    <span class="sep"></span>
+    ${(() => { const P = laiNgay(k);
+      return `<span>Giá vốn ước tính · ${fmt(P.ly)} ly × ${fmtK(P.cogs)}</span><b>−${fmt(P.gv)} đ</b>
+        <span>Lương các ca${P.tam ? ' (ca đang làm tạm tính tới giờ này)' : ''}</span><b>−${fmt(P.luong)} đ</b>
+        <span><b style="text-align:left">Lãi / lỗ ước tính</b></span><b class="${P.lai < 0 ? 'dn' : 'up'}">${P.lai >= 0 ? '+' : ''}${fmt(P.lai)} đ</b>
+        <span class="muted" style="grid-column:1/-1;font-size:11.5px">${P.canLy == null ? 'Giá bán đang thấp hơn giá vốn: bán thêm ly nào lỗ thêm ly đó.'
+          : `Lời ${fmt(P.laiLy)} đ/ly (giá TB − giá vốn) → cần <b>${fmt(P.canLy)} ly</b> để đủ trả lương hôm nay${P.ly >= P.canLy ? ', <span class="up">đã qua mốc</span>' : `, còn thiếu ${fmt(P.canLy - P.ly)} ly`}. Chưa tính thuê chỗ, điện nước, phí nhượng quyền.`}</span>`; })()}`;
 
   /* pace: cumulative per 15' */
   const mins = L.concat(D.orders.filter(o => o.k === addDays(k, -7))).map(o => o.min).filter(m => m != null);
@@ -1358,14 +1383,17 @@ function renderFin(){
   // Lãi vận hành ước tính: giá vốn theo LY ĐÃ BÁN (không theo lần nhập hàng, vì mua 2.000 ly 1 lần sẽ làm tháng đầu âm ảo)
   const cogs = Math.max(0, parseFloat($('cogs').value) || 0), lyBan = D.orders.reduce((s, o) => s + o.sl, 0);
   const chiKhac = D.chi.filter(r => !['Đầu tư', 'Giá vốn'].includes(blockOf(r))).reduce((s, r) => s + r.amt, 0);
-  const lai = totalRev - lyBan * cogs - chiKhac, laiSo = totalRev - opex;
+  // Lương: tháng nào sổ chi đã ghi khối Nhân sự thì lấy sổ chi (đã nằm trong chiKhac); chưa ghi thì lấy tiền công bot tính (ChamCong) để không bỏ sót
+  const nsSo = {}; D.chi.filter(r => blockOf(r) === 'Nhân sự').forEach(r => nsSo[r.m] = (nsSo[r.m] || 0) + r.amt);
+  const luongBot = D.cong.filter(c => !nsSo[mkey(c.k)]).reduce((s, c) => s + (c.tien || 0), 0);
+  const lai = totalRev - lyBan * cogs - chiKhac - luongBot, laiSo = totalRev - opex;
 
   $('finKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Tiền quỹ còn lại</span><span class="v">${fmtM(cash)}</span><span class="s">${capitalIn ? pct(cash / capitalIn, 1) + ' vốn góp' : ''}${botKet ? ` · chưa trừ ${fmtK(botKet)} chi két (bot)` : ''}</span></div>
     <div class="kpi main"><span class="lb">Doanh thu (bot)</span><span class="v">${fmtM(totalRev)}</span><span class="s">${D.orders.length ? new Set(D.orders.map(o=>o.k)).size + ' ngày bán' : 'lấy từ tab Doanh thu'}</span></div>
     <div class="kpi main"><span class="lb">Tổng chi sổ tháng</span><span class="v">${fmtM(totalChi)}</span><span class="s">${D.chi.filter(r => r.amt).length} khoản</span></div>
     <div class="kpi main"><span class="lb">Vốn góp${otherIn ? ' + thu khác' : ''}</span><span class="v">${fmtM(capitalIn + otherIn)}</span><span class="s">${new Set(D.capital.map(c => c.person)).size} người góp</span></div>
-    <div class="kpi tgt"><span class="lb">Lãi vận hành (ước tính)</span><span class="v ${lai < 0 ? 'dn' : 'up'}">${fmtM(lai)}</span><span class="s">doanh thu − ${fmt(lyBan)} ly × ${fmtK(cogs)} giá vốn − chi vận hành · theo sổ chi (tiền đã nhập hàng): ${fmtM(laiSo)}</span></div>
+    <div class="kpi tgt"><span class="lb">Lãi vận hành (ước tính)</span><span class="v ${lai < 0 ? 'dn' : 'up'}">${fmtM(lai)}</span><span class="s">doanh thu − ${fmt(lyBan)} ly × ${fmtK(cogs)} giá vốn − chi vận hành${luongBot ? ` − ${fmtK(luongBot)} lương (bot tính, sổ chi chưa ghi)` : ''} · theo sổ chi (tiền đã nhập hàng): ${fmtM(laiSo)}</span></div>
     <div class="kpi tgt"><span class="lb">Đã thu hồi vốn</span><span class="v">${pct(capitalIn ? Math.max(0, lai) / capitalIn : null, 1)}</span><span class="s">lãi vận hành ước tính ÷ vốn góp</span></div>`;
 
   /* alerts */
@@ -1415,7 +1443,7 @@ function renderFin(){
     return {m, rev, gv:by('Giá vốn'), vh:by('Vận hành') + by('Nhân sự') + by('Khác'), dt:by('Đầu tư'), chi, flow, run, empty:!rev && !chi && !cap}; });
   const nz = v => v ? fmt(v) : '–';
   S.sort.tMonth = {k:'m', d:1};
-  FIN = {cash, lai, totalRev, capitalIn, alerts:A, mRows};   // tab Tổng quan dùng lại
+  FIN = {cash, lai, luongBot, totalRev, capitalIn, alerts:A, mRows};   // tab Tổng quan dùng lại
   table({id:'tMonth', rows:mRows, sortDefault:{k:'m', d:1}, cols:[
     {k:'m', l:'Tháng', f:v => mlabel(v)}, {k:'rev', l:'Doanh thu', r:1, f:nz}, {k:'gv', l:'Giá vốn', r:1, f:nz}, {k:'vh', l:'Vận hành', r:1, f:nz},
     {k:'dt', l:'Đầu tư', r:1, f:nz}, {k:'chi', l:'Tổng chi', r:1, f:nz},
@@ -1483,33 +1511,35 @@ function renderHr(){
   // Hai người làm chung giờ thì cùng thấy các đơn đó, nhưng dòng Tổng chỉ đếm mỗi đơn 1 lần.
   const trongCa = c => { const het = c.ra || (c.k === today() ? new Date() : fromKey(addDays(c.k, 1)));
     return D.orders.filter(o => o.k === c.k && o.t && o.t >= c.vao && o.t <= het); };
+  // Chủ quán: có giờ + tiền công, nhưng không tính vào ly trong ca / ly/giờ (hiệu suất bán hàng chỉ của nhân viên)
   const per = {}, daDem = new Set();
-  C.forEach(c => { const p = (per[c.nv] ??= {nv:c.nv, ca:0, gio:0, ly:0, tre:0, quen:0, tien:0, chuaTinh:0}); p.ca++; p.gio += c.gio || 0;
-    trongCa(c).forEach(o => { p.ly += o.sl; daDem.add(o); });
+  C.forEach(c => { const chu = c.chu || laChu(c.nv), p = (per[c.nv] ??= {nv:c.nv, chu, ca:0, gio:0, ly:0, tre:0, quen:0, tien:0, chuaTinh:0}); p.ca++; p.gio += c.gio || 0;
+    if (!chu) trongCa(c).forEach(o => { p.ly += o.sl; daDem.add(o); });
     if (c.tien == null) p.chuaTinh++; else p.tien += c.tien;
     if (/trễ/i.test(c.note)) p.tre++; if (!c.ra || /Tự đóng/.test(c.note)) p.quen++; });
-  const rows = Object.values(per).map(p => Object.assign(p, {lyh: p.gio ? p.ly / p.gio : null}));
+  const rows = Object.values(per).map(p => Object.assign(p, {ly: p.chu ? null : p.ly, lyh: p.chu || !p.gio ? null : p.ly / p.gio}));
   const chot = D.chot.filter(c => c.k >= S.from && c.k <= S.to && (!S.nv || c.nv === S.nv));
-  const gio = rows.reduce((s, r) => s + r.gio, 0), ly = [...daDem].reduce((s, o) => s + o.sl, 0);
+  const gio = rows.reduce((s, r) => s + r.gio, 0), gioNV = rows.filter(r => !r.chu).reduce((s, r) => s + r.gio, 0), ly = [...daDem].reduce((s, o) => s + o.sl, 0);
   const tien = rows.reduce((s, r) => s + r.tien, 0), chuaTinh = rows.reduce((s, r) => s + r.chuaTinh, 0), tre = rows.reduce((s, r) => s + r.tre, 0);
   // Đơn ghi ngoài ca: người nhập đơn có chấm công hôm đó nhưng giờ đơn nằm ngoài mọi ca của họ
   const ngoai = {};
   D.orders.filter(o => o.k >= S.from && o.k <= S.to && o.t && (!S.nv || o.nv === S.nv)).forEach(o => {
+    if (laChu(o.nv)) return;   // chủ phụ bán ngoài ca là bình thường
     const ca = D.cong.filter(c => c.k === o.k && c.nv === o.nv); if (!ca.length) return;
     if (!ca.some(c => o.t >= c.vao && (!c.ra || o.t <= c.ra))) { const x = (ngoai[o.nv + '|' + o.k] ??= {nv:o.nv, k:o.k, ly:0, tu:o.t, den:o.t}); x.ly += o.sl; if (o.t < x.tu) x.tu = o.t; if (o.t > x.den) x.den = o.t; } });
   const ng = Object.values(ngoai), hm = d => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
   $('hrCmt').hidden = !ng.length;
-  $('hrCmt').innerHTML = ng.length ? '⚠ <b>Đơn ghi ngoài giờ ca</b> (đã checkout hoặc trước checkin): ' + ng.map(x => `${esc(x.nv)} ${dShort(x.k)}: ${x.ly} ly (${hm(x.tu)}–${hm(x.den)})`).join(' · ') + '. Nếu là chủ quán phụ bán thì bỏ qua; nếu không, nhắc nhân viên checkout đúng giờ hoặc kiểm tra lại.' : '';
+  $('hrCmt').innerHTML = ng.length ? '⚠ <b>Đơn ghi ngoài giờ ca</b> (đã checkout hoặc trước checkin): ' + ng.map(x => `${esc(x.nv)} ${dShort(x.k)}: ${x.ly} ly (${hm(x.tu)}–${hm(x.den)})`).join(' · ') + '. Nhắc nhân viên checkout đúng giờ hoặc kiểm tra lại.' : '';
   $('hrKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Ca đã chấm</span><span class="v">${fmt(C.length)}</span><span class="s">${rows.length} người${tre ? ` · <b>${tre} lần trễ</b>` : ' · không ai trễ'}</span></div>
     <div class="kpi main"><span class="lb">Giờ làm</span><span class="v">${gio.toLocaleString('vi-VN', {maximumFractionDigits:1})}</span><span class="s">TB ${C.length ? (gio / C.length).toLocaleString('vi-VN', {maximumFractionDigits:1}) : '—'} giờ/ca</span></div>
-    <div class="kpi main"><span class="lb">Ly / giờ công</span><span class="v">${gio ? (ly / gio).toLocaleString('vi-VN', {maximumFractionDigits:1}) : '—'}</span><span class="s">${fmt(ly)} ly bán trong các ca ÷ tổng giờ công</span></div>
-    <div class="kpi main"><span class="lb">Lương tạm tính</span><span class="v">${fmtM(tien)}</span><span class="s">cột Tiền công do bot tính${chuaTinh ? ` · ${chuaTinh} ca chưa tính` : ''}${ly && tien ? ` · ${fmt(tien / ly)} đ/ly` : ''}</span></div>
+    <div class="kpi main"><span class="lb">Ly / giờ công</span><span class="v">${gioNV ? (ly / gioNV).toLocaleString('vi-VN', {maximumFractionDigits:1}) : '—'}</span><span class="s">${fmt(ly)} ly trong ca nhân viên ÷ ${gioNV.toLocaleString('vi-VN', {maximumFractionDigits:1})} giờ${D.chuTen.size ? ' · không tính chủ' : ''}</span></div>
+    <div class="kpi main"><span class="lb">Lương tạm tính</span><span class="v">${fmtM(tien)}</span><span class="s">cột Tiền công do bot tính${chuaTinh ? ` · ${chuaTinh} ca chưa tính` : ''}${(() => { const lyKy = D.orders.filter(o => o.k >= S.from && o.k <= S.to).reduce((s, o) => s + o.sl, 0); return lyKy && tien ? ` · ${fmt(tien / lyKy)} đ/ly bán` : ''; })()}</span></div>
     <div class="kpi tgt"><span class="lb">Chốt ca</span><span class="v">${fmt(chot.length)}</span><span class="s">trên ${new Set(D.orders.filter(o => o.k >= S.from && o.k <= S.to).map(o => o.k)).size} ngày có bán</span></div>
     <div class="kpi tgt"><span class="lb">Chênh két</span><span class="v ${chot.reduce((s, c) => s + c.chenh, 0) < 0 ? 'dn' : ''}">${chot.length ? fmt(chot.reduce((s, c) => s + c.chenh, 0)) : '—'}</span><span class="s">dương = dư · âm = thiếu</span></div>`;
   table({id:'tHr', rows, sortDefault:{k:'gio', d:-1}, rowKey:r => r.nv, selKey:S.nv, onRow:k => { S.nv = S.nv === k ? '' : k; syncFilters(); render(); },
-    total:{ca:C.length, gio, ly, lyh: gio ? ly / gio : null, tien, tre, quen:rows.reduce((s, r) => s + r.quen, 0)},
-    cols:[{k:'nv', l:'Nhân viên'}, {k:'ca', l:'Ca', r:1, f:fmt}, {k:'gio', l:'Giờ', r:1, heat:1, f:v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:2})},
+    total:{ca:C.length, gio, ly, lyh: gioNV ? ly / gioNV : null, tien, tre, quen:rows.reduce((s, r) => s + r.quen, 0)},
+    cols:[{k:'nv', l:'Nhân viên', f:(v, r) => esc(v) + (r.chu ? ' <span class="pill neu" title="Tính lương, không tính hiệu suất, không thưởng">chủ</span>' : '')}, {k:'ca', l:'Ca', r:1, f:fmt}, {k:'gio', l:'Giờ', r:1, heat:1, f:v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:2})},
       {k:'ly', l:'Ly trong ca', r:1, f:fmt}, {k:'lyh', l:'Ly/giờ', r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
       {k:'tien', l:'Tiền công', r:1, f:(v, r) => fmt(v) + (r.chuaTinh ? ` <span class="pill warn" title="Ca chưa checkout hoặc bot chưa tính">${r.chuaTinh} ca chưa tính</span>` : '')},
       {k:'tre', l:'Trễ', r:1, f:fmt, cls:v => v ? 'dn' : ''}, {k:'quen', l:'Quên check-out', r:1, f:fmt, cls:v => v ? 'dn' : ''}]});
@@ -1529,6 +1559,7 @@ function renderOv(){
   renderFin();   // tính quỹ, lãi, cảnh báo (vẽ luôn vào tab Thu chi đang ẩn) → FIN
   const tk = today(), m0 = tk.slice(0,8) + '01', mDays = new Date(+tk.slice(0,4), +tk.slice(5,7), 0).getDate(), mEnd = tk.slice(0,8) + p2(mDays);
   const MT = agg(D.orders.filter(o => o.k >= m0 && o.k <= tk)), TD = agg(D.orders.filter(o => o.k === tk));
+  const PN = laiNgay(tk);
   const YD = agg(D.orders.filter(o => o.k === addDays(tk, -1)));
   const BE = hoaVon(), open = D.orders.length && D.first > m0 ? D.first : m0;
   const active = open > mEnd ? 0 : nDays(open, mEnd), el = tk < open ? 0 : nDays(open, tk), run = el ? MT.ly / el * active : 0;
@@ -1536,14 +1567,15 @@ function renderOv(){
   const ganHet = [...nguyenLieu().filter(n => n.ngay != null).map(n => ({ten:n.c.ten, ngay:n.ngay})), ...vatTu().filter(v => v.ngay != null).map(v => ({ten:v.ten, ngay:v.ngay}))].sort((a, b) => a.ngay - b.ngay)[0];
   $('ovHero').innerHTML = `<p>${mlabel(tk.slice(0,7))}: <span class="hl">${fmt(MT.ly)} ly · ${fmtM(MT.dt)} đ</span> sau ${el} ngày bán, đạt ${pct(BE ? MT.ly / BE : null)} mốc hoà vốn ${fmt(BE)} ly.
     Giữ nhịp này cả tháng được <span class="hl">${fmt(run)} ly</span>, ${run >= BE ? 'vượt mốc hoà vốn' : `còn thiếu ${fmt(BE - run)} ly so với mốc hoà vốn`}.</p>
-    <p class="sm">Hôm nay ${fmt(TD.ly)} ly · ${fmt(TD.dt)} đ${YD.ly ? ` (hôm qua ${fmt(YD.ly)} ly)` : ''}. Quỹ còn ${fmtM(FIN.cash)} đ.${ganHet ? ` Cần đặt sớm nhất: ${esc(ganHet.ten)}, đủ khoảng ${fmt(Math.max(0, ganHet.ngay))} ngày.` : ''}${isPromo(tk) ? ` Đang chạy khai trương đồng giá 10K đến ${dShort(PROMO.to)}.` : ''}</p>`;
+    <p class="sm">Hôm nay ${fmt(TD.ly)} ly · ${fmt(TD.dt)} đ, ${PN.lai >= 0 ? "lãi" : "lỗ"} ước tính ${fmt(Math.abs(PN.lai))} đ sau giá vốn và lương ca${YD.ly ? ` (hôm qua ${fmt(YD.ly)} ly)` : ''}. Quỹ còn ${fmtM(FIN.cash)} đ.${ganHet ? ` Cần đặt sớm nhất: ${esc(ganHet.ten)}, đủ khoảng ${fmt(Math.max(0, ganHet.ngay))} ngày.` : ''}${isPromo(tk) ? ` Đang chạy khai trương đồng giá 10K đến ${dShort(PROMO.to)}.` : ''}</p>`;
   const pk = (lb, v, s, hot) => `<div class="pk${hot ? ' hot' : ''}"><div class="lb">${lb}</div><div class="vl">${v}</div><div class="s1">${s}</div></div>`;
   $('ovKpis').innerHTML = pk('Hôm nay', `${fmt(TD.ly)} ly`, `${fmt(TD.dt)} đ · ${fmt(TD.don)} đơn`, true)
     + pk(`Doanh thu ${mlabel(tk.slice(0,7))}`, fmtM(MT.dt), `${fmt(MT.ly)} ly · TB ${el ? fmt(MT.ly / el) : '—'} ly/ngày`)
     + pk('%Hoà vốn tháng', pct(BE ? MT.ly / BE : null), `mốc ${fmt(BE)} ly · dự phóng ${fmt(run)}`, true)
     + pk('Quỹ còn lại', fmtM(FIN.cash), FIN.capitalIn ? `${pct(FIN.cash / FIN.capitalIn, 1)} vốn góp` : '')
-    + pk('Lãi vận hành ước tính', `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, 'giá vốn theo ly bán')
-    + pk('Lương tạm tính tháng', fmtM(luong), `${D.cong.filter(c => c.k >= m0).length} ca đã chấm`);
+    + pk('Lãi vận hành ước tính', `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, `cả kỳ · giá vốn theo ly · đã trừ lương ${fmtK(luong)} tháng này`)
+    + pk('Lãi / lỗ hôm nay', `<span class="${PN.lai < 0 ? 'dn' : 'up'}">${PN.lai >= 0 ? '+' : ''}${fmtK(PN.lai)}</span>`,
+      PN.canLy == null ? 'giá bán dưới giá vốn' : `hoà khi bán ${fmt(PN.canLy)} ly · đã bán ${fmt(PN.ly)}`, true);
   const tabOf = tag => /Vật tư|Nguyên liệu/.test(tag) ? 'kho' : /Két/.test(tag) ? 'hr' : 'fin';
   const lop = {bad:'bad', warn:'warn', good:'ok'}, thuTu = {bad:0, warn:1, good:2};
   $('ovMsgs').innerHTML = FIN.alerts.slice().sort((a, b) => thuTu[a[0]] - thuTu[b[0]]).map(([lv, tag, t, d]) =>
@@ -1775,6 +1807,7 @@ function onData(res, manual, offlineAt){
   try { localStorage.setItem('kai_dash_key', KEY); localStorage.setItem('kai_dash_api', API); } catch(e){}
   const before = D ? D.orders.length : 0, first = !D;
   BAC_SV = res.bac || null;
+  CHU_SV = res.chu || null;
   try { D = parseWorkbook({SheetNames: res.names || [], Sheets: res.sheets || {}}); }
   catch (err){ showState('Không phân tích được dữ liệu', esc(err.message)); return; }
   $('status').hidden = true;
