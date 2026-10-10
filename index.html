@@ -972,7 +972,7 @@ function parseWorkbook(wb){
   // Tab Kho (bot tính: CongThuc × ly bán − lượng mua trong sổ chi, có kiểm kho /kiemkho) → nguồn duy nhất cho tồn kho trên dashboard
   // Cột: Mã · Tên · ĐV tính · ĐV mua · quy đổi · hạng mục · nội dung · báo khi còn ≤ · báo khi đủ < ngày · mua đủ cho · theo dõi · 🤖 tồn · 🤖 dùng/ngày · 🤖 đủ ngày · 🤖 nên mua · 🤖 kiểm gần nhất
   D.khoAll = rowsOf(wb, 'Kho').slice(1).filter(r => txt(r[0]) && txt(r[1])).map(r => ({ma:txt(r[0]).toLowerCase(), ten:txt(r[1]), dvTinh:txt(r[2]), dv:txt(r[3]),
-    quyDoi:num(r[4]), hangMuc:txt(r[5]), noiDung:txt(r[6])}));
+    quyDoi:num(r[4]), hangMuc:txt(r[5]), noiDung:txt(r[6]), giaTC:num(r[17])}));   // R: giá tham chiếu (đ / đv mua) khi sổ chi ghi 0 đ
   // CongThuc: hàng 1 = Mã món · Tên món · mã nguyên liệu… ; mỗi dòng = lượng (đơn vị tính) cho 1 ly
   const ctR = rowsOf(wb, 'CongThuc'), ctH = (ctR[0] || []).map(c => txt(c).toLowerCase());
   D.congThuc = {}; ctR.slice(1).forEach(r => { const m = txt(r[0]).toLowerCase(); if (!m) return; const o = {}; ctH.forEach((h, i) => { if (i > 1 && h && num(r[i]) > 0) o[h] = num(r[i]); }); D.congThuc[m] = o; });
@@ -1742,7 +1742,8 @@ function khopNL(k, r){
 function giaNL(){
   const o = {};
   D.khoAll.forEach(k => { const rs = D.chi.filter(r => khopNL(k, r)), sl = rs.reduce((s, r) => s + r.qty, 0) * (k.quyDoi || 0), tien = rs.reduce((s, r) => s + r.amt, 0);
-    o[k.ma] = {k, sl, tien, gia: sl > 0 ? tien / sl : null}; });
+    const thamChieu = k.giaTC > 0 && k.quyDoi > 0 && !(sl > 0 && tien > 0);   // sổ chi ghi 0 đ hoặc chưa có dòng mua → dùng giá tham chiếu cột R tab Kho
+    o[k.ma] = {k, sl, tien, thamChieu, gia: thamChieu ? k.giaTC / k.quyDoi : sl > 0 ? tien / sl : null}; });
   return o;
 }
 /** Giá vốn 1 ly theo công thức: {gv, thieu:[nguyên liệu chưa có giá], coCT} */
@@ -1801,9 +1802,10 @@ function renderPerf(){
     {k:'gv', l:'Giá vốn/ly', r:1, f:fmt}, {k:'laiLy', l:'Lãi/ly (giá bán)', r:1, f:fmt, cls:v => v != null && v < 0 ? 'dn' : ''}, {k:'pctLai', l:'%lãi', r:1, f:v => pct(v)},
     {k:'laiMenu', l:'Lãi/ly ở giá menu', r:1, f:fmt, heat:1}, {k:'tongLai', l:'Tổng lãi gộp', r:1, f:fmt, cls:v => v != null && v < 0 ? 'dn' : ''},
     {k:'thieu', l:'Còn thiếu', f:v => v ? `<span class="pill warn">${esc(v)}</span>` : ''}]});
-  const g0 = Object.values(G).filter(g => g.gia === 0).map(g => g.k.ten);
+  const g0 = Object.values(G).filter(g => g.gia === 0).map(g => g.k.ten), gTC = Object.values(G).filter(g => g.thamChieu);
   $('perfMonNote').innerHTML = [giaChua.length ? `Chưa tính được giá (thiếu dòng mua trong sổ chi hoặc thiếu quy đổi ở tab Kho): <b>${esc(giaChua.join(', '))}</b>.` : '',
     g0.length ? `Sổ chi ghi <b>0 đ</b> cho: ${esc(g0.join(', '))} → giá vốn tính 0 (nếu là hàng được tặng thì đúng, nếu chưa ghi giá thì sửa sổ chi).` : '',
+    gTC.length ? `Dùng <b>giá tham chiếu</b> (cột R tab Kho, vì sổ chi ghi 0 đ hoặc chưa có dòng mua): ${gTC.map(g => `${esc(g.k.ten)} ${fmt(g.k.giaTC)} đ/${esc(g.k.dv)}`).join(', ')}.` : '',
     'Món chưa đủ định lượng trong tab CongThuc để trống.'].filter(Boolean).join(' ');
 
   /* 3 · Khung giờ × người đứng ca */
