@@ -14,7 +14,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M5 13h20l-2.6 21.5a2 2 0 0 1-2 1.7H9.8a2 2 0 0 1-2-1.7z' fill='%235E3B25'/%3E%3Cpath d='M3 9h24l-1 3H4z' fill='%235E3B25'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,700;0,800;1,800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 /* Layout: brand header + view tabs → sticky filter bar → chip bar → KPI row → 3-up grid (table · donut · daily chart) → full-width charts/tables, Power-BI style cross-filter */
@@ -24,21 +25,24 @@
   --s1:#9A5526; --s2:#00809C; --s3:#B07A12; --ghost:#B9A58F;
   --good:#2F7A4B; --good-bg:#DDEFE2; --warn:#9A6A10; --warn-bg:#F6E8C7; --bad:#B23A2E; --bad-bg:#F7DEDA;
   --heat:154,85,38;
-  --f-display:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+  --f-display:'Plus Jakarta Sans',system-ui,sans-serif;
   --f-body:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --shadow:0 1px 2px rgba(46,29,18,.05),0 6px 18px rgba(46,29,18,.06);
+  --panel:#2E1D12; --panel-line:#5A4433; --panel-mute:#CBB8A3;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#17100B; --surface:#241911; --surface-2:#2C2016; --ink:#F2E6D5; --muted:#B39E89; --line:#3D2E22;
   --brand:#E3C39A; --brand-ink:#241911; --beige:#3A2B1E; --caramel:#D49B5C;
   --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#6F5D4D;
   --good:#7DCB98; --good-bg:#17301F; --warn:#E3B95B; --warn-bg:#3A2E14; --bad:#F08A7C; --bad-bg:#3B1F1A;
-  --heat:201,122,69; color-scheme:dark}}
+  --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#17100B; --surface:#241911; --surface-2:#2C2016; --ink:#F2E6D5; --muted:#B39E89; --line:#3D2E22;
   --brand:#E3C39A; --brand-ink:#241911; --beige:#3A2B1E; --caramel:#D49B5C;
   --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#6F5D4D;
   --good:#7DCB98; --good-bg:#17301F; --warn:#E3B95B; --warn-bg:#3A2E14; --bad:#F08A7C; --bad-bg:#3B1F1A;
-  --heat:201,122,69; color-scheme:dark}
+  --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
@@ -218,6 +222,73 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
 .kv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:13px}
 .kv b{font-variant-numeric:tabular-nums;text-align:right}
 .kv .sep{grid-column:1/-1;border-top:1px solid var(--line);margin:2px 0}
+
+/* ---------- font số: mono cho bảng & chỉ số ---------- */
+.num,td.r,.kv b,.feed .o .am{font-family:var(--f-mono);font-size:.96em}
+.kpi .v,.out .v{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em}
+.ct{font-family:var(--f-display);font-weight:800;letter-spacing:.02em}
+.card{box-shadow:var(--shadow)}
+
+/* ---------- header dính khi cuộn + tab cuộn ngang trên điện thoại ---------- */
+.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:12;backdrop-filter:blur(8px)}
+.tabs{overflow-x:auto;scrollbar-width:none;max-width:100%}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{white-space:nowrap;font-family:var(--f-display);font-weight:700}
+.fbar{top:calc(env(safe-area-inset-top,0px) + 62px)}
+@media (max-width:899px){.hdr{position:static}.fbar{top:env(safe-area-inset-top,0px)}}
+
+/* ---------- mục lục nhảy nhanh trong tab ---------- */
+.jnav{display:flex;gap:5px;flex-wrap:wrap}
+.jnav a{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:3px 10px;background:var(--surface)}
+.jnav a:hover{border-color:var(--caramel);color:var(--ink)}
+.card[id]{scroll-margin-top:150px}
+@media (max-width:899px){.card[id]{scroll-margin-top:12px}}
+
+/* ---------- nút trên tiêu đề thẻ: thu gọn ▾ · phóng to ⤢ ---------- */
+.ct .cbtns{margin-left:auto;display:inline-flex;gap:4px;align-self:center}
+.cbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:6px;width:26px;height:24px;cursor:pointer;font-size:13px;line-height:1;padding:0;font-family:var(--f-body)}
+.cbtn:hover{border-color:var(--caramel);color:var(--ink)}
+.card.collapsed>*:not(.ct){display:none!important}
+.card.collapsed .cbtn.col{transform:rotate(-90deg)}
+.focus-bg{position:fixed;inset:0;background:rgba(20,12,6,.55);z-index:40}
+.card.focused{position:fixed!important;top:3vh;left:0;right:0;margin:0 auto;width:min(1180px,96vw);max-height:94vh;overflow:auto;overscroll-behavior:contain;z-index:41;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.card.focused .cw{height:calc(var(--zh,1) * 52vh)!important}
+.card.focused .tblwrap{max-height:calc(var(--zh,1) * 70vh)!important}
+.zctl{display:none;align-items:center;gap:4px;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.card.focused .zctl{display:inline-flex}
+.card.focused .cbtn.col{display:none}
+body.focus-on{overflow:hidden}
+
+/* ---------- Tổng quan: câu tóm tắt · dải chỉ số tối · thông điệp chính ---------- */
+.hero p{margin:0;font-family:var(--f-display);font-weight:700;font-size:clamp(16px,1.5vw,21px);line-height:1.55;letter-spacing:-.015em}
+.hero p.sm{font-family:var(--f-body);font-weight:500;font-size:13px;color:var(--muted);margin-top:4px}
+.hl{background:linear-gradient(180deg,transparent 0 14%,var(--beige) 14% 86%,transparent 86% 100%);padding:0 .14em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.panel{background:var(--panel);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media (max-width:1100px){.panel{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.panel{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pk{border-left:2px solid var(--panel-line);padding:2px 0 2px 12px;min-width:0}
+.pk.hot{border-left-color:var(--caramel)}
+.pk .lb{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--panel-mute)}
+.pk .vl{font-family:var(--f-display);font-weight:800;font-size:clamp(19px,1.9vw,26px);letter-spacing:-.03em;color:#fff;line-height:1.15;margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk.hot .vl{color:#E3C39A}
+.pk .s1{font-family:var(--f-mono);font-size:10.5px;color:var(--panel-mute);line-height:1.5}
+.pk .up{color:#8FE0AE}.pk .dn{color:#FF9C8E}
+.km{border:1px solid var(--line);border-left:4px solid var(--caramel);border-radius:0 8px 8px 0;padding:8px 12px;display:flex;gap:12px;align-items:baseline;background:var(--surface)}
+.km .t{font-family:var(--f-display);font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--caramel);flex:0 0 92px}
+.km p{margin:0;font-size:12.5px}
+.km.ok{border-left-color:var(--good);background:var(--good-bg)}.km.ok .t{color:var(--good)}
+.km.warn{border-left-color:var(--warn);background:var(--warn-bg)}.km.warn .t{color:var(--warn)}
+.km.bad{border-left-color:var(--bad);background:var(--bad-bg)}.km.bad .t{color:var(--bad)}
+@media (max-width:560px){.km{flex-direction:column;gap:2px}.km .t{flex:none}}
+
+/* ---------- in ---------- */
+@media print{
+  .hdr{position:static;backdrop-filter:none}
+  .fbar,.tdbar,.chips,.jnav,.cbtns,.fab,.toast,details.guide,.hdr-actions .lnk,.hdr-actions .reload{display:none!important}
+  body{background:#fff}
+  .card,.kpi{box-shadow:none;break-inside:avoid}
+  .tblwrap{max-height:none!important;overflow:visible!important}
+}
 </style>
 </head>
 <body>
@@ -245,9 +316,12 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
     </div>
     <div class="hdr-actions">
       <div class="tabs" role="tablist" aria-label="Chọn trang">
+        <button role="tab" id="tab-ov" aria-selected="false" data-v="ov">Tổng quan</button>
         <button role="tab" id="tab-today" aria-selected="false" data-v="today">Hôm nay</button>
         <button role="tab" id="tab-sales" aria-selected="true" data-v="sales">Bán hàng</button>
+        <button role="tab" id="tab-mon" aria-selected="false" data-v="mon">Món</button>
         <button role="tab" id="tab-fin" aria-selected="false" data-v="fin">Thu chi</button>
+        <button role="tab" id="tab-kho" aria-selected="false" data-v="kho">Kho</button>
         <button role="tab" id="tab-hr" aria-selected="false" data-v="hr">Nhân sự</button>
       </div>
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
@@ -306,6 +380,9 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
       <li><b>Click 1 dòng</b> trong bảng Món hoặc Nhân viên, hoặc 1 cột trong chart Khung giờ, để lọc cả dashboard theo đó. Click lại để bỏ. Bộ lọc đang bật hiện ở thanh chip, bấm ✕ để gỡ.</li>
       <li><b>Click tiêu đề cột</b> để sắp xếp. Dòng Tổng luôn nằm cuối và tính lại tỉ lệ từ tổng, không lấy trung bình.</li>
       <li>Dấu <b>＋</b> ở bảng Món: mở xem món đó bán theo từng ngày.</li>
+      <li>Nút <b>⤢</b> góc phải mỗi thẻ: phóng to thẻ giữa màn hình, chỉnh cỡ bằng <b>− / +</b>, <b>Vừa khung</b> để về mặc định, <b>Esc</b> hoặc bấm ra ngoài để đóng. Nút <b>▾</b>: thu gọn thẻ ít xem, máy sẽ nhớ.</li>
+      <li>Hàng nút tròn đầu mỗi tab là <b>mục lục</b>: bấm để nhảy tới thẻ đó.</li>
+      <li>Các tab: <b>Tổng quan</b> (tóm tắt + việc cần chú ý) · <b>Hôm nay</b> · <b>Bán hàng</b> · <b>Món</b> · <b>Thu chi</b> · <b>Kho</b> (nguyên liệu, vật tư) · <b>Nhân sự</b>. Bộ lọc kỳ/nhân viên/món chỉ áp cho Bán hàng, Món, Nhân sự.</li>
     </ul>
     <h4>Màu &amp; ký hiệu</h4>
     <ul>
@@ -320,8 +397,31 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
     <p>Dashboard đọc Google Sheet "[Kai Café] Internal Dashboard" qua API Apps Script của bot. Lần đầu mở trên máy này cần nhập link API và mật khẩu.</p>
   </div>
 
+  <!-- ================= TỔNG QUAN ================= -->
+  <div class="view" id="v-ov" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục tab Tổng quan"></nav>
+    <section class="hero" id="ovHero" aria-label="Tóm tắt"></section>
+    <section class="panel" id="ovKpis" aria-label="Chỉ số chính"></section>
+    <div class="card" id="sec-ov-msg">
+      <div class="ct">Cần chú ý <span class="nt">· gom từ mọi tab, việc gấp lên trước</span></div>
+      <div style="display:grid;gap:6px" id="ovMsgs"></div>
+    </div>
+    <div class="g2">
+      <div class="card" id="sec-ov-14d">
+        <div class="ct">14 ngày gần nhất <span class="nt">· cột = số ly · đường = doanh thu</span></div>
+        <div class="cw"><canvas id="cOv14" aria-label="Số ly và doanh thu 14 ngày gần nhất"></canvas></div>
+      </div>
+      <div class="card" id="sec-ov-month">
+        <div class="ct">Theo tháng <span class="nt">· doanh thu · chi · dòng tiền</span></div>
+        <div class="cw"><canvas id="cOvMonth" aria-label="Doanh thu, chi và dòng tiền theo tháng"></canvas></div>
+        <div class="legend" id="lgOvMonth"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= HÔM NAY ================= -->
   <div class="view" id="v-today" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục"></nav>
     <div class="kpis" id="tdKpis"></div>
     <div class="g2">
       <div class="card">
@@ -366,13 +466,10 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
 
   <!-- ================= BÁN HÀNG ================= -->
   <div class="view" id="v-sales" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục"></nav>
     <div class="kpis" id="kpis"></div>
 
-    <div class="g311">
-      <div class="card">
-        <div class="ct">Bán theo món <span class="nt">· click dòng để lọc · ＋ xem theo ngày</span></div>
-        <div class="tblwrap" style="max-height:330px"><table id="tMon"></table></div>
-      </div>
+    <div class="g2">
       <div class="card">
         <div class="ct">Cơ cấu thanh toán</div>
         <div class="cw sm"><canvas id="cPay" aria-label="Tỉ lệ doanh thu tiền mặt và chuyển khoản"></canvas></div>
@@ -387,12 +484,6 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
     </div>
 
     <div class="cmt" id="autoCmt"></div>
-
-    <div class="card" id="promoCard" hidden>
-      <div class="ct">Khai trương 10K vs giá thường <span class="nt">· cả quán, không theo bộ lọc · TB mỗi ngày có bán</span></div>
-      <div class="tblwrap" style="border:0"><table id="tPromo"></table></div>
-      <div class="cmt" id="promoCmt"></div>
-    </div>
 
     <div class="g3">
       <div class="card">
@@ -427,19 +518,38 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
     </div>
   </div>
 
+  <!-- ================= MÓN ================= -->
+  <div class="view" id="v-mon" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục tab Món"></nav>
+    <div class="g2">
+      <div class="card" id="sec-mon-tbl">
+        <div class="ct">Bán theo món <span class="nt">· click dòng để lọc cả dashboard · ＋ xem theo ngày</span></div>
+        <div class="tblwrap" style="max-height:380px"><table id="tMon"></table></div>
+      </div>
+      <div class="card" id="sec-mon-top">
+        <div class="ct">Món bán chạy <span class="nt">· số ly trong kỳ · màu theo nhóm món</span></div>
+        <div class="cw tall"><canvas id="cMonTop" aria-label="Số ly theo món"></canvas></div>
+        <div class="legend" id="lgMonTop"></div>
+      </div>
+    </div>
+    <div class="card" id="sec-mon-hour">
+      <div class="ct">Món × khung giờ <span class="nt">· số ly, nền đậm = bán nhiều · thấy món nào chạy giờ nào</span></div>
+      <div class="tblwrap" style="max-height:360px"><table id="tMonHour"></table></div>
+    </div>
+    <div class="card" id="promoCard" hidden>
+      <div class="ct">Khai trương 10K vs giá thường <span class="nt">· cả quán, không theo bộ lọc · TB mỗi ngày có bán</span></div>
+      <div class="tblwrap" style="border:0"><table id="tPromo"></table></div>
+      <div class="cmt" id="promoCmt"></div>
+    </div>
+  </div>
+
   <!-- ================= THU CHI ================= -->
   <div class="view" id="v-fin" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục"></nav>
     <div class="kpis" id="finKpis"></div>
     <div class="card">
       <div class="ct">Cần xử lý</div>
       <div class="alerts" id="alerts"></div>
-    </div>
-    <div class="card">
-      <div class="ct">Tồn vật tư ước tính <span class="nt">· còn / đã mua · mỗi ly dùng 1 cái</span></div>
-      <div class="kv" id="vatTu"></div>
-      <div class="lbl">Nguyên liệu pha</div>
-      <div class="tblwrap" style="border:0"><table id="tNL"></table></div>
-      <p class="muted" id="nlNote" style="margin:0;font-size:12px"></p>
     </div>
     <div class="card">
       <div class="ct">Theo tháng <span class="nt">· doanh thu từ bot · dòng tiền = vốn + doanh thu − chi</span></div>
@@ -489,8 +599,29 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
     </div>
   </div>
 
+  <!-- ================= KHO ================= -->
+  <div class="view" id="v-kho" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục tab Kho"></nav>
+    <div class="card" id="sec-kho-nl">
+      <div class="ct">Nguyên liệu pha <span class="nt">· ước tính theo công thức × số ly bán · chưa trừ hao hụt</span></div>
+      <div class="tblwrap" style="border:0"><table id="tNL"></table></div>
+      <p class="muted" id="nlNote" style="margin:0;font-size:12px"></p>
+    </div>
+    <div class="g2">
+      <div class="card" id="sec-kho-vt">
+        <div class="ct">Vật tư 1 cái/ly <span class="nt">· còn / đã mua</span></div>
+        <div class="kv" id="vatTu"></div>
+      </div>
+      <div class="card" id="sec-kho-chart">
+        <div class="ct">Đủ dùng bao nhiêu ngày <span class="nt">· theo nhịp 7 ngày gần nhất · vạch đỏ = 7 ngày</span></div>
+        <div class="cw sm"><canvas id="cKho" aria-label="Số ngày đủ dùng của từng nguyên liệu"></canvas></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= NHÂN SỰ ================= -->
   <div class="view" id="v-hr" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục"></nav>
     <div class="kpis" id="hrKpis"></div>
     <div class="card">
       <div class="ct">Nhân viên trong kỳ <span class="nt">· giờ &amp; tiền công từ ChamCong · ly trong ca = đơn nằm giữa giờ vào và giờ ra · ly/giờ = ly trong ca ÷ giờ làm</span></div>
@@ -655,7 +786,8 @@ function parseWorkbook(wb){
 
 /* ============ state ============ */
 let D = null;
-const S = {view:'today', tdK:'', preset:'mtd', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:60,
+const VIEWS = ['ov', 'today', 'sales', 'mon', 'fin', 'kho', 'hr'];
+const S = {view:'ov', tdK:'', preset:'mtd', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:60,
   sort:{}, open:new Set(), fixFr:false, finMonth:'all'};
 try { const t = +localStorage.getItem('kai_tgt'); if (t > 0) S.tgt = t; } catch(e){}
 try { const v = localStorage.getItem('kai_view'); if (v) S.view = v; } catch(e){}
@@ -1157,6 +1289,7 @@ function renderFin(){
     return {m, rev, gv:by('Giá vốn'), vh:by('Vận hành') + by('Nhân sự') + by('Khác'), dt:by('Đầu tư'), chi, flow, run, empty:!rev && !chi && !cap}; });
   const nz = v => v ? fmt(v) : '–';
   S.sort.tMonth = {k:'m', d:1};
+  FIN = {cash, lai, totalRev, capitalIn, alerts:A, mRows};   // tab Tổng quan dùng lại
   table({id:'tMonth', rows:mRows, sortDefault:{k:'m', d:1}, cols:[
     {k:'m', l:'Tháng', f:v => mlabel(v)}, {k:'rev', l:'Doanh thu', r:1, f:nz}, {k:'gv', l:'Giá vốn', r:1, f:nz}, {k:'vh', l:'Vận hành', r:1, f:nz},
     {k:'dt', l:'Đầu tư', r:1, f:nz}, {k:'chi', l:'Tổng chi', r:1, f:nz},
@@ -1264,6 +1397,122 @@ function renderHr(){
     {k:'tien', l:'Tiền công', r:1, f:v => v == null ? '—' : fmt(v)}, {k:'note', l:'Ghi chú', f:v => esc(v || '')}]});
 }
 
+/* ============ render: tổng quan ============ */
+let FIN = null;
+function renderOv(){
+  renderFin();   // tính quỹ, lãi, cảnh báo (vẽ luôn vào tab Thu chi đang ẩn) → FIN
+  const tk = today(), m0 = tk.slice(0,8) + '01', mDays = new Date(+tk.slice(0,4), +tk.slice(5,7), 0).getDate(), mEnd = tk.slice(0,8) + p2(mDays);
+  const MT = agg(D.orders.filter(o => o.k >= m0 && o.k <= tk)), TD = agg(D.orders.filter(o => o.k === tk));
+  const YD = agg(D.orders.filter(o => o.k === addDays(tk, -1)));
+  const BE = hoaVon(), open = D.orders.length && D.first > m0 ? D.first : m0;
+  const active = open > mEnd ? 0 : nDays(open, mEnd), el = tk < open ? 0 : nDays(open, tk), run = el ? MT.ly / el * active : 0;
+  const luong = D.cong.filter(c => c.k >= m0 && c.k <= tk).reduce((s, c) => s + (c.tien || 0), 0);
+  const ganHet = [...nguyenLieu().filter(n => n.ngay != null).map(n => ({ten:n.c.ten, ngay:n.ngay})), ...vatTu().filter(v => v.ngay != null).map(v => ({ten:v.ten, ngay:v.ngay}))].sort((a, b) => a.ngay - b.ngay)[0];
+  $('ovHero').innerHTML = `<p>${mlabel(tk.slice(0,7))}: <span class="hl">${fmt(MT.ly)} ly · ${fmtM(MT.dt)} đ</span> sau ${el} ngày bán, đạt ${pct(BE ? MT.ly / BE : null)} mốc hoà vốn ${fmt(BE)} ly.
+    Giữ nhịp này cả tháng được <span class="hl">${fmt(run)} ly</span>, ${run >= BE ? 'vượt mốc hoà vốn' : `còn thiếu ${fmt(BE - run)} ly so với mốc hoà vốn`}.</p>
+    <p class="sm">Hôm nay ${fmt(TD.ly)} ly · ${fmt(TD.dt)} đ${YD.ly ? ` (hôm qua ${fmt(YD.ly)} ly)` : ''}. Quỹ còn ${fmtM(FIN.cash)} đ.${ganHet ? ` Cần đặt sớm nhất: ${esc(ganHet.ten)}, đủ khoảng ${fmt(Math.max(0, ganHet.ngay))} ngày.` : ''}${isPromo(tk) ? ` Đang chạy khai trương đồng giá 10K đến ${dShort(PROMO.to)}.` : ''}</p>`;
+  const pk = (lb, v, s, hot) => `<div class="pk${hot ? ' hot' : ''}"><div class="lb">${lb}</div><div class="vl">${v}</div><div class="s1">${s}</div></div>`;
+  $('ovKpis').innerHTML = pk('Hôm nay', `${fmt(TD.ly)} ly`, `${fmt(TD.dt)} đ · ${fmt(TD.don)} đơn`, true)
+    + pk(`Doanh thu ${mlabel(tk.slice(0,7))}`, fmtM(MT.dt), `${fmt(MT.ly)} ly · TB ${el ? fmt(MT.ly / el) : '—'} ly/ngày`)
+    + pk('%Hoà vốn tháng', pct(BE ? MT.ly / BE : null), `mốc ${fmt(BE)} ly · dự phóng ${fmt(run)}`, true)
+    + pk('Quỹ còn lại', fmtM(FIN.cash), FIN.capitalIn ? `${pct(FIN.cash / FIN.capitalIn, 1)} vốn góp` : '')
+    + pk('Lãi vận hành ước tính', `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, 'giá vốn theo ly bán')
+    + pk('Lương tạm tính tháng', fmtM(luong), `${D.cong.filter(c => c.k >= m0).length} ca đã chấm`);
+  const tabOf = tag => /Vật tư|Nguyên liệu/.test(tag) ? 'kho' : /Két/.test(tag) ? 'hr' : 'fin';
+  const lop = {bad:'bad', warn:'warn', good:'ok'}, thuTu = {bad:0, warn:1, good:2};
+  $('ovMsgs').innerHTML = FIN.alerts.slice().sort((a, b) => thuTu[a[0]] - thuTu[b[0]]).map(([lv, tag, t, d]) =>
+    `<div class="km ${lop[lv] || ''}"><span class="t">${tag}</span><p><b>${t}.</b> ${d} ${lv === 'good' ? '' : `<a href="#" data-go="${tabOf(tag)}">Xem →</a>`}</p></div>`).join('');
+  $('ovMsgs').querySelectorAll('[data-go]').forEach(a => a.onclick = e => { e.preventDefault(); setView(a.dataset.go); scrollTo(0, 0); });
+  // 14 ngày gần nhất
+  const d14 = []; for (let i = 13; i >= 0; i--) d14.push(addDays(tk, -i));
+  const by = groupBy(D.orders, o => o.k), s1 = css('--s1'), s2 = css('--s2'), s3 = css('--s3'), bad = css('--bad');
+  mk('cOv14', {type:'bar', data:{labels:d14.map(k => `${thu(k)} ${dShort(k)}`), datasets:[
+      Object.assign({label:'Ly', data:d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.sl, 0)), yAxisID:'y', order:2}, barStyle(s1)),
+      {type:'line', label:'Doanh thu', data:d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.tt, 0)), yAxisID:'y1', borderColor:s3, backgroundColor:s3, borderWidth:2, pointRadius:2, tension:.25, order:1}]},
+    options:{scales:{x:{grid:{display:false}, ticks:{maxRotation:0, autoSkipPadding:8}}, y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5}},
+      y1:{position:'right', beginAtZero:true, grid:{display:false}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
+      plugins:{tooltip:{callbacks:{label:c => c.dataset.label === 'Ly' ? ` ${c.raw} ly` : ` ${fmt(c.raw)} đ`}}}}});
+  // theo tháng: chỉ các tháng đã có số
+  const mr = FIN.mRows.filter(r => !r.empty);
+  mk('cOvMonth', {type:'bar', data:{labels:mr.map(r => mlabel(r.m)), datasets:[
+      Object.assign({label:'Doanh thu', data:mr.map(r => r.rev)}, barStyle(s1)), Object.assign({label:'Chi', data:mr.map(r => r.chi)}, barStyle(css('--ghost'))),
+      {type:'line', label:'Quỹ cuối tháng', data:mr.map(r => r.run), borderColor:s2, backgroundColor:s2, borderWidth:2, pointRadius:3}]},
+    options:{scales:{y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
+      plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} đ`}}}}});
+  $('lgOvMonth').innerHTML = `<span><i style="background:${s1}"></i>Doanh thu</span><span><i style="background:${css('--ghost')}"></i>Chi (sổ tháng)</span><span><i style="background:${s2}"></i>Quỹ cuối tháng</span>`;
+}
+
+/* ============ render: món ============ */
+function renderMon(){
+  const L = sel(new Set(['mon'])), byMon = groupBy(L, o => o.mon);
+  const rows = [...byMon].map(([m, l]) => [m, l.reduce((s, o) => s + o.sl, 0)]).sort((a, b) => b[1] - a[1]);
+  const nhom = m => (D.menu[m] || {}).nhom || 'Khác', NH = [...new Set(rows.map(r => nhom(r[0])))];
+  const pal = [css('--s1'), css('--s2'), css('--s3'), css('--caramel'), css('--ghost'), css('--good')], mau = n => pal[NH.indexOf(n) % pal.length];
+  mk('cMonTop', {type:'bar', data:{labels:rows.map(r => r[0]), datasets:[{label:'Ly', data:rows.map(r => r[1]),
+      backgroundColor:rows.map(r => !S.mon || S.mon === r[0] ? mau(nhom(r[0])) : css('--line')), borderRadius:4, maxBarThickness:18}]},
+    options:{indexAxis:'y', interaction:{mode:'nearest', intersect:true}, scales:{x:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5}}, y:{grid:{display:false}}},
+      onClick:(e, els) => { if (!els.length) return; const m = rows[els[0].index][0]; S.mon = S.mon === m ? '' : m; syncFilters(); render(); },
+      onHover:(e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      plugins:{tooltip:{callbacks:{label:c => ` ${c.raw} ly · ${nhom(c.label)}`}}}}});
+  $('lgMonTop').innerHTML = NH.map(n => `<span><i style="background:${mau(n)}"></i>${esc(n)}</span>`).join('');
+  // món × khung giờ
+  const hrs = [...new Set(L.filter(o => o.h != null).map(o => o.h))].sort((a, b) => a - b), cell = {}; let max = 0;
+  L.forEach(o => { if (o.h == null) return; const k = o.mon + '|' + o.h; cell[k] = (cell[k] || 0) + o.sl; max = Math.max(max, cell[k]); });
+  $('tMonHour').innerHTML = !rows.length ? '<tbody><tr><td class="muted" style="text-align:center;padding:18px">Không có dữ liệu trong kỳ / bộ lọc đang chọn.</td></tr></tbody>'
+    : '<thead><tr><th>Món</th>' + hrs.map(h => `<th class="r">${p2(h)}h</th>`).join('') + '<th class="r">Tổng</th></tr></thead><tbody>'
+    + rows.map(([m, n]) => `<tr><td>${esc(m)}</td>` + hrs.map(h => { const v = cell[m + '|' + h] || 0;
+        return `<td class="r num"${v ? ` style="background:rgba(${css('--heat')},${(0.1 + 0.6 * v / max).toFixed(2)})"` : ''}>${v || ''}</td>`; }).join('') + `<td class="r num"><b>${n}</b></td></tr>`).join('') + '</tbody>';
+}
+
+/* ============ render: kho ============ */
+function renderKho(){
+  const it = [...nguyenLieu().filter(n => n.ngay != null).map(n => ({ten:n.c.ten, ngay:Math.max(0, n.ngay)})), ...vatTu().filter(v => v.ngay != null).map(v => ({ten:v.ten, ngay:Math.max(0, v.ngay)}))].sort((a, b) => a.ngay - b.ngay);
+  const bad = css('--bad'), warn = css('--warn'), good = css('--good');
+  mk('cKho', {type:'bar', data:{labels:it.map(x => x.ten), datasets:[{label:'Đủ dùng', data:it.map(x => Math.round(x.ngay)),
+      backgroundColor:it.map(x => x.ngay < 3 ? bad : x.ngay < 7 ? warn : good), borderRadius:4, maxBarThickness:20},
+      {type:'line', label:'Mốc 7 ngày', data:it.map(() => 7), borderColor:bad, borderDash:[3, 3], borderWidth:1.5, pointRadius:0, indexAxis:'y'}]},
+    options:{indexAxis:'y', interaction:{mode:'nearest', intersect:true}, scales:{x:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:6}}, y:{grid:{display:false}}},
+      plugins:{tooltip:{callbacks:{label:c => c.datasetIndex ? null : ` đủ khoảng ${c.raw} ngày`}}}}});
+}
+
+/* ============ thẻ: mục lục · thu gọn ▾ · phóng to ⤢ (− + Vừa khung, Esc để đóng) ============ */
+let GOP = new Set(); try { GOP = new Set(JSON.parse(localStorage.getItem('kai_gop') || '[]')); } catch(e){}
+const tieuDe = c => { const ct = c.querySelector(':scope > .ct'); return ct ? [...ct.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : ''; };
+function nangCapThe(root){
+  if (!root) return;
+  const cards = [...root.querySelectorAll('.card')];
+  cards.forEach((c, i) => {
+    if (!c.id) c.id = 'sec-' + root.id.slice(2) + '-' + i;
+    const ct = c.querySelector(':scope > .ct'); if (!ct || ct.querySelector('.cbtns')) return;
+    ct.insertAdjacentHTML('beforeend', `<span class="cbtns"><span class="zctl"><button class="cbtn" data-z="-1" title="Thu nhỏ">−</button><span class="zpct">100%</span><button class="cbtn" data-z="1" title="Phóng to">+</button><button class="cbtn" data-z="0" style="width:auto;padding:0 8px" title="Về cỡ mặc định">Vừa khung</button></span><button class="cbtn col" title="Thu gọn / mở thẻ">▾</button><button class="cbtn foc" title="Phóng to thẻ · Esc để đóng">⤢</button></span>`);
+    if (GOP.has(c.id)) c.classList.add('collapsed');
+  });
+  const nav = root.querySelector(':scope > .jnav');
+  if (nav) nav.innerHTML = cards.filter(c => !c.hidden && tieuDe(c)).map(c => `<a href="#${c.id}">${esc(tieuDe(c))}</a>`).join('');
+}
+let FOCUS = null;
+const veLai = c => setTimeout(() => c.querySelectorAll('canvas').forEach(cv => { const ch = Chart.getChart(cv); if (ch) ch.resize(); }), 30);
+function moThe(c){
+  dongThe(); FOCUS = c; c.classList.remove('collapsed'); c.classList.add('focused'); c.style.setProperty('--zh', 1); c.querySelector('.zpct').textContent = '100%';
+  c.querySelector('.foc').textContent = '✕'; document.body.classList.add('focus-on');
+  const bg = document.createElement('div'); bg.className = 'focus-bg'; bg.id = 'focusBg'; bg.onclick = dongThe; document.body.appendChild(bg); veLai(c);
+}
+function dongThe(){
+  if (!FOCUS) return; const c = FOCUS; FOCUS = null;
+  c.classList.remove('focused'); c.style.removeProperty('--zh'); c.querySelector('.foc').textContent = '⤢';
+  if (GOP.has(c.id)) c.classList.add('collapsed');
+  document.body.classList.remove('focus-on'); const bg = $('focusBg'); if (bg) bg.remove(); veLai(c);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.cbtn'); if (!b) return; const c = b.closest('.card'); if (!c) return;
+  if (b.classList.contains('foc')) return FOCUS === c ? dongThe() : moThe(c);
+  if (b.classList.contains('col')){ c.classList.toggle('collapsed'); c.classList.contains('collapsed') ? GOP.add(c.id) : GOP.delete(c.id);
+    try { localStorage.setItem('kai_gop', JSON.stringify([...GOP])); } catch(err){} if (!c.classList.contains('collapsed')) veLai(c); return; }
+  if (b.dataset.z != null){ const z = +b.dataset.z, cur = +c.style.getPropertyValue('--zh') || 1, nz = z === 0 ? 1 : Math.min(2.5, Math.max(.5, cur + z * .25));
+    c.style.setProperty('--zh', nz); c.querySelector('.zpct').textContent = Math.round(nz * 100) + '%'; veLai(c); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && FOCUS) dongThe(); });
+
 /* ============ glue ============ */
 function syncFilters(){
   $('dFrom').value = S.from; $('dTo').value = S.to; $('fNv').value = S.nv; $('fPt').value = S.pt; $('fMon').value = S.mon; $('fDay').value = S.day;
@@ -1280,18 +1529,22 @@ function renderChips(){
 }
 function setView(v){
   S.view = v; try { localStorage.setItem('kai_view', v); } catch(e){}
-  ['today', 'sales', 'fin', 'hr'].forEach(x => { $('v-' + x).hidden = !D || x !== v; $('tab-' + x).setAttribute('aria-selected', x === v); });
-  $('fbar').style.display = (v === 'fin' || v === 'today') ? 'none' : '';
+  if (!VIEWS.includes(v)) v = S.view = 'ov';
+  VIEWS.forEach(x => { $('v-' + x).hidden = !D || x !== v; $('tab-' + x).setAttribute('aria-selected', x === v); });
+  const coLoc = ['sales', 'mon', 'hr'].includes(v);   // tab dùng bộ lọc kỳ / nhân viên / món
+  $('fbar').style.display = coLoc ? '' : 'none';
   $('tdbar').hidden = v !== 'today';
-  $('chips').style.display = v === 'today' ? 'none' : '';
+  $('chips').style.display = coLoc ? '' : 'none';
   if (D) render();
 }
 function render(){
   if (!D) return;
   chartBase();
-  $('hdrRange').textContent = S.view === 'today' ? `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
+  $('hdrRange').textContent = S.view === 'today' ? `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`
+    : ['ov', 'fin', 'kho'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips();
-  if (S.view === 'today') renderToday(); else if (S.view === 'sales') renderSales(); else if (S.view === 'fin') renderFin(); else renderHr();
+  ({ov:renderOv, today:renderToday, sales:renderSales, mon:() => { renderSales(); renderMon(); }, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
+  nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
   const keep = (id, list) => { const s = $(id), v = s.value; s.innerHTML = '<option value="">Tất cả</option>' + list.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join(''); s.value = list.includes(v) ? v : ''; };
@@ -1341,7 +1594,7 @@ function apiGet(params){
     .then(t => { try { return JSON.parse(t); } catch(e){ throw new Error('API không trả JSON. Kiểm tra đã dán Dashboard.gs và triển khai bản mới.'); } });
 }
 function setUpd(state, t){ $('upd').className = 'updchip ' + state; $('updTxt').textContent = t; }
-function hideViews(){ ['today','sales','fin','hr'].forEach(x => $('v-' + x).hidden = true); }
+function hideViews(){ VIEWS.forEach(x => $('v-' + x).hidden = true); }
 function showState(title, body){ $('status').hidden = false; $('status').innerHTML = `<span class="t">${title}</span><p>${body}</p>`; }
 function askKey(msg){
   D = null; hideViews(); $('fbar').style.display = 'none'; $('tdbar').hidden = true;
