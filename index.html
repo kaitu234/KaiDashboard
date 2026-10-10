@@ -429,6 +429,8 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
     <div class="sgrp">Bán hàng</div>
     <button role="tab" id="tab-sales" aria-selected="true" data-v="sales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="nm">Bán hàng<small>doanh thu · ngày · giờ</small></span></button>
     <button role="tab" id="tab-mon" aria-selected="false" data-v="mon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.6 11.2a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z"/><path d="M4 5h16"/><path d="M9 2.5h6"/></svg><span class="nm">Món<small>món chạy · khung giờ</small></span></button>
+    <div class="sgrp">Phân tích</div>
+    <button role="tab" id="tab-perf" aria-selected="false" data-v="perf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 12l5-3"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/></svg><span class="nm">Hiệu suất<small>lãi món · khung giờ · dự báo</small></span></button>
     <div class="sgrp">Tiền &amp; kho</div>
     <button role="tab" id="tab-fin" aria-selected="false" data-v="fin"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2"/></svg><span class="nm">Thu chi<small>quỹ · lãi · sổ chi</small></span></button>
     <button role="tab" id="tab-kho" aria-selected="false" data-v="kho"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span class="nm">Kho<small>nguyên liệu · vật tư</small></span></button>
@@ -740,6 +742,53 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
     </div>
   </div>
 
+  <!-- ================= HIỆU SUẤT ================= -->
+  <div class="view" id="v-perf" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục tab Hiệu suất"></nav>
+    <div class="cmt" id="perfNote"></div>
+    <div class="card" id="sec-perf-fc">
+      <div class="ct">Dự báo ngày mai <span class="nt">· cùng thứ 4 tuần gần nhất (thiếu thì TB 7 ngày) · điều chỉnh khuyến mãi, mưa khi đủ dữ liệu</span></div>
+      <div class="kv" id="perfFc"></div>
+    </div>
+    <div class="card" id="sec-perf-mon">
+      <div class="ct">Lãi theo món <span class="nt">· giá vốn = định lượng tab CongThuc × giá mua từng nguyên liệu trong sổ chi + 1 ly · kỳ đang lọc</span></div>
+      <div class="tblwrap" style="max-height:420px"><table id="tPerfMon"></table></div>
+      <p class="muted" id="perfMonNote" style="margin:0;font-size:12px"></p>
+    </div>
+    <div class="card" id="sec-perf-slot">
+      <div class="ct">Khung giờ × người đứng ca <span class="nt">· TB mỗi ngày có bán trong kỳ · lãi sau lương = ly × (giá TB − giá vốn/ly) − lương các người có mặt</span></div>
+      <div class="cw"><canvas id="cPerfSlot" aria-label="Số ly và lãi sau lương theo khung 30 phút"></canvas></div>
+      <div class="legend" id="lgPerfSlot"></div>
+      <div class="tblwrap" style="max-height:380px"><table id="tPerfSlot"></table></div>
+      <div class="cmt" id="perfSlotCmt"></div>
+    </div>
+    <div class="g2">
+      <div class="card" id="sec-perf-km">
+        <div class="ct">Khuyến mãi 10K theo món <span class="nt">· ly/ngày trong đợt vs sau đợt</span></div>
+        <div class="tblwrap" style="max-height:360px"><table id="tPerfKM"></table></div>
+      </div>
+      <div class="card" id="sec-perf-combo">
+        <div class="ct">Giỏ hàng &amp; combo <span class="nt">· món hay mua cùng đơn · ly/đơn theo giờ</span></div>
+        <div class="kv" id="perfGio"></div>
+        <div class="tblwrap" style="max-height:300px"><table id="tPerfCombo"></table></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card" id="sec-perf-nhip">
+        <div class="ct">Nhịp đơn giờ cao điểm <span class="nt">· mỗi ngày: giờ đông nhất, đơn nhiều nhất trong 5 phút, khoảng trống dài nhất giữa 2 đơn</span></div>
+        <div class="tblwrap" style="max-height:320px"><table id="tPerfNhip"></table></div>
+      </div>
+      <div class="card" id="sec-perf-ket">
+        <div class="ct">Két theo người chốt ca <span class="nt">· cộng dồn chênh lệch /chotca</span></div>
+        <div class="tblwrap" style="max-height:320px"><table id="tPerfKet"></table></div>
+      </div>
+    </div>
+    <div class="card" id="sec-perf-hh">
+      <div class="ct">Hao hụt nguyên liệu <span class="nt">· /kiemkho: số đếm thực tế so với số bot ước tính</span></div>
+      <div class="tblwrap" style="max-height:320px"><table id="tPerfHH"></table></div>
+    </div>
+  </div>
+
   <!-- ================= NHÂN SỰ ================= -->
   <div class="view" id="v-hr" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục"></nav>
@@ -922,6 +971,13 @@ function parseWorkbook(wb){
     const t = num(r[2]) + num(r[3]) + num(r[4]); if (t) D.legacyRev.push({k:dk(d), tt:t}); });
   // Tab Kho (bot tính: CongThuc × ly bán − lượng mua trong sổ chi, có kiểm kho /kiemkho) → nguồn duy nhất cho tồn kho trên dashboard
   // Cột: Mã · Tên · ĐV tính · ĐV mua · quy đổi · hạng mục · nội dung · báo khi còn ≤ · báo khi đủ < ngày · mua đủ cho · theo dõi · 🤖 tồn · 🤖 dùng/ngày · 🤖 đủ ngày · 🤖 nên mua · 🤖 kiểm gần nhất
+  D.khoAll = rowsOf(wb, 'Kho').slice(1).filter(r => txt(r[0]) && txt(r[1])).map(r => ({ma:txt(r[0]).toLowerCase(), ten:txt(r[1]), dvTinh:txt(r[2]), dv:txt(r[3]),
+    quyDoi:num(r[4]), hangMuc:txt(r[5]), noiDung:txt(r[6])}));
+  // CongThuc: hàng 1 = Mã món · Tên món · mã nguyên liệu… ; mỗi dòng = lượng (đơn vị tính) cho 1 ly
+  const ctR = rowsOf(wb, 'CongThuc'), ctH = (ctR[0] || []).map(c => txt(c).toLowerCase());
+  D.congThuc = {}; ctR.slice(1).forEach(r => { const m = txt(r[0]).toLowerCase(); if (!m) return; const o = {}; ctH.forEach((h, i) => { if (i > 1 && h && num(r[i]) > 0) o[h] = num(r[i]); }); D.congThuc[m] = o; });
+  // KiemKho: Lúc · Mã · Nguyên liệu · Đếm được · Ước tính lúc kiểm · Chênh · Người kiểm
+  D.kiemKho = rowsOf(wb, 'KiemKho').slice(1).filter(r => txt(r[1])).map(r => ({luc:toDate(r[0]), ma:txt(r[1]).toLowerCase(), ten:txt(r[2]), dem:num(r[3]), uoc:num(r[4]), chenh:num(r[5]), ai:txt(r[6])}));
   D.kho = rowsOf(wb, 'Kho').slice(1).filter(r => txt(r[1])).map(r => ({ma:txt(r[0]), ten:txt(r[1]), dv:txt(r[3]),
     ton: r[11] == null ? null : num(r[11]), dung:num(r[12]), ngay: r[13] == null ? null : num(r[13]), nenMua:txt(r[14]), kiem:txt(r[15]),
     baoCon:num(r[7]), baoNgay:num(r[8]) || 3, theoDoi: r[10] !== false && String(r[10]).toUpperCase() !== 'FALSE'})).filter(x => x.theoDoi);
@@ -940,7 +996,7 @@ function parseWorkbook(wb){
 
 /* ============ state ============ */
 let D = null;
-const VIEWS = ['ov', 'today', 'sales', 'mon', 'fin', 'kho', 'hr'];
+const VIEWS = ['ov', 'today', 'sales', 'mon', 'perf', 'fin', 'kho', 'hr'];
 /* Tiêu đề + câu mô tả mỗi tab (kiểu Squad: tab này trả lời câu hỏi gì) */
 const VIEW_INFO = {
   ov:['Tổng quan', 'Tháng này quán đang ở đâu so với mốc hoà vốn, và việc gì cần xử lý trước.'],
@@ -950,6 +1006,7 @@ const VIEW_INFO = {
   mon:['Món', 'Món nào chạy, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
   fin:['Thu chi', 'Quỹ còn bao nhiêu, lãi vận hành, các khoản chi theo khối và người chi.'],
   kho:['Kho', 'Nguyên liệu và vật tư còn đủ dùng bao nhiêu ngày theo nhịp bán hiện tại.'],
+  perf:['Hiệu suất', 'Món nào lãi thật, khung giờ nào đáng mở và cần mấy người, ngày mai bán bao nhiêu, đơn chạy có nghẽn không. Mục chưa đủ dữ liệu để trống.'],
 };
 const S = {view:'ov', tdK:'', preset:'mtd', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:60,
   sort:{}, open:new Set(), fixFr:false, finMonth:'all'};
@@ -1667,6 +1724,169 @@ function renderMon(){
         return `<td class="r num"${v ? ` style="background:rgba(${css('--heat')},${(0.1 + 0.6 * v / max).toFixed(2)})"` : ''}>${v || ''}</td>`; }).join('') + `<td class="r num"><b>${n}</b></td></tr>`).join('') + '</tbody>';
 }
 
+/* ============ render: hiệu suất ============ */
+const PERF_LY_1NGUOI_30P = 20;   // 1 người pha được khoảng bao nhiêu ly trong 30 phút lúc cao điểm (ước tính – chỉnh theo thực tế)
+const boDau = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd');
+const tb = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+/** Dòng sổ chi có phải mua nguyên liệu k không – cùng quy tắc khopNL_ của bot (hạng mục · nội dung bắt đầu bằng · từ khoá trừ "-x") */
+function khopNL(k, r){
+  if (!k.hangMuc && !k.noiDung) return false;
+  if (k.hangMuc && boDau(k.hangMuc).trim() !== boDau(r.cat).trim()) return false;
+  const nd = boDau(r.desc).replace(/\s+/g, ' ').trim(), toks = k.noiDung.split('|').map(t => boDau(t).replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const dau = t => new RegExp('^' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![a-z0-9])').test(nd);
+  if (toks.some(t => t[0] === '-' && dau(t.slice(1).trim()))) return false;
+  const cong = toks.filter(t => t[0] !== '-');
+  return !cong.length || cong.some(dau);
+}
+/** Giá mua mỗi đơn vị tính (g, ml, cái) của từng nguyên liệu = tổng tiền ÷ (tổng SL × quy đổi) trong sổ chi. Chưa có dòng mua / chưa có quy đổi → null */
+function giaNL(){
+  const o = {};
+  D.khoAll.forEach(k => { const rs = D.chi.filter(r => khopNL(k, r)), sl = rs.reduce((s, r) => s + r.qty, 0) * (k.quyDoi || 0), tien = rs.reduce((s, r) => s + r.amt, 0);
+    o[k.ma] = {k, sl, tien, gia: sl > 0 ? tien / sl : null}; });
+  return o;
+}
+/** Giá vốn 1 ly theo công thức: {gv, thieu:[nguyên liệu chưa có giá], coCT} */
+function giaVonMon(ma, G){
+  const ct = D.congThuc[String(ma).toLowerCase()];
+  if (!ct || !Object.keys(ct).length) return {gv:null, thieu:[], coCT:false};
+  let gv = 0; const thieu = [];
+  Object.entries(ct).forEach(([nl, l]) => { const g = G[nl]; if (g && g.gia != null) gv += l * g.gia; else thieu.push(g ? g.k.ten : nl); });
+  return {gv, thieu, coCT:true};
+}
+const lyTheoNgay = () => { const o = {}; D.orders.forEach(x => o[x.k] = (o[x.k] || 0) + x.sl); return o; };
+
+function renderPerf(){
+  const L = sel(), A = agg(L), G = giaNL(), cogs = Math.max(0, parseFloat($('cogs').value) || 0), hm = m => `${p2(Math.floor(m / 60))}:${p2(m % 60)}`;
+  const ngayKy = [...new Set(L.map(o => o.k))].sort();
+  $('perfNote').innerHTML = `Kỳ đang lọc có <b>${ngayKy.length} ngày bán</b>. ${ngayKy.length < 14 ? 'Khung giờ, dự báo và so sánh khuyến mãi sẽ đáng tin hơn khi có 2–3 tuần dữ liệu; ô "—" là chưa đủ dữ liệu.' : ''}`;
+
+  /* 1 · Dự báo ngày mai (dùng toàn bộ lịch sử, không theo bộ lọc) */
+  (() => {
+    const tk = today(), mai = addDays(tk, 1), lyN = lyTheoNgay(), daXong = k => k < tk || (k === tk && new Date().getHours() >= 12);
+    const ngay = Object.keys(lyN).filter(daXong).sort();
+    if (!ngay.length){ $('perfFc').innerHTML = '<span class="muted" style="grid-column:1/-1">Chưa có ngày bán nào để dự báo.</span>'; return; }
+    const cungThu = ngay.filter(k => thu(k) === thu(mai)).slice(-4), mau = cungThu.length ? cungThu : ngay.slice(-7);
+    let du = tb(mau.map(k => lyN[k])); const coSo = [cungThu.length ? `TB ${cungThu.length} ${thu(mai)} gần nhất` : `TB ${mau.length} ngày bán gần nhất (chưa có ${thu(mai)} nào)`], ghi = [];
+    const kmMau = mau.filter(isPromo).length > mau.length / 2, kmMai = isPromo(mai), P = ngay.filter(isPromo), N = ngay.filter(k => !isPromo(k));
+    let he = 1;
+    if (kmMai !== kmMau){ if (P.length && N.length){ const r = kmMai ? tb(P.map(k => lyN[k])) / tb(N.map(k => lyN[k])) : tb(N.map(k => lyN[k])) / tb(P.map(k => lyN[k])); he *= r; coSo.push(`× ${r.toLocaleString('vi-VN', {maximumFractionDigits:2})} (${kmMai ? 'vào' : 'hết'} khuyến mãi)`); }
+      else ghi.push(kmMai ? 'chưa có ngày giá thường để so' : 'ngày mai hết đồng giá 10K nhưng chưa có ngày giá thường để biết lượng khách giữ lại → số dự báo có thể cao hơn thực tế'); }
+    const w = WX[mai], coW = ngay.filter(k => WX[k]), mua = coW.filter(k => WX[k].mm >= 2), kho = coW.filter(k => WX[k].mm < 2);
+    if (w && mua.length >= 2 && kho.length >= 2){ const r = w.mm >= 2 ? tb(mua.map(k => lyN[k])) / tb(kho.map(k => lyN[k])) : 1; if (r !== 1){ he *= r; coSo.push(`× ${r.toLocaleString('vi-VN', {maximumFractionDigits:2})} (trời mưa)`); } }
+    else if (w && w.mm >= 2) ghi.push('mai có mưa nhưng chưa đủ ngày mưa/khô để biết ảnh hưởng');
+    du = Math.round(du * he);
+    const lo = Math.round(Math.min(...mau.map(k => lyN[k])) * he), hi = Math.round(Math.max(...mau.map(k => lyN[k])) * he);
+    // cao điểm: tỉ trọng khung 30 phút đông nhất trong ngày (TB các ngày mẫu) → cần mấy người
+    const tiTrong = tb(mau.map(k => { const s = {}; D.orders.filter(o => o.k === k && o.min != null).forEach(o => { const b = Math.floor(o.min / 30); s[b] = (s[b] || 0) + o.sl; }); return Math.max(0, ...Object.values(s)) / (lyN[k] || 1); }));
+    const dinh = Math.round(du * (tiTrong || 0)), nguoi = Math.max(1, Math.ceil(dinh / PERF_LY_1NGUOI_30P));
+    const gia = kmMai ? 10000 : (D.giaThuong || A.asp || 0);
+    const ly7 = tb(ngay.slice(-7).map(k => lyN[k])) || 0;
+    const nl = D.kho.filter(x => x.dung > 0 && ly7).map(x => ({x, can: x.dung * du / ly7})).map(({x, can}) => `${esc(x.ten)} ~${can.toLocaleString('vi-VN', {maximumFractionDigits:2})} ${esc(x.dv)}${x.ton != null && x.ton < can ? ' <span class="dn">(không đủ!)</span>' : ''}`);
+    $('perfFc').innerHTML = `<span>${thu(mai) === 'CN' ? 'Chủ nhật' : 'Thứ ' + thu(mai).slice(1)} ${dShort(mai)}${leOf(mai) ? ' · ' + esc(leOf(mai)) : ''}${wxTxt(mai) ? ' · ' + wxTxt(mai) : ''}${kmMai ? ' · <span class="pill warn">10K</span>' : ''}</span><b></b>
+      <span><b style="text-align:left">Dự báo số ly</b></span><b>${fmt(du)} ly <span class="muted" style="font-weight:400">(${fmt(lo)}–${fmt(hi)})</span></b>
+      <span>Doanh thu dự kiến</span><b>${fmt(du * gia)} đ</b>
+      <span>Khung 30 phút đông nhất</span><b>~${fmt(dinh)} ly → ${nguoi} người đứng ca</b>
+      <span>Nguyên liệu cho ngày mai</span><b style="font-weight:400;text-align:right">${nl.join(' · ') || '—'}</b>
+      <span class="muted" style="grid-column:1/-1;font-size:11.5px">Cơ sở: ${coSo.join(' ')}. 1 người ≈ ${PERF_LY_1NGUOI_30P} ly/30 phút lúc cao điểm (chỉnh hằng số PERF_LY_1NGUOI_30P nếu khác).${ghi.length ? ' Lưu ý: ' + ghi.join('; ') + '.' : ''}</span>`;
+  })();
+
+  /* 2 · Lãi theo món */
+  const byMon = groupBy(L, o => o.mon), giaChua = [];
+  Object.values(G).forEach(g => { if (Object.values(D.congThuc).some(ct => ct[g.k.ma]) && g.gia == null) giaChua.push(g.k.ten); });
+  const monRows = [...byMon].map(([mon, l]) => { const a = agg(l), m = D.menu[mon] || {}, g = giaVonMon(m.ma || l[0].ma, G), du = g.coCT && !g.thieu.length;
+    return {mon, ly:a.ly, asp:a.asp, giaMenu:m.gia || null, gv: du ? g.gv : null, laiLy: du && a.asp != null ? a.asp - g.gv : null, pctLai: du && a.asp ? (a.asp - g.gv) / a.asp : null,
+      laiMenu: du && m.gia ? m.gia - g.gv : null, tongLai: du && a.asp != null ? (a.asp - g.gv) * a.ly : null, thieu: !g.coCT ? 'chưa có công thức' : g.thieu.length ? 'thiếu giá: ' + g.thieu.join(', ') : ''}; });
+  table({id:'tPerfMon', rows:monRows, sortDefault:{k:'tongLai', d:-1}, total:{ly:A.ly, tongLai: monRows.some(r => r.tongLai != null) ? monRows.reduce((s, r) => s + (r.tongLai || 0), 0) : null}, cols:[
+    {k:'mon', l:'Món'}, {k:'ly', l:'Ly', r:1, f:fmt}, {k:'asp', l:'Giá TB bán', r:1, f:fmt}, {k:'giaMenu', l:'Giá menu', r:1, f:fmt},
+    {k:'gv', l:'Giá vốn/ly', r:1, f:fmt}, {k:'laiLy', l:'Lãi/ly (giá bán)', r:1, f:fmt, cls:v => v != null && v < 0 ? 'dn' : ''}, {k:'pctLai', l:'%lãi', r:1, f:v => pct(v)},
+    {k:'laiMenu', l:'Lãi/ly ở giá menu', r:1, f:fmt, heat:1}, {k:'tongLai', l:'Tổng lãi gộp', r:1, f:fmt, cls:v => v != null && v < 0 ? 'dn' : ''},
+    {k:'thieu', l:'Còn thiếu', f:v => v ? `<span class="pill warn">${esc(v)}</span>` : ''}]});
+  const g0 = Object.values(G).filter(g => g.gia === 0).map(g => g.k.ten);
+  $('perfMonNote').innerHTML = [giaChua.length ? `Chưa tính được giá (thiếu dòng mua trong sổ chi hoặc thiếu quy đổi ở tab Kho): <b>${esc(giaChua.join(', '))}</b>.` : '',
+    g0.length ? `Sổ chi ghi <b>0 đ</b> cho: ${esc(g0.join(', '))} → giá vốn tính 0 (nếu là hàng được tặng thì đúng, nếu chưa ghi giá thì sửa sổ chi).` : '',
+    'Món chưa đủ định lượng trong tab CongThuc để trống.'].filter(Boolean).join(' ');
+
+  /* 3 · Khung giờ × người đứng ca */
+  (() => {
+    const tk = today(), now = new Date(), cogsLy = cogs, asp = A.asp || 0, slot = {}, ngay = ngayKy;
+    L.forEach(o => { if (o.min == null) return; const b = Math.floor(o.min / 30) * 30; (slot[b] ??= {ly:0, luong:0, nguoi:0}).ly += o.sl; });
+    ngay.forEach(k => D.cong.filter(c => c.k === k).forEach(c => { const het = c.ra || (k === tk ? now : null); if (!het) return;
+      Object.keys(slot).forEach(b => { const d0 = fromKey(k); d0.setMinutes(+b); const d1 = new Date(d0.getTime() + 30 * 6e4);
+        const ov = Math.max(0, (Math.min(het, d1) - Math.max(c.vao, d0)) / 6e4); if (!ov) return; slot[b].nguoi += ov / 30; slot[b].luong += ov * (c.luongGio || 0) / 60; }); }));
+    const nd = ngay.length || 1, coCong = D.cong.some(c => ngay.includes(c.k));
+    const rows = Object.keys(slot).map(Number).sort((a, b) => a - b).map(b => { const s = slot[b], ly = s.ly / nd, nguoi = coCong ? s.nguoi / nd : null, luong = coCong ? s.luong / nd : null;
+      return {k:b, khung:`${hm(b)}–${hm(b + 30)}`, ly, nguoi, luong, lai: luong == null ? null : ly * (asp - cogsLy) - luong, lyNguoi: nguoi ? ly / nguoi : null}; });
+    table({id:'tPerfSlot', rows, sortDefault:{k:'k', d:1}, cols:[{k:'khung', l:'Khung'}, {k:'ly', l:'Ly TB', r:1, heat:1, f:v => v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
+      {k:'nguoi', l:'Người có mặt TB', r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})}, {k:'lyNguoi', l:'Ly/người', r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
+      {k:'luong', l:'Lương TB', r:1, f:fmt}, {k:'lai', l:'Lãi sau lương', r:1, f:fmt, cls:v => v == null ? '' : v < 0 ? 'dn' : 'up'}]});
+    const s1 = css('--s1'), s3 = css('--s3');
+    mk('cPerfSlot', {type:'bar', data:{labels:rows.map(r => hm(r.k)), datasets:[Object.assign({label:'Ly TB', data:rows.map(r => +r.ly.toFixed(1)), yAxisID:'y', order:2}, barStyle(s1)),
+        {type:'line', label:'Lãi sau lương', data:rows.map(r => r.lai == null ? null : Math.round(r.lai)), yAxisID:'y1', borderColor:s3, backgroundColor:s3, borderWidth:2, pointRadius:3, order:1}]},
+      options:{scales:{y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}}, y1:{position:'right', grid:{display:false}, border:{display:false}, ticks:{callback:v => fmtK(v)}}},
+        plugins:{tooltip:{callbacks:{label:c => c.dataset.yAxisID === 'y1' ? ` Lãi sau lương: ${fmt(c.raw)} đ` : ` ${c.raw} ly`}}}}});
+    $('lgPerfSlot').innerHTML = `<span><i style="background:${s1}"></i>Ly TB mỗi ngày</span><span><i style="background:${s3}"></i>Lãi sau lương (trục phải)</span>`;
+    const lo = rows.filter(r => r.lai != null && r.lai < 0), thieu = rows.filter(r => r.nguoi != null && r.ly > PERF_LY_1NGUOI_30P * Math.max(1, Math.round(r.nguoi))),
+      thua = rows.filter(r => r.nguoi != null && r.nguoi >= 1.5 && r.ly < PERF_LY_1NGUOI_30P);
+    $('perfSlotCmt').innerHTML = !rows.length ? 'Chưa có đơn trong kỳ.' : !coCong ? 'Chưa có chấm công trong kỳ nên chưa tính được lương theo khung giờ.' : [
+      lo.length ? `<span class="dn">Khung chưa đủ trả lương:</span> ${lo.map(r => r.khung).join(', ')} → cân nhắc bớt người hoặc đóng sớm.` : '<span class="up">Mọi khung đều đủ trả lương.</span>',
+      thieu.length ? `<b>Có thể thiếu người:</b> ${thieu.map(r => r.khung).join(', ')} (hơn ${PERF_LY_1NGUOI_30P} ly/người/30 phút).` : '',
+      thua.length ? `<b>Có thể thừa người:</b> ${thua.map(r => r.khung).join(', ')} (≥ 2 người mà dưới ${PERF_LY_1NGUOI_30P} ly).` : ''].filter(Boolean).join(' ');
+  })();
+
+  /* 4 · Khuyến mãi theo món (cả quán) */
+  (() => {
+    const P = D.orders.filter(o => isPromo(o.k)), N = D.orders.filter(o => o.k > PROMO.to), nP = new Set(P.map(o => o.k)).size, nN = new Set(N.map(o => o.k)).size;
+    const mons = [...new Set(P.concat(N).map(o => o.mon))];
+    const rows = mons.map(m => { const p = P.filter(o => o.mon === m).reduce((s, o) => s + o.sl, 0), n = N.filter(o => o.mon === m).reduce((s, o) => s + o.sl, 0);
+      const a = nP ? p / nP : null, b = nN ? n / nN : null; return {mon:m, km:a, sau:b, giu: a && b != null ? b / a : null}; });
+    table({id:'tPerfKM', rows, sortDefault:{k:'km', d:-1}, cols:[{k:'mon', l:'Món'}, {k:'km', l:`Ly/ngày đợt 10K (${nP} ngày)`, r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
+      {k:'sau', l:`Ly/ngày sau đợt (${nN} ngày)`, r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
+      {k:'giu', l:'Giữ lại', r:1, f:v => v == null ? '—' : pct(v), cls:v => v == null ? '' : v >= .6 ? 'up' : 'dn'}]});
+  })();
+
+  /* 5 · Giỏ hàng & combo */
+  (() => {
+    const don = [...groupBy(L, o => o.id)].map(([id, l]) => ({id, ly:l.reduce((s, o) => s + o.sl, 0), mons:[...new Set(l.map(o => o.mon))], h:l[0].h}));
+    const cap = {}; don.forEach(d => { const m = d.mons.slice().sort(); for (let i = 0; i < m.length; i++) for (let j = i + 1; j < m.length; j++){ const k = m[i] + ' + ' + m[j]; cap[k] = (cap[k] || 0) + 1; } });
+    const rows = Object.entries(cap).map(([k, n]) => ({k, n, p: don.length ? n / don.length : null}));
+    table({id:'tPerfCombo', rows, sortDefault:{k:'n', d:-1}, cols:[{k:'k', l:'Cặp món cùng đơn'}, {k:'n', l:'Số đơn', r:1, f:fmt}, {k:'p', l:'% đơn', r:1, f:v => pct(v, 1)}]});
+    const byH = groupBy(don.filter(d => d.h != null), d => d.h), hh = [...byH].map(([h, l]) => [h, tb(l.map(d => d.ly))]).sort((a, b) => b[1] - a[1])[0];
+    $('perfGio').innerHTML = !don.length ? '<span class="muted" style="grid-column:1/-1">Chưa có đơn trong kỳ.</span>' :
+      `<span>Số đơn</span><b>${fmt(don.length)}</b><span>Ly / đơn TB</span><b>${(A.ly / don.length).toLocaleString('vi-VN', {maximumFractionDigits:2})}</b>
+       <span>Đơn từ 2 ly</span><b>${pct(don.filter(d => d.ly >= 2).length / don.length)}</b><span>Đơn có 2 món khác nhau trở lên</span><b>${pct(don.filter(d => d.mons.length >= 2).length / don.length)}</b>
+       ${hh ? `<span>Giờ mua nhiều ly/đơn nhất</span><b>${p2(hh[0])}h · ${hh[1].toLocaleString('vi-VN', {maximumFractionDigits:2})} ly/đơn</b>` : ''}`;
+  })();
+
+  /* 6 · Nhịp đơn giờ cao điểm */
+  (() => {
+    const rows = ngayKy.map(k => { const l = L.filter(o => o.k === k && o.min != null), byH = groupBy(l, o => o.h);
+      const [h, lh] = [...byH].sort((a, b) => b[1].reduce((s, o) => s + o.sl, 0) - a[1].reduce((s, o) => s + o.sl, 0))[0] || [];
+      if (h == null) return {k, gio:null};
+      const t = [...new Set(lh.map(o => o.id))].map(id => lh.find(o => o.id === id).min).sort((a, b) => a - b);
+      const nam = {}; t.forEach(m => nam[Math.floor(m / 5)] = (nam[Math.floor(m / 5)] || 0) + 1);
+      const gap = t.slice(1).map((m, i) => m - t[i]);
+      return {k, gio:h, ly:lh.reduce((s, o) => s + o.sl, 0), don:t.length, max5:Math.max(...Object.values(nam)), gapMax: gap.length ? Math.max(...gap) : null, gapTb: tb(gap)}; });
+    table({id:'tPerfNhip', rows, sortDefault:{k:'k', d:-1}, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`}, {k:'gio', l:'Giờ đông nhất', f:v => v == null ? '—' : p2(v) + 'h'},
+      {k:'ly', l:'Ly', r:1, f:fmt}, {k:'don', l:'Đơn', r:1, f:fmt}, {k:'max5', l:'Đơn nhiều nhất / 5 phút', r:1, f:fmt, heat:1},
+      {k:'gapMax', l:'Trống dài nhất', r:1, f:v => v == null ? '—' : v + ' phút', cls:v => v != null && v >= 15 ? 'dn' : ''}, {k:'gapTb', l:'TB giữa 2 đơn', r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' phút'}]});
+  })();
+
+  /* 7 · Két theo người chốt ca */
+  (() => {
+    const C = D.chot.filter(c => c.k >= S.from && c.k <= S.to);
+    const rows = [...groupBy(C, c => c.nv)].map(([nv, l]) => ({nv, lan:l.length, chenh:l.reduce((s, c) => s + c.chenh, 0), thieu:l.filter(c => c.chenh < 0).length, maxThieu:Math.min(0, ...l.map(c => c.chenh))}));
+    table({id:'tPerfKet', rows, sortDefault:{k:'chenh', d:1}, cols:[{k:'nv', l:'Người chốt'}, {k:'lan', l:'Số lần', r:1, f:fmt}, {k:'chenh', l:'Tổng chênh', r:1, f:v => v === 0 ? '<span class="up">khớp</span>' : fmt(v), cls:v => v < 0 ? 'dn' : ''},
+      {k:'thieu', l:'Lần thiếu', r:1, f:fmt, cls:v => v ? 'dn' : ''}, {k:'maxThieu', l:'Thiếu nhiều nhất', r:1, f:v => v ? fmt(v) : '—'}]});
+  })();
+
+  /* 8 · Hao hụt (từ /kiemkho) */
+  table({id:'tPerfHH', rows:D.kiemKho.map(x => Object.assign({}, x, {t: x.luc ? x.luc.getTime() : 0, pct: x.uoc ? x.chenh / x.uoc : null})), sortDefault:{k:'t', d:-1}, cols:[
+    {k:'t', l:'Lúc', f:(v, r) => r.luc ? `${dShort(dk(r.luc))} ${p2(r.luc.getHours())}:${p2(r.luc.getMinutes())}` : '—'}, {k:'ten', l:'Nguyên liệu'},
+    {k:'dem', l:'Đếm được', r:1, f:v => v.toLocaleString('vi-VN')}, {k:'uoc', l:'Bot ước tính', r:1, f:v => v.toLocaleString('vi-VN', {maximumFractionDigits:2})},
+    {k:'chenh', l:'Chênh', r:1, f:v => v.toLocaleString('vi-VN', {maximumFractionDigits:2}), cls:v => v < 0 ? 'dn' : ''}, {k:'pct', l:'% hao hụt', r:1, f:v => v == null ? '—' : pct(-v, 1), cls:v => v != null && v < -.05 ? 'dn' : ''}, {k:'ai', l:'Người kiểm'}]});
+  if (!D.kiemKho.length) $('tPerfHH').querySelector('tbody').innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:14px">Chưa có lần kiểm kho nào. Gõ <b>/kiemkho</b> trên bot (ví dụ cuối tuần) để bot so số đếm thực tế với số ước tính.</td></tr>';
+}
+
 /* ============ render: kho ============ */
 /** Danh sách {ten, ngay} đủ dùng bao nhiêu ngày: ưu tiên tab Kho của bot, thiếu thì tự tính như cũ */
 const duNgay = () => (D.kho.length ? D.kho.filter(x => x.ngay != null).map(x => ({ten:x.ten, ngay:x.ngay}))
@@ -1738,7 +1958,7 @@ function setView(v){
   if (!VIEWS.includes(v)) v = S.view = 'ov';
   const info = VIEW_INFO[v]; $('mTitle').textContent = info[0]; $('mSub').innerHTML = info[1]; document.title = `${info[0]} · Kai Café`;
   VIEWS.forEach(x => { $('v-' + x).hidden = !D || x !== v; $('tab-' + x).setAttribute('aria-selected', x === v); });
-  const coLoc = ['sales', 'mon', 'hr'].includes(v);   // tab dùng bộ lọc kỳ / nhân viên / món
+  const coLoc = ['sales', 'mon', 'perf', 'hr'].includes(v);   // tab dùng bộ lọc kỳ / nhân viên / món
   $('fbar').style.display = coLoc ? '' : 'none';
   $('tdbar').hidden = v !== 'today';
   $('chips').style.display = coLoc ? '' : 'none';
@@ -1757,7 +1977,7 @@ function render(){
   $('hdrRange').textContent = S.view === 'today' ? `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`
     : ['ov', 'fin', 'kho'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips(); demLoc();
-  ({ov:renderOv, today:renderToday, sales:renderSales, mon:() => { renderSales(); renderMon(); }, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
+  ({ov:renderOv, today:renderToday, sales:renderSales, mon:() => { renderSales(); renderMon(); }, perf:renderPerf, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
