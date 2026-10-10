@@ -12,37 +12,37 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kai Café">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M5 13h20l-2.6 21.5a2 2 0 0 1-2 1.7H9.8a2 2 0 0 1-2-1.7z' fill='%235E3B25'/%3E%3Cpath d='M3 9h24l-1 3H4z' fill='%235E3B25'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,700;0,800;1,800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* Layout: brand header + view tabs → sticky filter bar → chip bar → KPI row → 3-up grid (table · donut · daily chart) → full-width charts/tables, Power-BI style cross-filter */
+/* Layout kiểu Squad: thanh bên trái (nhóm tab) + vùng chính (tiêu đề tab · mục lục · thẻ). Nhận diện Kai Café bản nâu – trắng – be, hệ chữ Every Half (Space Mono + IBM Plex Mono). */
 :root{
-  --bg:#F3EADB; --surface:#FFFBF4; --surface-2:#F8F0E3; --ink:#2E1D12; --muted:#7D6654; --line:#E2D2BA;
-  --brand:#5E3B25; --brand-ink:#FFFBF4; --beige:#EBDCC3; --caramel:#B7793A;
-  --s1:#9A5526; --s2:#00809C; --s3:#B07A12; --ghost:#B9A58F;
+  --bg:#F6EFE3; --paper:#EBDCC3; --surface:#FFFFFF; --surface-2:#F6EFE3; --ink:#5E3B25; --muted:#8A6B55; --line:#E2D2BA;
+  --brand:#5E3B25; --brand-ink:#FFFFFF; --beige:#EBDCC3; --caramel:#B7793A;
+  --s1:#5E3B25; --s2:#00809C; --s3:#B7793A; --ghost:#C9B49A;
   --good:#2F7A4B; --good-bg:#DDEFE2; --warn:#9A6A10; --warn-bg:#F6E8C7; --bad:#B23A2E; --bad-bg:#F7DEDA;
-  --heat:154,85,38;
-  --f-display:'Plus Jakarta Sans',system-ui,sans-serif;
-  --f-body:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
-  --shadow:0 1px 2px rgba(46,29,18,.05),0 6px 18px rgba(46,29,18,.06);
-  --panel:#2E1D12; --panel-line:#5A4433; --panel-mute:#CBB8A3;
+  --heat:94,59,37;
+  --f-display:'Space Mono','IBM Plex Mono','Courier New',monospace;
+  --f-body:'IBM Plex Mono','Space Mono','Courier New',monospace;
+  --f-mono:'IBM Plex Mono','Space Mono','Courier New',monospace;
+  --shadow:0 1px 2px rgba(94,59,37,.05),0 6px 18px rgba(94,59,37,.06);
+  --panel:#5E3B25; --panel-line:#8A6B55; --panel-mute:#EBDCC3;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#17100B; --surface:#241911; --surface-2:#2C2016; --ink:#F2E6D5; --muted:#B39E89; --line:#3D2E22;
   --brand:#E3C39A; --brand-ink:#241911; --beige:#3A2B1E; --caramel:#D49B5C;
   --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#6F5D4D;
   --good:#7DCB98; --good-bg:#17301F; --warn:#E3B95B; --warn-bg:#3A2E14; --bad:#F08A7C; --bad-bg:#3B1F1A;
-  --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+  --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --paper:#2C2016; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#17100B; --surface:#241911; --surface-2:#2C2016; --ink:#F2E6D5; --muted:#B39E89; --line:#3D2E22;
   --brand:#E3C39A; --brand-ink:#241911; --beige:#3A2B1E; --caramel:#D49B5C;
   --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#6F5D4D;
   --good:#7DCB98; --good-bg:#17301F; --warn:#E3B95B; --warn-bg:#3A2E14; --bad:#F08A7C; --bad-bg:#3B1F1A;
-  --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+  --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --paper:#2C2016; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
@@ -59,8 +59,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .brandrow{display:flex;align-items:center;gap:14px;min-width:0;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:8px;color:var(--brand)}
 .logo .wm{display:grid;line-height:.85}
-.logo .k{font-family:var(--f-display);font-weight:800;font-size:34px;letter-spacing:.04em}
-.logo .c{font-family:var(--f-display);font-weight:600;font-size:10.5px;letter-spacing:.42em;display:flex;align-items:center;gap:4px}
+.logo .k{font-family:var(--f-display);font-weight:700;font-size:34px;letter-spacing:.04em}
+.logo .c{font-family:var(--f-display);font-weight:500;font-size:10.5px;letter-spacing:.42em;display:flex;align-items:center;gap:4px}
 .logo .c::before,.logo .c::after{content:"";height:1px;width:8px;background:currentColor}
 .vsep{width:1px;height:34px;background:var(--line)}
 .ttl h1{margin:0;font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);text-wrap:balance}
@@ -72,7 +72,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .updchip.err .dot{background:var(--bad)}
 .hdr-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .tabs{display:flex;gap:2px;background:var(--beige);padding:3px;border-radius:8px}
-.tabs button{border:0;background:transparent;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12.5px}
+.tabs button{border:0;background:transparent;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:500;font-size:12.5px}
 .tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink)}
 .lnk{font-size:12px;border:1px solid var(--line);background:var(--surface);padding:5px 10px;border-radius:6px;cursor:pointer;text-decoration:none;color:var(--ink);white-space:nowrap}
 .lnk:hover{border-color:var(--caramel)}
@@ -165,7 +165,7 @@ th .ar{opacity:.7;margin-left:3px}
 tbody tr{cursor:default}
 tbody tr.click{cursor:pointer}
 tbody tr.click:hover td{background:var(--surface-2)}
-tbody tr.sel td{background:var(--beige);font-weight:600}
+tbody tr.sel td{background:var(--beige);font-weight:500}
 tbody tr.child td{background:var(--surface-2);color:var(--muted);font-size:12px}
 tbody tr.child td:first-child{padding-left:30px}
 tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;border-top:2px solid var(--brand)}
@@ -181,7 +181,7 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
 .alert.bad{border-left-color:var(--bad)} .alert.good{border-left-color:var(--good)}
 .alert .t{font-weight:700}
 .alert .d{font-size:12.5px;color:var(--muted)}
-.alert .fix{font-size:12px;color:var(--brand);white-space:nowrap;font-weight:600}
+.alert .fix{font-size:12px;color:var(--brand);white-space:nowrap;font-weight:500}
 @media (max-width:640px){.alert{grid-template-columns:auto minmax(0,1fr)}.alert .fix{grid-column:2;white-space:normal}}
 .stack{display:flex;height:22px;border-radius:4px;overflow:hidden;gap:2px;background:var(--surface)}
 .stack span{display:block;height:100%}
@@ -225,8 +225,8 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
 
 /* ---------- font số: mono cho bảng & chỉ số ---------- */
 .num,td.r,.kv b,.feed .o .am{font-family:var(--f-mono);font-size:.96em}
-.kpi .v,.out .v{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em}
-.ct{font-family:var(--f-display);font-weight:800;letter-spacing:.02em}
+.kpi .v,.out .v{font-family:var(--f-display);font-weight:700;letter-spacing:.02em}
+.ct{font-family:var(--f-display);font-weight:700;letter-spacing:.02em}
 .card{box-shadow:var(--shadow)}
 
 /* ---------- header dính khi cuộn + tab cuộn ngang trên điện thoại ---------- */
@@ -260,7 +260,7 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
 body.focus-on{overflow:hidden}
 
 /* ---------- Tổng quan: câu tóm tắt · dải chỉ số tối · thông điệp chính ---------- */
-.hero p{margin:0;font-family:var(--f-display);font-weight:700;font-size:clamp(16px,1.5vw,21px);line-height:1.55;letter-spacing:-.015em}
+.hero p{margin:0;font-family:var(--f-display);font-weight:700;font-size:clamp(16px,1.5vw,21px);line-height:1.55;letter-spacing:.02em}
 .hero p.sm{font-family:var(--f-body);font-weight:500;font-size:13px;color:var(--muted);margin-top:4px}
 .hl{background:linear-gradient(180deg,transparent 0 14%,var(--beige) 14% 86%,transparent 86% 100%);padding:0 .14em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .panel{background:var(--panel);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
@@ -269,22 +269,85 @@ body.focus-on{overflow:hidden}
 .pk{border-left:2px solid var(--panel-line);padding:2px 0 2px 12px;min-width:0}
 .pk.hot{border-left-color:var(--caramel)}
 .pk .lb{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--panel-mute)}
-.pk .vl{font-family:var(--f-display);font-weight:800;font-size:clamp(19px,1.9vw,26px);letter-spacing:-.03em;color:#fff;line-height:1.15;margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk .vl{font-family:var(--f-display);font-weight:700;font-size:clamp(19px,1.9vw,26px);letter-spacing:.02em;color:#fff;line-height:1.15;margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pk.hot .vl{color:#E3C39A}
 .pk .s1{font-family:var(--f-mono);font-size:10.5px;color:var(--panel-mute);line-height:1.5}
 .pk .up{color:#8FE0AE}.pk .dn{color:#FF9C8E}
 .km{border:1px solid var(--line);border-left:4px solid var(--caramel);border-radius:0 8px 8px 0;padding:8px 12px;display:flex;gap:12px;align-items:baseline;background:var(--surface)}
-.km .t{font-family:var(--f-display);font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--caramel);flex:0 0 92px}
+.km .t{font-family:var(--f-display);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--caramel);flex:0 0 92px}
 .km p{margin:0;font-size:12.5px}
 .km.ok{border-left-color:var(--good);background:var(--good-bg)}.km.ok .t{color:var(--good)}
 .km.warn{border-left-color:var(--warn);background:var(--warn-bg)}.km.warn .t{color:var(--warn)}
 .km.bad{border-left-color:var(--bad);background:var(--bad-bg)}.km.bad .t{color:var(--bad)}
 @media (max-width:560px){.km{flex-direction:column;gap:2px}.km .t{flex:none}}
 
+/* ---------- hệ chữ Every Half: chỉ Space Mono 400/700 + IBM Plex Mono 400/500; chữ đậm luôn là Space Mono ---------- */
+body{font-size:12.5px;letter-spacing:.01em}
+b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.guide summary,.tdbar .live,.alert .fix,.kpi .v,.out .v,.pk .vl{font-family:var(--f-display)}
+.fi label,.kpi .lb,.lbl,th,.pk .lb,.km .t{font-family:var(--f-body);font-weight:500}
+.ct,th,.kpi .lb,.lbl,.fi label,.km .t,.pill,.tabs button,.presets button,.lnk,.reload{text-transform:uppercase;letter-spacing:.06em}
+.ct{font-size:12px;letter-spacing:.05em}
+.ct .nt{text-transform:none;letter-spacing:.02em;font-family:var(--f-body)}
+.kpi .v{font-size:clamp(20px,2.1vw,27px);letter-spacing:.02em}
+.hero p{font-size:clamp(15px,1.35vw,19px);letter-spacing:.01em}
+.cmt,.alert .d,.km p,.hero p.sm,.msub{letter-spacing:.02em}
+
+/* ---------- khung: thanh bên + vùng chính ---------- */
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.side{background:var(--paper);border-right:2px solid var(--brand);position:sticky;top:0;height:100vh;overflow-y:auto;padding:18px 0;display:flex;flex-direction:column;color:var(--brand)}
+.side .brand{padding:0 18px 14px;border-bottom:1.5px solid var(--brand);margin-bottom:6px;display:grid;gap:5px;justify-items:start}
+.blogo{width:150px;height:auto}
+.blogo .lf{fill:var(--brand)} .blogo .lp{fill:var(--paper)} .blogo .lps{fill:none;stroke:var(--paper)} .blogo .ls{fill:none;stroke:var(--brand)}
+.side .bn{font-family:var(--f-display);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.side .bv{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.side .updchip{background:var(--surface);border-color:var(--brand);font-size:10.5px}
+.side .tabs{display:flex;flex-direction:column;gap:0;background:none;padding:0;border-radius:0;overflow:visible}
+.sgrp{font-family:var(--f-body);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:0 18px;margin:14px 0 4px}
+.side .tabs button{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:8px 18px;border-radius:0;border-left:3px solid transparent;font-family:var(--f-display);font-weight:700;font-size:12.5px;color:var(--brand);background:none;cursor:pointer}
+.side .tabs button:hover{background:rgba(94,59,37,.08)}
+.side .tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink);border-left-color:var(--caramel)}
+.km a,.cmt a{color:var(--caramel);font-family:var(--f-display);font-weight:700;text-decoration:none;white-space:nowrap}
+.km a:hover,.cmt a:hover{text-decoration:underline}
+.side .tabs button .nm{display:grid;gap:1px;min-width:0}
+.side .tabs button small{font-family:var(--f-body);font-weight:400;font-size:10px;letter-spacing:.02em;text-transform:none;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sfoot{margin-top:auto;padding:14px 18px 0;border-top:1.5px solid var(--brand);display:grid;gap:8px}
+.sfoot .reload{justify-content:center}
+.sacts{display:flex;flex-wrap:wrap;gap:6px}
+.sfoot p{margin:0;font-size:10px;color:var(--muted);line-height:1.5}
+.page{max-width:none;margin:0;padding:18px 22px 48px;min-width:0}
+.mhead{padding-bottom:12px;border-bottom:2px solid var(--brand)}
+.mhead h1{margin:0;font-family:var(--f-display);font-weight:700;font-size:clamp(20px,2.2vw,28px);text-transform:uppercase;letter-spacing:.03em;color:var(--brand)}
+.msub{margin:4px 0 0;font-size:12.5px;color:var(--muted);max-width:90ch}
+.fbar{top:0;margin-top:0;border-top:1px solid var(--line);border-radius:8px}
+.tdbar{margin-top:0;border-top:1px solid var(--line);border-radius:8px}
+.fab{display:none}
+/* điện thoại: thanh bên thành thanh trên cùng, tab cuộn ngang */
+@media (max-width:899px){
+  .shell{display:block}
+  .side{position:static;height:auto;padding:8px 0 0;border-right:0;border-bottom:2px solid var(--brand);overflow:visible}
+  .side .brand{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 10px;padding:0 12px 8px;margin:0}
+  .blogo{width:92px;grid-row:span 2}
+  .side .bn{margin:0;font-size:11px}
+  .side .updchip{grid-column:1/-1}
+  .side .tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;padding:0 6px}
+  .side .tabs::-webkit-scrollbar{display:none}
+  .sgrp,.side .tabs button small{display:none}
+  .side .tabs button{width:auto;padding:9px 12px;border-left:0;border-bottom:3px solid transparent;white-space:nowrap}
+  .side .tabs button[aria-selected="true"]{border-bottom-color:var(--caramel)}
+  .side .tabs .ic{display:none}
+  .sfoot{display:block;margin:0;padding:6px 12px 8px;border-top:1px solid var(--line)}
+  .sfoot .reload,.sfoot p{display:none}
+  .page{padding:12px 12px 80px}
+  .fab{display:inline-flex}
+  .fbar{position:static}
+}
+
 /* ---------- in ---------- */
 @media print{
   .hdr{position:static;backdrop-filter:none}
-  .fbar,.tdbar,.chips,.jnav,.cbtns,.fab,.toast,details.guide,.hdr-actions .lnk,.hdr-actions .reload{display:none!important}
+  .side,.fbar,.tdbar,.chips,.jnav,.cbtns,.fab,.toast,details.guide{display:none!important}
+  .shell{display:block}
   body{background:#fff}
   .card,.kpi{box-shadow:none;break-inside:avoid}
   .tblwrap{max-height:none!important;overflow:visible!important}
@@ -294,42 +357,43 @@ body.focus-on{overflow:hidden}
 <body>
 
 
-<div class="page">
-  <header class="hdr">
-    <div class="brandrow">
-      <div class="logo" aria-label="Kai Café">
-        <svg width="30" height="38" viewBox="0 0 30 38" aria-hidden="true">
-          <path d="M3 9h24l-1 3H4z" fill="currentColor"/>
-          <path d="M6 5.5h18l1.6 3.5H4.4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M5.2 13h19.6l-2.6 21.5a2 2 0 0 1-2 1.7H9.8a2 2 0 0 1-2-1.7z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-          <path d="M7.2 19.5h15.6l-1 8.5H8.2z" fill="currentColor"/>
-          <path d="M13 2.5c-1.5 1 1.5 2-.2 3M17 2.5c-1.5 1 1.5 2-.2 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
-        <div class="wm"><span class="k">KAI</span><span class="c">CAFÉ</span></div>
-      </div>
-      <div class="vsep" aria-hidden="true"></div>
-      <div class="ttl">
-        <h1>Internal <span>Dashboard</span></h1>
-        <div class="sub">429 Phan Huy Ích · bán hàng từ <b>bot Telegram</b> (DonHang) · thu chi từ các sheet tháng · <span id="hdrRange"></span></div>
-      </div>
-      <span class="updchip" id="upd"><span class="dot"></span><span id="updTxt">Đang kết nối Google Sheet…</span></span>
-    </div>
-    <div class="hdr-actions">
-      <div class="tabs" role="tablist" aria-label="Chọn trang">
-        <button role="tab" id="tab-ov" aria-selected="false" data-v="ov">Tổng quan</button>
-        <button role="tab" id="tab-today" aria-selected="false" data-v="today">Hôm nay</button>
-        <button role="tab" id="tab-sales" aria-selected="true" data-v="sales">Bán hàng</button>
-        <button role="tab" id="tab-mon" aria-selected="false" data-v="mon">Món</button>
-        <button role="tab" id="tab-fin" aria-selected="false" data-v="fin">Thu chi</button>
-        <button role="tab" id="tab-kho" aria-selected="false" data-v="kho">Kho</button>
-        <button role="tab" id="tab-hr" aria-selected="false" data-v="hr">Nhân sự</button>
-      </div>
+<div class="shell">
+<aside class="side" aria-label="Điều hướng">
+  <div class="brand">
+    <svg class="blogo" viewBox="2 -6 286 146" role="img" aria-label="Kai Café"><g transform="scale(0.95)"><g class="lf"><rect x="44" y="0" width="12" height="7" rx="3"></rect><path d="M 30 17 Q 30 9 38 9 L 62 9 Q 70 9 70 17 Z"></path><path d="M 28 20 L 72 20 L 68.5 43 L 31.5 43 Z"></path><rect x="12" y="46" width="76" height="7" rx="3.5"></rect><path d="M 18 56 L 82 56 L 77 128 Q 76.5 136 68 136 L 32 136 Q 23.5 136 23 128 Z"></path></g><path class="lp" d="M 26 56 L 74 56 L 70.6 116 L 29.4 116 Z"></path><path class="lf" d="M 30.4 82 L 69.6 82 L 68.4 113 L 31.6 113 Z"></path><path class="lps" d="M 32 31 L 68 31" style="stroke-width:2.5"></path><path class="lps" d="M 32 126 L 68 126" style="stroke-width:2.5;stroke-linecap:round"></path></g><g transform="translate(104 0)"><g class="lf"><rect x="0" y="0" width="22" height="100"></rect><path d="M 38 0 L 62 0 L 22 71.4 L 22 28.6 Z"></path><path d="M 28 52 L 44 40 L 64 100 L 40 100 Z"></path><g transform="translate(76 0)"><path d="M 0 100 L 22 100 L 40 0 L 26 0 Z"></path><path d="M 66 100 L 44 100 L 26 0 L 40 0 Z"></path><rect x="10" y="64" width="46" height="16"></rect></g><rect x="154" y="0" width="22" height="100"></rect></g><g class="ls" style="stroke-width:2.6"><path d="M 0 123 L 41 123"></path><path d="M 135 123 L 176 123"></path></g><g transform="translate(51 114)"><g class="ls" style="stroke-width:2.6;stroke-linejoin:miter"><path d="M 9.9 2.1 A 6 9 0 1 0 9.9 15.9"></path><path d="M 21 18 L 27 0 L 33 18 M 23.2 11.5 L 30.8 11.5"></path><path d="M 53 0 L 43 0 L 43 18 M 43 8.5 L 51 8.5"></path><path d="M 74 0 L 64 0 L 64 18 L 74 18 M 64 8.5 L 72 8.5"></path><path d="M 67.5 -3.5 L 71.5 -8.5"></path></g></g></svg>
+    <div class="bn">Internal dashboard</div>
+    <div class="bv">429 Phan Huy Ích · <span id="hdrRange"></span></div>
+    <span class="updchip" id="upd"><span class="dot"></span><span id="updTxt">Đang kết nối Google Sheet…</span></span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Chọn trang">
+    <div class="sgrp">Bắt đầu</div>
+    <button role="tab" id="tab-ov" aria-selected="false" data-v="ov"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nm">Tổng quan<small>tóm tắt · việc cần chú ý</small></span></button>
+    <div class="sgrp">Vận hành</div>
+    <button role="tab" id="tab-today" aria-selected="false" data-v="today"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="nm">Hôm nay<small>ca đang bán · két</small></span></button>
+    <button role="tab" id="tab-hr" aria-selected="false" data-v="hr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.6 3.5 6"/></svg><span class="nm">Nhân sự<small>ca · giờ công · lương</small></span></button>
+    <div class="sgrp">Bán hàng</div>
+    <button role="tab" id="tab-sales" aria-selected="true" data-v="sales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="nm">Bán hàng<small>doanh thu · ngày · giờ</small></span></button>
+    <button role="tab" id="tab-mon" aria-selected="false" data-v="mon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.6 11.2a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z"/><path d="M4 5h16"/><path d="M9 2.5h6"/></svg><span class="nm">Món<small>món chạy · khung giờ</small></span></button>
+    <div class="sgrp">Tiền &amp; kho</div>
+    <button role="tab" id="tab-fin" aria-selected="false" data-v="fin"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2"/></svg><span class="nm">Thu chi<small>quỹ · lãi · sổ chi</small></span></button>
+    <button role="tab" id="tab-kho" aria-selected="false" data-v="kho"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span class="nm">Kho<small>nguyên liệu · vật tư</small></span></button>
+  </nav>
+  <div class="sfoot">
+    <button class="reload" id="refresh" data-reload disabled title="Đọc lại Google Sheet ngay"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại dữ liệu</span></button>
+    <div class="sacts">
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
       <button class="lnk" id="openSheet" aria-haspopup="dialog">🔒 Mở sheet</button>
       <button class="lnk" id="logoutBtn" title="Quên mật khẩu trên máy này">Đăng xuất</button>
-      <button class="reload" id="refresh" data-reload disabled title="Đọc lại Google Sheet ngay"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại dữ liệu</span></button>
     </div>
-  </header>
+    <p>Số liệu: Google Sheet qua bot Telegram · tự cập nhật mỗi phút</p>
+  </div>
+</aside>
+
+<main class="page">
+  <div class="mhead">
+    <h1 id="mTitle">Tổng quan</h1>
+    <p class="msub" id="mSub"></p>
+  </div>
 
   <div class="tdbar" id="tdbar" hidden>
     <span class="day" id="tdDay">Hôm nay</span>
@@ -639,6 +703,7 @@ body.focus-on{overflow:hidden}
       </div>
     </div>
   </div>
+</main>
 </div>
 
 <button class="reload fab" data-reload disabled aria-label="Tải lại dữ liệu"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại</span></button>
@@ -787,6 +852,16 @@ function parseWorkbook(wb){
 /* ============ state ============ */
 let D = null;
 const VIEWS = ['ov', 'today', 'sales', 'mon', 'fin', 'kho', 'hr'];
+/* Tiêu đề + câu mô tả mỗi tab (kiểu Squad: tab này trả lời câu hỏi gì) */
+const VIEW_INFO = {
+  ov:['Tổng quan', 'Tháng này quán đang ở đâu so với mốc hoà vốn, và việc gì cần xử lý trước.'],
+  today:['Hôm nay', 'Ca đang bán: nhịp ly so với mục tiêu và cùng thứ tuần trước, tiền két, đơn mới nhất.'],
+  hr:['Nhân sự', 'Ai làm bao nhiêu giờ, bán được bao nhiêu ly trong ca, lương tạm tính và đối soát két.'],
+  sales:['Bán hàng', 'Doanh thu, số ly theo ngày và khung giờ trong kỳ đang lọc, so với kỳ trước.'],
+  mon:['Món', 'Món nào chạy, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
+  fin:['Thu chi', 'Quỹ còn bao nhiêu, lãi vận hành, các khoản chi theo khối và người chi.'],
+  kho:['Kho', 'Nguyên liệu và vật tư còn đủ dùng bao nhiêu ngày theo nhịp bán hiện tại.'],
+};
 const S = {view:'ov', tdK:'', preset:'mtd', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:60,
   sort:{}, open:new Set(), fixFr:false, finMonth:'all'};
 try { const t = +localStorage.getItem('kai_tgt'); if (t > 0) S.tgt = t; } catch(e){}
@@ -1530,6 +1605,7 @@ function renderChips(){
 function setView(v){
   S.view = v; try { localStorage.setItem('kai_view', v); } catch(e){}
   if (!VIEWS.includes(v)) v = S.view = 'ov';
+  const info = VIEW_INFO[v]; $('mTitle').textContent = info[0]; $('mSub').innerHTML = info[1]; document.title = `${info[0]} · Kai Café`;
   VIEWS.forEach(x => { $('v-' + x).hidden = !D || x !== v; $('tab-' + x).setAttribute('aria-selected', x === v); });
   const coLoc = ['sales', 'mon', 'hr'].includes(v);   // tab dùng bộ lọc kỳ / nhân viên / món
   $('fbar').style.display = coLoc ? '' : 'none';

@@ -2,7 +2,7 @@
  * - Trang (index.html): lấy mạng trước, mất mạng thì dùng bản đã lưu → luôn có code mới khi online.
  * - Chart.js, font, icon: lưu sẵn, dùng bản lưu (đổi phiên bản thì tải lại).
  * - API Apps Script, thời tiết: KHÔNG lưu ở đây (số liệu lần trước do trang tự giữ). */
-const CACHE = 'kai-v1';
+const CACHE = 'kai-v2';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'];
 
