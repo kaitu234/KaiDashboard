@@ -920,6 +920,11 @@ function parseWorkbook(wb){
   const rv = rowsOf(wb, 'Doanh thu'); const hdr = rv.findIndex(r => r.some(c => /TIỀN MẶT/i.test(txt(c))) && r.some(c => /CHUYỂN KHOẢN/i.test(txt(c))));
   rv.forEach((r, i) => { if (hdr >= 0 && i <= hdr) return; const d = toDate(r[0]); if (!d) return;
     const t = num(r[2]) + num(r[3]) + num(r[4]); if (t) D.legacyRev.push({k:dk(d), tt:t}); });
+  // Tab Kho (bot tính: CongThuc × ly bán − lượng mua trong sổ chi, có kiểm kho /kiemkho) → nguồn duy nhất cho tồn kho trên dashboard
+  // Cột: Mã · Tên · ĐV tính · ĐV mua · quy đổi · hạng mục · nội dung · báo khi còn ≤ · báo khi đủ < ngày · mua đủ cho · theo dõi · 🤖 tồn · 🤖 dùng/ngày · 🤖 đủ ngày · 🤖 nên mua · 🤖 kiểm gần nhất
+  D.kho = rowsOf(wb, 'Kho').slice(1).filter(r => txt(r[1])).map(r => ({ma:txt(r[0]), ten:txt(r[1]), dv:txt(r[3]),
+    ton: r[11] == null ? null : num(r[11]), dung:num(r[12]), ngay: r[13] == null ? null : num(r[13]), nenMua:txt(r[14]), kiem:txt(r[15]),
+    baoCon:num(r[7]), baoNgay:num(r[8]) || 3, theoDoi: r[10] !== false && String(r[10]).toUpperCase() !== 'FALSE'})).filter(x => x.theoDoi);
   D.nvs = [...new Set(D.orders.map(o => o.nv))].sort();
   D.mons = [...new Set(D.orders.map(o => o.mon))];
   D.first = D.orders.length ? D.orders.reduce((a,o)=>o.k<a?o.k:a, '9999') : today();
@@ -1433,13 +1438,34 @@ function renderFin(){
   if (neg.length) A.push(['warn','Két thiếu', `${neg.length} lần chốt ca thiếu tiền, tổng ${fmt(-neg.reduce((s, c) => s + c.chenh, 0))} đ`, neg.slice(-4).map(c => `${dShort(c.k)} ${esc(c.nv)}: ${fmt(c.chenh)}`).join(' · '), '→ xem tab Nhân sự']);
   if (D.orders.length && !D.legacyRev.length) A.push(['warn','Sổ sheet', `Tab Doanh thu trong sheet chưa có số, nên ô quỹ ở sheet Tổng hợp đang thấp hơn dashboard ${fmt(totalRev)} đ`,
     'Dashboard cộng doanh thu từ bot (tab DonHang); sheet Tổng hợp chỉ cộng tab Doanh thu nhập tay. Số trên dashboard là số đúng.', '→ nhập tab Doanh thu hoặc bỏ qua']);
+  if (D.kho.length){   // tồn do bot tính ở tab Kho
+    const so = (v, dv) => `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})} ${dv}`;
+    D.kho.filter(x => x.nenMua || (x.ngay != null && x.ngay < x.baoNgay) || (x.ton != null && x.ton <= x.baoCon)).forEach(x => A.push([x.ton != null && x.ton <= 0 || (x.ngay != null && x.ngay < 2) ? 'bad' : 'warn', 'Kho',
+      `${x.ten}: còn ~${x.ton == null ? '?' : so(Math.max(0, x.ton), x.dv)}${x.ngay != null ? `, đủ khoảng ${fmt(Math.max(0, x.ngay))} ngày` : ''}`,
+      `${x.nenMua && x.nenMua !== 'cần mua' ? 'Bot đề xuất mua ' + esc(x.nenMua) + '. ' : ''}${x.dung ? `Dùng TB ${so(x.dung, x.dv)}/ngày.` : 'Tab CongThuc chưa có định lượng cho nguyên liệu này nên tồn không giảm theo ly bán.'} Số do bot tính ở tab Kho${x.kiem ? ', kiểm kho gần nhất ' + esc(x.kiem) : ''}.`, '→ đặt thêm']));
+  } else {
   const VT = vatTu();
   VT.filter(v => v.ngay != null && v.ngay < 7).forEach(v => A.push([v.con <= 0 ? 'bad' : 'warn', 'Vật tư', `${v.ten}: còn ~${fmt(Math.max(0, v.con))} cái, đủ khoảng ${fmt(Math.max(0, v.ngay))} ngày`,
     `Mua ${fmt(v.mua)} − bán ${fmt(v.dung)} ly (ước tính, chưa trừ hao hụt). Nhịp ${fmt(v.nhip)} ly/ngày 7 ngày gần nhất.`, '→ đặt thêm']));
   const NL = nguyenLieu();
   NL.filter(n => n.ngay != null && n.ngay < 7).forEach(n => A.push([n.con <= 0 ? 'bad' : 'warn', 'Nguyên liệu', `${n.c.ten}: còn ~${kl(Math.max(0, n.con), n.c.dv)}, đủ khoảng ${fmt(Math.max(0, n.ngay))} ngày`,
     `Mua ${kl(n.mua, n.c.dv)} − đã dùng ${kl(n.dung, n.c.dv)} (${fmt(n.ly)} ly × ${n.c.luong}${n.c.dv}, ước tính theo công thức, chưa trừ hao hụt).`, '→ đặt thêm']));
+  }
   if (!A.length) A.push(['good','Ổn','Không có điểm cần xử lý','Số liệu đang khớp các quy tắc kiểm tra.','']);
+  if (D.kho.length){
+    const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})} ${dv}`;
+    table({id:'tNL', rows:D.kho.map(x => Object.assign({}, x, {can7: x.dung * 7})), sortDefault:{k:'ngay', d:1}, cols:[{k:'ten', l:'Nguyên liệu / vật tư'},
+      {k:'ton', l:'Còn (ước tính)', r:1, f:(v, r) => so(v == null ? null : Math.max(0, v), r.dv), cls:v => v != null && v <= 0 ? 'dn' : ''},
+      {k:'dung', l:'Dùng TB/ngày', r:1, f:(v, r) => v ? so(v, r.dv) : '<span class="muted" title="Tab CongThuc chưa có định lượng">chưa có định lượng</span>'},
+      {k:'can7', l:'Cần 7 ngày tới', r:1, f:(v, r) => v ? so(v, r.dv) : '—'},
+      {k:'ngay', l:'Đủ ~ngày', r:1, f:v => v == null ? '—' : fmt(Math.max(0, v)), cls:(v, r) => v != null && v < r.baoNgay ? 'dn' : ''},
+      {k:'nenMua', l:'Bot đề xuất', f:v => esc(v || '—')}, {k:'kiem', l:'Kiểm kho gần nhất', f:v => esc(v || '—')}]});
+    $('nlNote').innerHTML = 'Lấy từ tab <b>Kho</b> trong sheet: bot tính theo định lượng ở tab <b>CongThuc</b> × số ly bán, trừ lượng mua ghi trong sổ chi tháng; gõ <b>/kiemkho</b> trên bot để chốt lại số thực tế. Sửa định lượng ở tab CongThuc.';
+    const vt = D.kho.filter(x => x.dv === 'cái');
+    $('vatTu').innerHTML = vt.length ? vt.map(x => `<span>${esc(x.ten)}</span><b>${so(Math.max(0, x.ton || 0), 'cái')}${x.ngay != null ? ` · ~${fmt(Math.max(0, x.ngay))} ngày` : ''}</b>`).join('')
+      : '<span class="muted">Tab Kho chưa theo dõi vật tư tính theo cái.</span>';
+  } else {
+  const NL = nguyenLieu(), VT = vatTu();
   table({id:'tNL', rows:NL.map(n => ({ten:n.c.ten, dl:`${n.c.luong}${n.c.dv}${n.c.ghi ? ' (' + n.c.ghi + ')' : ''}`, ly:n.ly, dung:n.dung, nhip:n.nhip, can7:n.nhip * 7, con:n.con, ngay:n.ngay, dv:n.c.dv, muaSL:n.muaSL})),
     sortDefault:{k:'dung', d:-1}, cols:[{k:'ten', l:'Nguyên liệu'}, {k:'dl', l:'Mỗi ly'}, {k:'ly', l:'Ly đã dùng', r:1, f:fmt},
       {k:'dung', l:'Đã dùng', r:1, f:(v, r) => kl(v, r.dv)}, {k:'nhip', l:'TB/ngày (7 ngày)', r:1, f:(v, r) => kl(v, r.dv)}, {k:'can7', l:'Cần 7 ngày tới', r:1, f:(v, r) => kl(v, r.dv)},
@@ -1449,6 +1475,7 @@ function renderFin(){
     + '. Tồn cà phê chỉ tính cà phê hạt (SL theo kg); sữa đặc 1 hộp ≈ 1 lít; sữa tươi 1 bịch = 220ml.';
   $('vatTu').innerHTML = VT.length ? VT.map(v => `<span>${esc(v.ten)}</span><b>${fmt(Math.max(0, v.con))} / ${fmt(v.mua)}${v.ngay != null ? ` · ~${fmt(Math.max(0, v.ngay))} ngày` : ''}</b>`).join('')
     : '<span class="muted">Chưa thấy dòng mua Ly / Nắp / Ống hút (cột SL) trong sổ Chi tháng.</span>';
+  }
   $('alerts').innerHTML = A.map(([lv, tag, t, d, fix]) => `<div class="alert ${lv}"><span class="pill ${lv}">${tag}</span><div><div class="t">${t}</div><div class="d">${d}</div></div><span class="fix">${fix}</span></div>`).join('');
 
   /* months */
@@ -1582,7 +1609,7 @@ function renderOv(){
   const BE = hoaVon(), open = D.orders.length && D.first > m0 ? D.first : m0;
   const active = open > mEnd ? 0 : nDays(open, mEnd), el = tk < open ? 0 : nDays(open, tk), run = el ? MT.ly / el * active : 0;
   const luong = D.cong.filter(c => c.k >= m0 && c.k <= tk).reduce((s, c) => s + (c.tien || 0), 0);
-  const ganHet = [...nguyenLieu().filter(n => n.ngay != null).map(n => ({ten:n.c.ten, ngay:n.ngay})), ...vatTu().filter(v => v.ngay != null).map(v => ({ten:v.ten, ngay:v.ngay}))].sort((a, b) => a.ngay - b.ngay)[0];
+  const ganHet = duNgay().sort((a, b) => a.ngay - b.ngay)[0];
   $('ovHero').innerHTML = `<p>${mlabel(tk.slice(0,7))}: <span class="hl">${fmt(MT.ly)} ly · ${fmtM(MT.dt)} đ</span> sau ${el} ngày bán, đạt ${pct(BE ? MT.ly / BE : null)} mốc hoà vốn ${fmt(BE)} ly.
     Giữ nhịp này cả tháng được <span class="hl">${fmt(run)} ly</span>, ${run >= BE ? 'vượt mốc hoà vốn' : `còn thiếu ${fmt(BE - run)} ly so với mốc hoà vốn`}.</p>
     <p class="sm">Hôm nay ${fmt(TD.ly)} ly · ${fmt(TD.dt)} đ, ${PN.lai >= 0 ? "lãi" : "lỗ"} ước tính ${fmt(Math.abs(PN.lai))} đ sau giá vốn và lương ca${YD.ly ? ` (hôm qua ${fmt(YD.ly)} ly)` : ''}. Quỹ còn ${fmtM(FIN.cash)} đ.${ganHet ? ` Cần đặt sớm nhất: ${esc(ganHet.ten)}, đủ khoảng ${fmt(Math.max(0, ganHet.ngay))} ngày.` : ''}${isPromo(tk) ? ` Đang chạy khai trương đồng giá 10K đến ${dShort(PROMO.to)}.` : ''}</p>`;
@@ -1594,7 +1621,7 @@ function renderOv(){
     + pk('Lãi vận hành ước tính', `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, `cả kỳ · giá vốn theo ly · đã trừ lương ${fmtK(luong)} tháng này`)
     + pk('Lãi / lỗ hôm nay', `<span class="${PN.lai < 0 ? 'dn' : 'up'}">${PN.lai >= 0 ? '+' : ''}${fmtK(PN.lai)}</span>`,
       PN.canLy == null ? 'giá bán dưới giá vốn' : `hoà khi bán ${fmt(PN.canLy)} ly · đã bán ${fmt(PN.ly)}`, true);
-  const tabOf = tag => /Vật tư|Nguyên liệu/.test(tag) ? 'kho' : /Két/.test(tag) ? 'hr' : 'fin';
+  const tabOf = tag => /Vật tư|Nguyên liệu|^Kho$/.test(tag) ? 'kho' : /Két/.test(tag) ? 'hr' : 'fin';
   const lop = {bad:'bad', warn:'warn', good:'ok'}, thuTu = {bad:0, warn:1, good:2};
   $('ovMsgs').innerHTML = FIN.alerts.slice().sort((a, b) => thuTu[a[0]] - thuTu[b[0]]).map(([lv, tag, t, d]) =>
     `<div class="km ${lop[lv] || ''}"><span class="t">${tag}</span><p><b>${t}.</b> ${d} ${lv === 'good' ? '' : `<a href="#" data-go="${tabOf(tag)}">Xem →</a>`}</p></div>`).join('');
@@ -1641,8 +1668,11 @@ function renderMon(){
 }
 
 /* ============ render: kho ============ */
+/** Danh sách {ten, ngay} đủ dùng bao nhiêu ngày: ưu tiên tab Kho của bot, thiếu thì tự tính như cũ */
+const duNgay = () => (D.kho.length ? D.kho.filter(x => x.ngay != null).map(x => ({ten:x.ten, ngay:x.ngay}))
+  : [...nguyenLieu().filter(n => n.ngay != null).map(n => ({ten:n.c.ten, ngay:n.ngay})), ...vatTu().filter(v => v.ngay != null).map(v => ({ten:v.ten, ngay:v.ngay}))]);
 function renderKho(){
-  const it = [...nguyenLieu().filter(n => n.ngay != null).map(n => ({ten:n.c.ten, ngay:Math.max(0, n.ngay)})), ...vatTu().filter(v => v.ngay != null).map(v => ({ten:v.ten, ngay:Math.max(0, v.ngay)}))].sort((a, b) => a.ngay - b.ngay);
+  const it = duNgay().map(x => ({ten:x.ten, ngay:Math.max(0, x.ngay)})).sort((a, b) => a.ngay - b.ngay);
   const bad = css('--bad'), warn = css('--warn'), good = css('--good');
   mk('cKho', {type:'bar', data:{labels:it.map(x => x.ten), datasets:[{label:'Đủ dùng', data:it.map(x => Math.round(x.ngay)),
       backgroundColor:it.map(x => x.ngay < 3 ? bad : x.ngay < 7 ? warn : good), borderRadius:4, maxBarThickness:20},
@@ -1835,7 +1865,8 @@ function onData(res, manual, offlineAt){
   LOADED_AT = new Date(offlineAt || Date.now());
   if (offlineAt){ setUpd('err', `Mất mạng · số liệu lúc ${p2(LOADED_AT.getHours())}:${p2(LOADED_AT.getMinutes())} ${dShort(dk(LOADED_AT))}`); setBusy(false); return; }
   luuGanNhat(res);
-  setUpd('live', `Cập nhật ${p2(LOADED_AT.getHours())}:${p2(LOADED_AT.getMinutes())} ${dShort(dk(LOADED_AT))}`);
+  const luc = toDate(res.at ? "D:" + res.at : null) || LOADED_AT;   // giờ server đọc sheet (có thể là bản cache tối đa 10 phút)
+  setUpd('live', `Số liệu lúc ${p2(luc.getHours())}:${p2(luc.getMinutes())} ${dShort(dk(luc))}`);
   tickAgo(); setBusy(false);
   if (manual && !first){
     const tk = today(), n = new Set(D.orders.filter(o => o.k === tk).map(o => o.id)).size, diff = D.orders.length - before;
