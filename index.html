@@ -427,8 +427,11 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
       <div class="alerts" id="alerts"></div>
     </div>
     <div class="card">
-      <div class="ct">Tồn vật tư ước tính <span class="nt">· còn / đã mua · mỗi ly dùng 1 cái · nguyên liệu pha (sữa, cà phê…) cần định lượng công thức nên chưa tính</span></div>
+      <div class="ct">Tồn vật tư ước tính <span class="nt">· còn / đã mua · mỗi ly dùng 1 cái</span></div>
       <div class="kv" id="vatTu"></div>
+      <div class="lbl">Nguyên liệu pha</div>
+      <div class="tblwrap" style="border:0"><table id="tNL"></table></div>
+      <p class="muted" id="nlNote" style="margin:0;font-size:12px"></p>
     </div>
     <div class="card">
       <div class="ct">Theo tháng <span class="nt">· doanh thu từ bot · dòng tiền = vốn + doanh thu − chi</span></div>
@@ -523,6 +526,13 @@ const NGAY_LE = {'01-01':'Tết Dương lịch', '04-30':'Giải phóng 30/4', '
 const WX_URL = 'https://api.open-meteo.com/v1/forecast?latitude=10.84&longitude=106.65&daily=weather_code,precipitation_sum,temperature_2m_max&timezone=Asia%2FHo_Chi_Minh&past_days=92&forecast_days=7';
 /* Vật tư dùng 1 cái / ly: đọc lượng mua từ sổ Chi tháng (cột SL) theo nội dung, trừ số ly đã bán */
 const VAT_TU = [{ten:'Ly', re:/^ly\b/i}, {ten:'Nắp', re:/^nắp\b/i}, {ten:'Ống hút', re:/^ống hút\b/i}];
+/* Định lượng nguyên liệu pha mỗi ly. mon = món nào dùng (theo tên món); mua = dòng nào trong sổ Chi tháng là mua nguyên liệu này;
+   quyDoi = 1 đơn vị cột SL trong sổ chi bằng bao nhiêu g/ml (null = chưa biết quy cách → chỉ tính lượng đã dùng, chưa tính tồn). */
+const CONG_THUC = [
+  {ten:'Cà phê', dv:'g', luong:18, ghi:'18g → 45ml', mon:/^cà phê|bạc xỉu|phindi/i, mua:r => /^cà phê \((hạt|bột)\)/i.test(r.cat), quyDoi:1000},   // SL sổ chi tính theo kg
+  {ten:'Sữa đặc', dv:'ml', luong:25, mon:/cà phê sữa (máy|phin)|bạc xỉu|cà phê muối|cacao sữa|phindi/i, mua:r => /sữa đặc/i.test(r.desc), quyDoi:null},
+  {ten:'Sữa tươi', dv:'ml', luong:40, mon:/sữa tươi|bạc xỉu|latte/i, mua:r => /sữa tươi/i.test(r.desc), quyDoi:null},
+];
 const BAC = [{tren:85, ten:'35k/h', cls:'good'}, {tren:50, ten:'30k/h', cls:'good'}];
 const THU = ['CN','T2','T3','T4','T5','T6','T7'];
 
@@ -695,8 +705,22 @@ function vatTu(){
   const tu = D.first > addDays(tk, -6) ? D.first : addDays(tk, -6);
   const ly7 = D.orders.filter(o => o.k >= tu && o.k <= tk).reduce((s, o) => s + o.sl, 0), nhip = tu <= tk ? ly7 / nDays(tu, tk) : 0;
   return VAT_TU.map(v => { const mua = D.chi.filter(r => v.re.test(r.desc)).reduce((s, r) => s + r.qty, 0);
-    return mua ? {ten:v.ten, mua, dung:ly, con:mua - ly, nhip, ngay: nhip ? (mua - ly) / nhip : null} : null; }).filter(Boolean);
+    if (!mua) return null;
+    if (mua < 50) return {ten:v.ten, mua, chuaRo:true};   // SL nhỏ = mua theo bịch/hộp, chưa biết 1 bịch bao nhiêu cái → không đoán
+    return {ten:v.ten, mua, dung:ly, con:mua - ly, nhip, ngay: nhip ? (mua - ly) / nhip : null}; }).filter(Boolean);
 }
+/** Nguyên liệu pha: lượng đã dùng = Σ ly món có dùng × định lượng; tồn = lượng mua (SL × quy đổi) − đã dùng */
+function nguyenLieu(){
+  const tk = today(), tu = D.first > addDays(tk, -6) ? D.first : addDays(tk, -6), nd7 = tu <= tk ? nDays(tu, tk) : 0;
+  return CONG_THUC.map(c => {
+    const l = D.orders.filter(o => c.mon.test(o.mon)), ly = l.reduce((s, o) => s + o.sl, 0);
+    const dung = ly * c.luong, nhip = nd7 ? l.filter(o => o.k >= tu && o.k <= tk).reduce((s, o) => s + o.sl, 0) * c.luong / nd7 : 0;
+    const muaSL = D.chi.filter(c.mua).reduce((s, r) => s + r.qty, 0), mua = c.quyDoi && muaSL ? muaSL * c.quyDoi : null;
+    return {c, ly, dung, nhip, muaSL, mua, con: mua == null ? null : mua - dung, ngay: mua != null && nhip ? (mua - dung) / nhip : null,
+      mons: [...new Set(Object.keys(D.menu).concat(D.mons))].filter(m => c.mon.test(m))};
+  });
+}
+const kl = (v, dv) => v == null ? '—' : Math.abs(v) >= 1000 ? (v / 1000).toLocaleString('vi-VN', {maximumFractionDigits:2}) + (dv === 'g' ? ' kg' : ' lít') : fmt(v) + ' ' + dv;
 /** Điền giá bán thường vào máy tính (trừ khi người xem đã sửa tay) */
 function fillCalc(){
   const pr = $('price'); if (D && D.giaThuong && !pr.dataset.touched) pr.value = Math.round(D.giaThuong / 500) * 500;
@@ -1100,8 +1124,19 @@ function renderFin(){
   const VT = vatTu();
   VT.filter(v => v.ngay != null && v.ngay < 7).forEach(v => A.push([v.con <= 0 ? 'bad' : 'warn', 'Vật tư', `${v.ten}: còn ~${fmt(Math.max(0, v.con))} cái, đủ khoảng ${fmt(Math.max(0, v.ngay))} ngày`,
     `Mua ${fmt(v.mua)} − bán ${fmt(v.dung)} ly (ước tính, chưa trừ hao hụt). Nhịp ${fmt(v.nhip)} ly/ngày 7 ngày gần nhất.`, '→ đặt thêm']));
+  const NL = nguyenLieu();
+  NL.filter(n => n.ngay != null && n.ngay < 7).forEach(n => A.push([n.con <= 0 ? 'bad' : 'warn', 'Nguyên liệu', `${n.c.ten}: còn ~${kl(Math.max(0, n.con), n.c.dv)}, đủ khoảng ${fmt(Math.max(0, n.ngay))} ngày`,
+    `Mua ${kl(n.mua, n.c.dv)} − đã dùng ${kl(n.dung, n.c.dv)} (${fmt(n.ly)} ly × ${n.c.luong}${n.c.dv}, ước tính theo công thức, chưa trừ hao hụt).`, '→ đặt thêm']));
   if (!A.length) A.push(['good','Ổn','Không có điểm cần xử lý','Số liệu đang khớp các quy tắc kiểm tra.','']);
-  $('vatTu').innerHTML = VT.length ? VT.map(v => `<span>${esc(v.ten)}</span><b>${fmt(Math.max(0, v.con))} / ${fmt(v.mua)}${v.ngay != null ? ` · ~${fmt(Math.max(0, v.ngay))} ngày` : ''}</b>`).join('')
+  table({id:'tNL', rows:NL.map(n => ({ten:n.c.ten, dl:`${n.c.luong}${n.c.dv}${n.c.ghi ? ' (' + n.c.ghi + ')' : ''}`, ly:n.ly, dung:n.dung, nhip:n.nhip, can7:n.nhip * 7, con:n.con, ngay:n.ngay, dv:n.c.dv, muaSL:n.muaSL})),
+    sortDefault:{k:'dung', d:-1}, cols:[{k:'ten', l:'Nguyên liệu'}, {k:'dl', l:'Mỗi ly'}, {k:'ly', l:'Ly đã dùng', r:1, f:fmt},
+      {k:'dung', l:'Đã dùng', r:1, f:(v, r) => kl(v, r.dv)}, {k:'nhip', l:'TB/ngày (7 ngày)', r:1, f:(v, r) => kl(v, r.dv)}, {k:'can7', l:'Cần 7 ngày tới', r:1, f:(v, r) => kl(v, r.dv)},
+      {k:'con', l:'Còn (ước tính)', r:1, f:(v, r) => v == null ? (r.muaSL ? `<span class="muted" title="Sổ chi ghi SL ${fmt(r.muaSL)} nhưng chưa biết 1 SL = bao nhiêu ${r.dv}">chưa rõ quy cách</span>` : '<span class="muted">chưa thấy dòng mua</span>') : kl(v, r.dv), cls:v => v != null && v < 0 ? 'dn' : ''},
+      {k:'ngay', l:'Đủ ~ngày', r:1, f:v => v == null ? '—' : fmt(Math.max(0, v)), cls:v => v != null && v < 7 ? 'dn' : ''}]});
+  $('nlNote').innerHTML = 'Món dùng từng nguyên liệu (kiểm tra lại): ' + NL.map(n => `<b>${esc(n.c.ten)}</b>: ${esc(n.mons.join(', ') || '—')}`).join(' · ')
+    + '. Cà phê: cột SL trong sổ chi tính theo kg.';
+  $('vatTu').innerHTML = VT.length ? VT.map(v => v.chuaRo ? `<span>${esc(v.ten)}</span><b class="muted">sổ chi ghi SL ${fmt(v.mua)} (theo bịch?) · ghi SL theo số cái để tính tồn</b>`
+    : `<span>${esc(v.ten)}</span><b>${fmt(Math.max(0, v.con))} / ${fmt(v.mua)}${v.ngay != null ? ` · ~${fmt(Math.max(0, v.ngay))} ngày` : ''}</b>`).join('')
     : '<span class="muted">Chưa thấy dòng mua Ly / Nắp / Ống hút (cột SL) trong sổ Chi tháng.</span>';
   $('alerts').innerHTML = A.map(([lv, tag, t, d, fix]) => `<div class="alert ${lv}"><span class="pill ${lv}">${tag}</span><div><div class="t">${t}</div><div class="d">${d}</div></div><span class="fix">${fix}</span></div>`).join('');
 
