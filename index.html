@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Kai Café Dashboard</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5E3B25">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kai Café">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M5 13h20l-2.6 21.5a2 2 0 0 1-2 1.7H9.8a2 2 0 0 1-2-1.7z' fill='%235E3B25'/%3E%3Cpath d='M3 9h24l-1 3H4z' fill='%235E3B25'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
@@ -243,6 +250,7 @@ tfoot td{position:sticky;bottom:0;background:var(--surface);font-weight:700;bord
         <button role="tab" id="tab-fin" aria-selected="false" data-v="fin">Thu chi</button>
         <button role="tab" id="tab-hr" aria-selected="false" data-v="hr">Nhân sự</button>
       </div>
+      <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
       <button class="lnk" id="openSheet" aria-haspopup="dialog">🔒 Mở sheet</button>
       <button class="lnk" id="logoutBtn" title="Quên mật khẩu trên máy này">Đăng xuất</button>
       <button class="reload" id="refresh" data-reload disabled title="Đọc lại Google Sheet ngay"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại dữ liệu</span></button>
@@ -1370,7 +1378,10 @@ function tickAgo(){
   const m = Math.floor((Date.now() - LOADED_AT.getTime()) / 60000);
   document.querySelectorAll('[data-ago]').forEach(e => e.textContent = m < 1 ? 'vừa cập nhật' : `cập nhật ${m} phút trước`);
 }
-function onData(res, manual){
+/* Số liệu lần tải gần nhất, giữ trên máy để mở app khi mất mạng vẫn xem được. Đăng xuất là xoá. */
+function luuGanNhat(res){ try { localStorage.setItem('kai_last', JSON.stringify({at:Date.now(), res})); } catch(e){} }
+function docGanNhat(){ try { return JSON.parse(localStorage.getItem('kai_last') || 'null'); } catch(e){ return null; } }
+function onData(res, manual, offlineAt){
   setBusy(false);
   if (!res || res.err === 'key'){ try { localStorage.removeItem('kai_dash_key'); } catch(e){} const had = !!KEY; KEY = ''; askKey(had ? '<span class="dn">Mật khẩu chưa đúng</span>, nhập lại.' : null); return; }
   if (res.err){ if (D){ setUpd('err', 'Lỗi tải'); toast('⚠ ' + esc(res.err), true); } else { hideViews(); showState('Không đọc được sheet', esc(res.err)); setUpd('err', 'Lỗi'); } return; }
@@ -1382,7 +1393,9 @@ function onData(res, manual){
   fillOptions(); fillCalc(); loadWx();
   if (first || S.preset) setPreset(S.preset || 'mtd');
   syncFilters(); setView(S.view);
-  LOADED_AT = new Date();
+  LOADED_AT = new Date(offlineAt || Date.now());
+  if (offlineAt){ setUpd('err', `Mất mạng · số liệu lúc ${p2(LOADED_AT.getHours())}:${p2(LOADED_AT.getMinutes())} ${dShort(dk(LOADED_AT))}`); setBusy(false); return; }
+  luuGanNhat(res);
   setUpd('live', `Cập nhật ${p2(LOADED_AT.getHours())}:${p2(LOADED_AT.getMinutes())} ${dShort(dk(LOADED_AT))}`);
   tickAgo(); setBusy(false);
   if (manual && !first){
@@ -1396,7 +1409,9 @@ function load(manual){
   setBusy(true); if (manual) setUpd('', 'Đang tải lại sheet…');
   apiGet({api:'data', k:KEY}).then(r => onData(r, manual)).catch(e => {
     setBusy(false); const m = esc((e && e.message) || 'Lỗi không rõ');
-    if (D){ setUpd('err', 'Lỗi tải · đang hiện số lần trước'); if (manual) toast('⚠ ' + m + ' – thử lại sau ít giây.', true); }
+    const cu = !D && docGanNhat();
+    if (cu && cu.res){ onData(cu.res, false, cu.at); toast('📴 Không kết nối được, đang hiện số liệu lần trước. Có mạng sẽ tự cập nhật.', true); }
+    else if (D){ setUpd('err', 'Lỗi tải · đang hiện số lần trước'); if (manual) toast('⚠ ' + m + ' – thử lại sau ít giây.', true); }
     else { showState('Không kết nối được API', m + '<br>Kiểm tra đã dán <b>Dashboard.gs</b> và đã <b>triển khai bản mới</b> trong Apps Script.'); setUpd('err', 'Lỗi');
       $('status').insertAdjacentHTML('beforeend', '<button class="lnk" id="reLogin" style="justify-self:start">Nhập lại tài khoản / mật khẩu</button>'); $('reLogin').onclick = () => { API = ''; askKey(); }; }
   });
@@ -1406,7 +1421,20 @@ document.addEventListener('keydown', e => { if ((e.key === 'r' || e.key === 'R')
 setInterval(tickAgo, 30000);
 setInterval(() => { if (D && !document.hidden) load(false); }, 60000);                 // tự cập nhật mỗi phút khi đang mở
 document.addEventListener('visibilitychange', () => { if (!document.hidden && D && LOADED_AT && Date.now() - LOADED_AT.getTime() > 60000) load(false); });
-function logout(){ try { localStorage.removeItem('kai_dash_key'); } catch(e){} KEY = ''; askKey('Đã đăng xuất trên máy này.'); }
+function logout(){ try { localStorage.removeItem('kai_dash_key'); localStorage.removeItem('kai_last'); } catch(e){} KEY = ''; askKey('Đã đăng xuất trên máy này.'); }
+
+/* ---- Cài app (PWA) ---- */
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+let caiApp = null;
+const daCai = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const laIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); caiApp = e; $('installBtn').hidden = false; });   // Android / Chrome / Edge
+window.addEventListener('appinstalled', () => { caiApp = null; $('installBtn').hidden = true; toast('✅ Đã cài app Kai Café. Mở từ màn hình chính.'); });
+if (laIos && !daCai()) $('installBtn').hidden = false;   // iPhone không có nút cài tự động → hướng dẫn
+$('installBtn').onclick = () => {
+  if (caiApp){ caiApp.prompt(); caiApp.userChoice.finally(() => { caiApp = null; $('installBtn').hidden = true; }); return; }
+  toast('iPhone: mở bằng <b>Safari</b> → bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên lên) → <b>Thêm vào MH chính</b> → Thêm.');
+};
 
 /* ---- Mở sheet: cần mật khẩu quản trị, link sheet chỉ trả về từ server khi đúng mật khẩu ---- */
 function shOpen(){ $('shDlg').hidden = false; $('shOk').hidden = true; $('shForm').hidden = false; $('shMsg').textContent = 'Chỉ chủ quán. Nhập mật khẩu quản trị để lấy link sheet.'; $('shPw').value = ''; setTimeout(() => $('shPw').focus(), 30); }
