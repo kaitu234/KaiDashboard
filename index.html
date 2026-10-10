@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Kai Café Dashboard</title>
+<script>try { const t = localStorage.getItem('kai_theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#5E3B25">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -419,6 +420,7 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
   <div class="sfoot" id="sfoot">
     <button class="reload" id="refresh" data-reload disabled title="Đọc lại Google Sheet ngay"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại dữ liệu</span></button>
     <div class="sacts">
+      <button class="lnk" id="themeBtn" title="Đổi giao diện sáng / tối">🌓 Tự động</button>
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
       <button class="lnk" id="openSheet" aria-haspopup="dialog">🔒 Mở sheet</button>
       <button class="lnk" id="logoutBtn" title="Quên mật khẩu trên máy này">Đăng xuất</button>
@@ -1843,6 +1845,16 @@ setInterval(tickAgo, 30000);
 setInterval(() => { if (D && !document.hidden) load(false); }, 60000);                 // tự cập nhật mỗi phút khi đang mở
 document.addEventListener('visibilitychange', () => { if (!document.hidden && D && LOADED_AT && Date.now() - LOADED_AT.getTime() > 60000) load(false); });
 function logout(){ try { localStorage.removeItem('kai_dash_key'); localStorage.removeItem('kai_last'); } catch(e){} KEY = ''; askKey('Đã đăng xuất trên máy này.'); }
+
+/* ---- Giao diện: Tự động (theo máy) → Sáng → Tối; máy nhớ lựa chọn. Đổi data-theme thì biểu đồ tự vẽ lại (MutationObserver ở trên). ---- */
+const THEME_NHAN = {auto:'🌓 Tự động', light:'☀️ Sáng', dark:'🌙 Tối'};
+function apTheme(t){
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; else { delete document.documentElement.dataset.theme; t = 'auto'; }
+  $('themeBtn').textContent = THEME_NHAN[t];
+  try { t === 'auto' ? localStorage.removeItem('kai_theme') : localStorage.setItem('kai_theme', t); } catch(e){}
+}
+apTheme(document.documentElement.dataset.theme || 'auto');
+$('themeBtn').onclick = () => { const cur = document.documentElement.dataset.theme || 'auto'; apTheme({auto:'light', light:'dark', dark:'auto'}[cur]); };
 
 /* ---- Cài app (PWA) ---- */
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
