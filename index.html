@@ -490,7 +490,7 @@ b,strong,.pill,.dl,.alert .t,.state .t,tfoot td,.feed .o .am,.reload,details.gui
     <h4>Màu &amp; ký hiệu</h4>
     <ul>
       <li>Ô nền nâu đậm dần = giá trị lớn dần (không mang nghĩa tốt/xấu). Chữ <span class="up">xanh</span> = tốt, <span class="dn">đỏ</span> = xấu.</li>
-      <li>Cột <b>Bậc lương</b>: ngày bán &gt;50 ly thì lương ca lên 30k/giờ, &gt;85 ly lên 35k/giờ (theo chính sách trong bot).</li>
+      <li>Cột <b>Bậc lương</b>: ngày bán &gt;50 ly thì lương ca lên 30k/giờ, &gt;85 ly lên 35k/giờ. Ngày có <b>2 nhân viên trở lên</b> (không tính chủ quán) mốc là &gt;60 ly / &gt;100 ly – theo chính sách trong bot.</li>
       <li>Ô "—" là chưa đủ dữ liệu để tính, không phải bằng 0.</li>
     </ul>
   </details>
@@ -776,7 +776,16 @@ const CONG_THUC = [
   {ten:'Sữa đặc', dv:'ml', luong:25, ghi:'hộp NSPN 1,284kg ≈ 1 lít', mon:/cà phê sữa (máy|phin)|bạc xỉu|cà phê muối|cacao sữa|phindi/i, mua:r => /sữa đặc/i.test(r.desc), quyDoi:1000},   // sữa đặc ~1,28 g/ml
   {ten:'Sữa tươi', dv:'ml', luong:40, ghi:'bịch 220ml', mon:/sữa tươi|bạc xỉu|latte/i, mua:r => /sữa tươi/i.test(r.desc), quyDoi:220},
 ];
-const BAC = [{tren:85, ten:'35k/h', cls:'good'}, {tren:50, ten:'30k/h', cls:'good'}];
+/* Mốc thưởng ly: API gửi kèm (res.bac = {bang:{1:[…], 2:[…]}, nguoi:{ngày: số NV làm}}) – ca 2+ người mốc cao hơn. Thiếu thì dùng mốc 1 người. */
+let BAC_SV = null;
+function bacNgay(k){
+  const n = (BAC_SV && BAC_SV.nguoi && BAC_SV.nguoi[k]) || 1, bang = BAC_SV && BAC_SV.bang;
+  const ks = bang ? Object.keys(bang).map(Number).sort((a, b) => a - b) : [];
+  let key = ks[0]; ks.forEach(x => { if (n >= x) key = x; });
+  const t = bang ? bang[key].slice().sort((a, b) => a.tren - b.tren).map(b => ({tren:b.tren, ten:Math.round(b.luong / 1000) + 'k/h'}))
+    : [{tren:50, ten:'30k/h'}, {tren:85, ten:'35k/h'}];
+  return {t, n};
+}
 const THU = ['CN','T2','T3','T4','T5','T6','T7'];
 
 const $ = id => document.getElementById(id);
@@ -1171,7 +1180,9 @@ function renderSales(){
     {k:'asp', l:'Giá TB', r:1, f:fmt},
     {k:'achv', l:'%Đạt', r:1, f:v => pct(v), cls:v => v == null ? '' : v >= 1 ? 'up' : v < .7 ? 'dn' : ''},
     {k:'wow', l:'WoW ly', r:1, f:v => v == null ? '—' : `${v >= 0 ? '▲' : '▼'} ${pct(Math.abs(v))}`, cls:v => v == null ? '' : v >= 0 ? 'up' : 'dn'},
-    {k:'bac', l:'Bậc lương', f:(v, r) => r.thu === undefined ? '' : (BAC.find(b => v > b.tren) ? `<span class="pill good">${BAC.find(b => v > b.tren).ten}</span>` : v ? `<span class="pill neu">nền · còn ${51 - v} ly</span>` : '—')},
+    {k:'bac', l:'Bậc lương', f:(v, r) => { if (r.thu === undefined) return '';
+      const {t, n} = bacNgay(r.k), dat = t.filter(b => v > b.tren).pop(), nn = n > 1 ? ` · ${n} người` : '';
+      return dat ? `<span class="pill good">${dat.ten}${nn}</span>` : v ? `<span class="pill neu">nền · còn ${t[0].tren + 1 - v} ly${nn}</span>` : '—'; }},
     {k:'chi', l:'Chi két', r:1, f:fmt},
     {k:'chenh', l:'Chênh két', r:1, f:v => v == null ? '—' : v === 0 ? '<span class="up">khớp</span>' : fmt(v), cls:v => v ? (v < 0 ? 'dn' : '') : ''},
     {k:'nv', l:'Ca làm', f:v => esc(v || '—')},
@@ -1242,12 +1253,13 @@ function renderToday(){
     <div class="kpi tgt"><span class="lb">Đơn huỷ</span><span class="v ${cancel.length ? 'dn' : ''}">${new Set(cancel.map(c => c.id)).size}</span><span class="s">${cancel.length ? fmt(cancel.reduce((s, c) => s + c.tt, 0)) + ' đ bị huỷ' : 'không có đơn huỷ'}</span></div>`;
 
   /* tier */
-  const top = Math.max(100, A.ly + 10, S.tgt + 10), at = v => Math.min(100, v / top * 100);
-  const next = [50, 85].find(t => A.ly <= t);
-  $('tdTier').innerHTML = `<div class="big">${A.ly > 85 ? '🔥 Bậc cao nhất: 35k/giờ' : A.ly > 50 ? 'Đang ở bậc 30k/giờ' : 'Đang ở lương nền'}</div>
-    <div class="muted" style="font-size:12.5px">${next ? `Còn <b>${next + 1 - A.ly} ly</b> nữa để ca hôm nay lên <b>${next === 50 ? '30k' : '35k'}/giờ</b>.` : 'Ca hôm nay đã đạt mức lương cao nhất theo số ly.'}</div>
+  const {t: tb, n: nTd} = bacNgay(k), cao = tb[tb.length - 1], kk = b => b.ten.replace('/h', '');
+  const top = Math.max(100, cao.tren + 15, A.ly + 10, S.tgt + 10), at = v => Math.min(100, v / top * 100);
+  const datTd = tb.filter(b => A.ly > b.tren).pop(), next = tb.find(b => A.ly <= b.tren), nnTd = nTd > 1 ? ` <span class="muted">(ca ${nTd} người)</span>` : '';
+  $('tdTier').innerHTML = `<div class="big">${!datTd ? 'Đang ở lương nền' : datTd === cao ? `🔥 Bậc cao nhất: ${kk(cao)}/giờ` : `Đang ở bậc ${kk(datTd)}/giờ`}${nnTd}</div>
+    <div class="muted" style="font-size:12.5px">${next ? `Còn <b>${next.tren + 1 - A.ly} ly</b> nữa để ca hôm nay lên <b>${kk(next)}/giờ</b>.` : 'Ca hôm nay đã đạt mức lương cao nhất theo số ly.'}</div>
     <div class="track" style="margin:6px 0 24px"><div class="fill" style="width:${at(A.ly)}%"></div>
-      <div class="mk" style="left:${at(50)}%"><span>50 ly · 30k</span></div><div class="mk" style="left:${at(85)}%"><span>85 ly · 35k</span></div>
+      ${tb.map(b => `<div class="mk" style="left:${at(b.tren)}%"><span>${b.tren} ly · ${kk(b)}</span></div>`).join('')}
       <div class="mk t" style="left:${at(S.tgt)}%"><span style="top:-20px">mục tiêu ${S.tgt}</span></div></div>`;
 
   /* money */
@@ -1762,6 +1774,7 @@ function onData(res, manual, offlineAt){
   if (res.err){ if (D){ setUpd('err', 'Lỗi tải'); toast('⚠ ' + esc(res.err), true); } else { hideViews(); showState('Không đọc được sheet', esc(res.err)); setUpd('err', 'Lỗi'); } return; }
   try { localStorage.setItem('kai_dash_key', KEY); localStorage.setItem('kai_dash_api', API); } catch(e){}
   const before = D ? D.orders.length : 0, first = !D;
+  BAC_SV = res.bac || null;
   try { D = parseWorkbook({SheetNames: res.names || [], Sheets: res.sheets || {}}); }
   catch (err){ showState('Không phân tích được dữ liệu', esc(err.message)); return; }
   $('status').hidden = true;
