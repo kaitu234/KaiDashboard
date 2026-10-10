@@ -1,0 +1,4 @@
+*.gs
+*.xlsx
+*.csv
+.env
