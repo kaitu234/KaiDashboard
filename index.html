@@ -428,6 +428,7 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
     <svg class="blogo" viewBox="2 -6 286 146" role="img" aria-label="Kai Café"><g transform="scale(0.95)"><g class="lf"><rect x="44" y="0" width="12" height="7" rx="3"></rect><path d="M 30 17 Q 30 9 38 9 L 62 9 Q 70 9 70 17 Z"></path><path d="M 28 20 L 72 20 L 68.5 43 L 31.5 43 Z"></path><rect x="12" y="46" width="76" height="7" rx="3.5"></rect><path d="M 18 56 L 82 56 L 77 128 Q 76.5 136 68 136 L 32 136 Q 23.5 136 23 128 Z"></path></g><path class="lp" d="M 26 56 L 74 56 L 70.6 116 L 29.4 116 Z"></path><path class="lf" d="M 30.4 82 L 69.6 82 L 68.4 113 L 31.6 113 Z"></path><path class="lps" d="M 32 31 L 68 31" style="stroke-width:2.5"></path><path class="lps" d="M 32 126 L 68 126" style="stroke-width:2.5;stroke-linecap:round"></path></g><g transform="translate(104 0)"><g class="lf"><rect x="0" y="0" width="22" height="100"></rect><path d="M 38 0 L 62 0 L 22 71.4 L 22 28.6 Z"></path><path d="M 28 52 L 44 40 L 64 100 L 40 100 Z"></path><g transform="translate(76 0)"><path d="M 0 100 L 22 100 L 40 0 L 26 0 Z"></path><path d="M 66 100 L 44 100 L 26 0 L 40 0 Z"></path><rect x="10" y="64" width="46" height="16"></rect></g><rect x="154" y="0" width="22" height="100"></rect></g><g class="ls" style="stroke-width:2.6"><path d="M 0 123 L 41 123"></path><path d="M 135 123 L 176 123"></path></g><g transform="translate(51 114)"><g class="ls" style="stroke-width:2.6;stroke-linejoin:miter"><path d="M 9.9 2.1 A 6 9 0 1 0 9.9 15.9"></path><path d="M 21 18 L 27 0 L 33 18 M 23.2 11.5 L 30.8 11.5"></path><path d="M 53 0 L 43 0 L 43 18 M 43 8.5 L 51 8.5"></path><path d="M 74 0 L 64 0 L 64 18 L 74 18 M 64 8.5 L 72 8.5"></path><path d="M 67.5 -3.5 L 71.5 -8.5"></path></g></g></svg>
     <div class="bn">Internal dashboard</div>
     <div class="bv">429 Phan Huy Ích · <span id="hdrRange"></span></div>
+    <div class="bv" id="verChip" role="button" tabindex="0" title="Xem có gì mới" style="cursor:pointer;text-decoration:underline dotted"></div>
     <span class="updchip" id="upd"><span class="dot"></span><span id="updTxt">Đang kết nối Google Sheet…</span></span>
     <button class="cbtn mmore" id="mMore" aria-expanded="false" aria-controls="sfoot" title="Mở sheet · Cài app · Đăng xuất">⋯</button>
   </div>
@@ -947,9 +948,13 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
       <div class="ct">Định nghĩa &amp; công thức <span class="nt">· mỗi con số trên dashboard tính từ đâu</span></div>
       <div class="tblwrap" style="max-height:480px"><table id="kcGloss"></table></div>
     </div>
+    <div class="card" id="sec-kc-treo">
+      <div class="ct">Còn treo <span class="nt" id="kcTreoNt">· việc chờ chủ quán, chờ đủ dữ liệu, kỹ thuật, ngoài dashboard</span></div>
+      <div class="tblwrap" style="max-height:520px"><table id="kcTreo"></table></div>
+    </div>
     <div class="card" id="sec-kc-log">
-      <div class="ct">Có gì mới <span class="nt">· phiên bản dashboard</span></div>
-      <div id="kcLog" style="display:grid;gap:8px"></div>
+      <div class="ct">Có gì mới <span class="nt" id="kcVerNt">· bản hiện hành</span></div>
+      <div class="tblwrap" style="max-height:560px"><table id="kcLog"></table></div>
     </div>
   </div>
 
@@ -2206,7 +2211,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.3';
+const BAN_DASH = 'v1.3.1';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2257,13 +2262,64 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Đủ ~ngày', 'Tồn (tự tính tại chỗ, cùng công thức bot) ÷ nhịp dùng 7 ngày gần nhất. Có /kiemkho: tồn = số đếm gần nhất + mua sau ngày kiểm − dùng sau lúc kiểm; chưa kiểm: tổng mua − tổng dùng. Số bot (tab Kho) chỉ hiện để đối chiếu', 'Kho · sổ chi · DonHang · KiemKho', 'Kho, Tổng quan, Thu chi, Kế hoạch'],
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
-const CHANGELOG = [
-  ['v1.3 · 11/10/2026', 'Vá theo kiểm định độc lập: (1) giá mua chỉ tính dòng có tiền, hàng tặng 0 đ không kéo giá xuống; (2) tháng có sổ chi Nhân sự: tổng tháng phân bổ về ngày theo tỉ lệ lương bot (kỳ con cộng = tổng tháng); (3) lương/ngày TB chỉ tính ngày có bán; (4) một hàm hoà vốn (ly/ngày, 2 mức: vận hành / sau khấu hao) dùng chung Tổng quan · Bán hàng · PNL · Kế hoạch · máy tính, mốc hiện ở cả giá đang bán thực lẫn giá thường, làm tròn giá vốn/ly thống nhất (đồng); (5) miễn hao hụt cho đơn vị tính bắt đầu bằng "ly" (kem muối "ly muối"); (6) báo chi mua khối Giá vốn không vào PNL (2 nhóm), không đổi số; (7) tồn kho tính tại chỗ một hàm (tinhKho, cùng công thức bot, có /kiemkho) cho Kho · Tổng quan · Thu chi · Kế hoạch, hiện số bot cạnh để đối chiếu, xoá mã dự phòng cũ; (8) năng lực 1 người loại ngày có ca thiếu giờ ra, không còn mặc định 20; (9) đếm và báo dòng sổ chi thiếu STT/ngày; (10) Thu chi không trừ 2 lần hàng cho kèm, cùng quy tắc Đầu tư với PNL; (11) bỏ số mặc định 60 ly/ngày, 6.300 giá vốn, 17.000 giá, bảng bậc lương 50/85, ngưỡng 60% giữ khách — thiếu số thật thì hiện "chưa có số thật"; (12) giao diện: PNL/Kế hoạch ở 375 px hết tràn, biểu đồ "Ly theo giờ" vừa thẻ, "đ/giờ/giờ", nhãn bậc lương so le. Bổ sung: hao hụt thật từ KiemKho hiển thị cạnh 5% (không thay 5%). Kèm theo: giá vốn/ly "chưa có số thật" khi không nguyên liệu nào có giá (vd thiếu tab Kho); số ngày đủ dùng dưới 10 hiện 1 số lẻ; biểu đồ Kho cắt trục ở 30 ngày. tuKiem thêm 6 bất biến (13–18).'],
-  ['v1.2 · 11/10/2026', 'In đủ số, không viết tắt tr / k. Dự phóng chỉ dùng số thật (bỏ giả định giữ lại khách sau 10K); năng lực 1 người lấy từ chấm công thật.'],
-  ['v1.1 · 11/10/2026', 'Tab Kế hoạch (đề xuất tối ưu, mua hàng 7 ngày, dự phóng 12 tháng) và Kiểm chứng (định lượng cần đo, đủ mẫu chưa, tự kiểm). Bỏ qua marketing + hàng cho kèm T10; đường tính theo ly.'],
-  ['v1.0 · 11/10/2026', 'Tab PNL: thác nước lãi lỗ, theo món / ngày / nguyên liệu, dự phóng tháng. Khấu hao 27.000.000 đ / 6 tháng theo ngày. Hao hụt 5%. Biểu đồ tròn / cột ngang cho Món, Hiệu suất, Thu chi, Nhân sự.'],
+const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.3.1', ngay:'11/10/2026', nd:['Thêm mục "Còn treo" (việc chờ chủ quán · chờ đủ dữ liệu · kỹ thuật · ngoài dashboard, tự gạch khi dữ liệu cho thấy đã xong) và bảng "Có gì mới" theo từng bản.',
+    'Chip phiên bản ở thanh bên; bất biến 19 kiểm phiên bản ghi đủ 3 chỗ.', 'Số in đủ (vd 33.422.575) nằm gọn 1 dòng trong ô KPI ở mọi độ rộng; bộ tự kiểm luôn tính lại Thu chi trước khi so.']},
+  {v:'v1.3', ngay:'11/10/2026', nd:['Vá theo kiểm định độc lập của Fable 5 (29 phát hiện, 12 quyết định); bộ tự kiểm 12 → 18 bất biến.',
+    'Giá mua chỉ tính dòng có tiền: hàng tặng 0 đ không kéo giá xuống (cà phê giữ 240 đ/g khi ghi thêm dòng mua thật).',
+    'Sổ chi khối Nhân sự: tổng tháng phân bổ về ngày theo lương bot, kỳ con cộng lại đúng tổng tháng. Lương/ngày TB chỉ tính ngày có bán: 200.111 → 293.917 đ.',
+    'Một hàm hoà vốn (ly/ngày; vận hành · sau khấu hao; giá đang bán · giá thường) cho Tổng quan, Bán hàng, PNL, Kế hoạch, máy tính; bỏ chữ "vượt mốc" khi đang đồng giá 10.000.',
+    'Tồn kho dashboard tự tính một hàm, cùng công thức bot (có /kiemkho) vì bot chỉ tính lại lúc 21:00: cà phê hạt 8,65 kg → 1,99 kg; hiện số bot cạnh để đối chiếu; xoá mã dự phòng cũ.',
+    'Hao hụt 5% miễn cho đơn vị tính bắt đầu bằng "ly" (kem béo 3.553,85 → 3.384,62 đ/ly). Hàng cho kèm không bị trừ 2 lần ở Thu chi; quy tắc "nhượng quyền = Đầu tư" dùng chung (bỏ ô tick).',
+    'Hiện rõ chi mua khối Giá vốn không vào PNL (323.341 + 405.000 đ, không đổi số) và dòng sổ chi thiếu STT / ngày; năng lực 1 người loại ngày có ca thiếu giờ ra.',
+    'Bỏ mọi số mặc định (60 ly/ngày, 17.000, 6.300, 6.250.000, 20 ly/30 phút, bậc lương 50/85): thiếu số thật thì hiện "chưa có số thật". Hao hụt thật từ KiemKho hiển thị cạnh 5% (không thay 5%).',
+    'Giao diện: 11 tab không tràn ngang ở 375 px; sửa "đ/giờ/giờ", nhãn bậc lương, biểu đồ "Ly theo giờ".']},
+  {v:'v1.2', ngay:'11/10/2026', nd:['In đủ số, không viết tắt tr / k.', 'Dự phóng chỉ dùng số thật (bỏ giả định giữ lại khách sau 10K); năng lực 1 người lấy từ chấm công thật; bỏ sổ cược.']},
+  {v:'v1.1', ngay:'11/10/2026', nd:['Tab Kế hoạch (đề xuất tối ưu, luật quyết định theo món, mua hàng 7 ngày, dự phóng 12 tháng) và Kiểm chứng (định lượng cần đo, đủ mẫu chưa, tự kiểm).', 'Bỏ qua marketing + hàng cho kèm T10; đường tính theo ly dùng.']},
+  {v:'v1.0', ngay:'11/10/2026', nd:['Tab PNL: thác nước lãi lỗ, theo món / ngày / nguyên liệu, dự phóng tháng.', 'Khấu hao 27.000.000 đ / 6 tháng theo ngày; hao hụt 5%; ống hút, túi, đá vào công thức; ly trà cho kèm tính riêng; biểu đồ tròn / cột ngang cho Món, Hiệu suất, Thu chi, Nhân sự.']},
+  {v:'v0.x', ngay:'09–11/10/2026', nd:['Nền tảng: dashboard GitHub Pages, đăng nhập tài khoản + mật khẩu (link API mã hoá), bố cục thanh bên kiểu Squad, PWA, giao diện Tự động / Sáng / Tối, font Barlow Condensed + Be Vietnam Pro.',
+    'Hiệu suất (8 phân tích), Kho đọc từ tab Kho của bot, lương 3 phần (căn bản + thâm niên + bonus ly), chủ quán lương căn bản không bonus và loại khỏi hiệu suất, sổ Chi T11–T09 dựng lại theo T10, giá vốn món dùng giá tham chiếu khi sổ chi ghi 0 đ.']},
+];
+/** Còn treo: nhóm · việc (chuỗi hoặc hàm) · cần gì / từ ai · xong() tự kiểm theo dữ liệu (không có thì chỉ xoá tay khỏi danh sách này khi đã giải quyết) · tt() chữ trạng thái */
+const BACKLOG = [
+  {nhom:'Chờ chủ quán', viec:'Ghi dòng cà phê hạt 5 kg còn lại vào sổ chi khi mua', can:'Chủ quán ghi sổ chi (tồn tính ra khoảng 2 kg, đủ khoảng 1 ngày)', xong:() => D.chi.some(r => /^cà phê \(hạt\)/i.test(r.cat) && r.amt > 0)},
+  {nhom:'Chờ chủ quán', viec:'Ghi tiền đá mỗi ngày (2 bao = 40.000 đ) vào sổ chi, hạng mục "Đá viên"', can:'Chủ quán ghi sổ chi mỗi ngày; quỹ đang cao hơn thực tế', xong:() => D.chi.some(r => /^da vien/.test(boDau(r.cat)) && r.amt > 0)},
+  {nhom:'Chờ chủ quán', viec:'Gõ /kiemkho cuối ngày để chốt tồn kho thật (cần ≥ 2 lần cách ≥ 3 ngày để đo hao hụt thật so với 5%)', can:'Chủ quán: /kiemkho cf … sd … st …', xong:() => D.kiemKho.length > 0, tt:() => D.kiemKho.length ? D.kiemKho.length + ' lần đã kiểm' : ''},
+  {nhom:'Chờ chủ quán', viec:'Đo thật các định lượng đang ước tính: kem muối (ly/hộp), cacao (gram/muỗng, gram/gói), đường (ml/ly, ml/chai), ống hút và túi chữ T (số cái/lần mua), sữa đặc (ml/hộp), đá (bao/ngày, món nóng không dùng)', can:'Chủ quán đọc số, cập nhật tab Kho / CongThuc (xem mục "Định lượng cần kiểm chứng")'},
+  {nhom:'Chờ chủ quán', viec:'Chốt lượng cà phê ở bạc xỉu, cà phê sữa tươi (thẻ HCN 20ml ≈ 8g) và cà phê muối (30ml ≈ 12g): giữ 18g hay theo thẻ', can:'Chủ quán chốt rồi sửa cột cf tab CongThuc (tác động khoảng 1.413.720 đ/tháng)'},
+  {nhom:'Chờ chủ quán', viec:'Xác nhận giá ly 900 đ đã gồm nắp chưa; dòng sổ chi "Kem muối 30.000 đ" là kem làm sẵn hay muối hồng', can:'Chủ quán trả lời'},
+  {nhom:'Chờ chủ quán', viec:() => { const c = chiKhongVaoPnl(); return `Phân loại chi mua khối Giá vốn không vào PNL: ${fmt(c.tongA)} đ không khớp nguyên liệu nào (ấm siêu tốc, hộp 1,5L / 0,7L) + ${fmt(c.tongB)} đ khớp nguyên liệu không nằm trong công thức nào (cà phê bột, kem muối)`; },
+    can:'Chủ quán chọn: Đầu tư / Vận hành / thêm vào công thức', xong:() => { const c = chiKhongVaoPnl(); return c.tongA + c.tongB === 0; }},
+  {nhom:'Chờ chủ quán', viec:'P-24: món có công thức nhưng thiếu giá 1 nguyên liệu — đang tính phần còn lại và báo "Thiếu giá mua" (không thay bằng ô Giá vốn/ly)', can:'Chủ quán xác nhận giữ cách này hoặc yêu cầu đổi'},
+  {nhom:'Chờ đủ dữ liệu', viec:'Hàng cho kèm (ly trà đá, trà sâm dứa) tính theo kho thực từ T11/2026 (đếm đầu và cuối tháng)', can:'Chủ quán đếm ly trà đầu / cuối tháng', xong:() => false, tt:() => today() >= '2026-11-01' ? 'đến hạn' : 'chờ tới 01/11'},
+  {nhom:'Chờ đủ dữ liệu', viec:'Chi cố định thật (thuê chỗ + điện nước) từ T1/2027 thay cho ước tính 2.000.000 đ/tháng', can:'Chủ quán ghi sổ chi hạng mục Thuê vị trí / Điện, nước', xong:() => false, tt:() => today() >= '2027-01-01' ? 'đến hạn' : 'chờ tới 01/01/2027'},
+  {nhom:'Việc kỹ thuật', viec:'Đối soát doanh thu theo ca (ChotCa) với đơn bot', can:'Dashboard (đề xuất của Fable 5)'},
+  {nhom:'Việc kỹ thuật', viec:'Tách món nóng / lạnh để tính đá đúng (hiện áp đá cho mọi món)', can:'Cần cột nóng / lạnh trong tab Menu'},
+  {nhom:'Việc kỹ thuật', viec:'Co giãn theo giá sau 16/10: đo từ số ngày bán thật, không đặt tỉ lệ', can:'Cần ≥ 5 ngày sau đợt đồng giá'},
+  {nhom:'Việc kỹ thuật', viec:'Dải bất định (p10–p90) cho dự phóng bằng ngày bán thật', can:'Cần ≥ 14 ngày bán'},
+  {nhom:'Việc kỹ thuật', viec:'Lỗi nhỏ mức Thấp: P-25 chuỗi số kiểu Anh "9.75" bị đọc thành 975 · P-27 ô "Lương theo ly" đếm cả ngày chấm công không bán · P-28 "Độ mới" ra phút âm khi giờ máy sớm hơn giờ đọc sheet', can:'Dashboard'},
+  {nhom:'Việc kỹ thuật', viec:'Thử bố cục trên điện thoại thật (đã đo bằng khung 375 px và 4 độ rộng khác, chưa thử máy thật)', can:'Chủ quán mở app trên điện thoại, báo chỗ lỗi'},
+  {nhom:'Việc kỹ thuật', viec:'Vòng kiểm 2 của Fable 5: lỗi mới do bản v1.3 sinh ra + các mục mức Thấp (chờ giới hạn làm mới; gói file đã lưu ở thư mục xuat-fable5)', can:'Chủ quán đưa lại gói cho Fable 5'},
+  {nhom:'Ngoài dashboard', viec:'Sheet "Tổng hợp" còn tính cũ: giá vốn/ly 6.300 (ô E5), lãi hoạt động gồm marketing T10, chưa khấu hao → khác số trên dashboard', can:'Sửa sheet theo quy tắc dashboard hoặc chấp nhận hai số khác nhau'},
+  {nhom:'Ngoài dashboard', viec:'Bot: tin dự báo 21:00 dùng hằng 20 ly/người/30 phút (dashboard đo từ chấm công); tab Kho của bot chỉ tính lại 21:00 (dashboard đã tự tính tồn)', can:'Sửa bot nếu muốn hai nơi cùng số (cần triển khai lại Apps Script)'},
 ];
 let DATA_AT = null;   // giờ server đọc sheet (res.at) – để kiểm độ mới
+$('verChip').textContent = 'Bản ' + BAN_DASH + ' · có gì mới'; $('kcVerNt').textContent = '· bản hiện hành ' + BAN_DASH;
+$('verChip').onclick = () => { setView('kc'); setTimeout(() => { const e = $('sec-kc-log'); if (e) e.scrollIntoView({block:'start'}); }, 150); };
+$('verChip').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('verChip').click(); } };
+/** Bảng "Còn treo": danh sách tĩnh (BACKLOG) + các phân tích còn thiếu mẫu lấy trực tiếp từ duMau(); mục có xong() đạt thì tự gạch */
+function renderTreo(){
+  const NHOM = ['Chờ chủ quán', 'Chờ đủ dữ liệu', 'Việc kỹ thuật', 'Ngoài dashboard'], rows = [];
+  BACKLOG.forEach(b => { let xong = false, viec = '', tt = '';
+    try { viec = typeof b.viec === 'function' ? b.viec() : b.viec; xong = b.xong ? !!b.xong() : false; tt = b.tt ? b.tt() : ''; } catch(e){ viec = String(b.viec); }
+    rows.push({nhom:b.nhom, viec, can:b.can, xong, tt}); });
+  duMau().filter(r => r.cur < r.need).forEach(r => rows.push({nhom:'Chờ đủ dữ liệu', viec:`${r.ten} (tab ${r.tab})`, can:`cần ${fmt(r.need)} ${r.dv}`, xong:false, tt:`${fmt(r.cur)}/${fmt(r.need)}${r.eta ? ' · khoảng ' + thu(r.eta) + ' ' + dShort(r.eta) : ''}`}));
+  rows.sort((a, b) => (a.xong - b.xong) || (NHOM.indexOf(a.nhom) - NHOM.indexOf(b.nhom)));
+  const mo = rows.filter(r => !r.xong).length;
+  $('kcTreoNt').textContent = `· ${mo} việc đang mở · ${rows.length - mo} đã xong · tự gạch khi dữ liệu cho thấy đã xong`;
+  $('kcTreo').innerHTML = '<thead><tr><th>Nhóm</th><th>Việc còn treo</th><th>Cần gì / từ ai</th><th>Trạng thái</th></tr></thead><tbody>' + rows.map(r =>
+    `<tr style="${r.xong ? 'opacity:.55' : ''}"><td><span class="pill ${r.nhom === 'Chờ chủ quán' ? 'warn' : 'neu'}">${esc(r.nhom)}</span></td><td style="white-space:normal">${esc(r.viec)}</td><td style="white-space:normal" class="muted">${esc(r.can)}</td><td>${r.xong ? '<span class="pill good">Xong</span>' : `<span class="pill neu">${esc(r.tt || 'Chờ')}</span>`}</td></tr>`).join('') + '</tbody>';
+}
 
 /** Giá vốn từng nguyên liệu cho cả kỳ: {nl:{mã: đ}, ly, gv} (món chưa có công thức không vào) */
 function gvTheoNL(L){
@@ -2399,6 +2455,8 @@ function tuKiem(){
     const cg1 = [{k:'2026-10-02', vao:new Date(2026, 9, 2, 6), ra:new Date(2026, 9, 2, 11)}], od1 = [{k:'2026-10-02', min:8 * 60, sl:9}];
     const n1 = nangLucCore({orders:od1, cong:cg1, today:'2026-10-06'}), n2 = nangLucCore({orders:od1, cong:[{k:'2026-10-02', vao:new Date(2026, 9, 2, 6), ra:null}], today:'2026-10-06'});
     ok('Năng lực 1 người: ca đủ giờ ra → 9 ly/30 phút; ca thiếu giờ ra ngày cũ → loại cả ngày → chưa đo được', gan(n1.v, 9, 1e-9) && n2.v == null && n2.ngayLoai.length === 1, `${n1.v} · ${n2.v == null ? 'chưa đo được' : n2.v}`);
+    // 19. Phiên bản ghi đủ chỗ: hằng BAN_DASH = bản đầu "Có gì mới" = chip thanh bên = tiêu đề thẻ "Có gì mới"
+    ok('Phiên bản: BAN_DASH = bản đầu "Có gì mới" = chip thanh bên = tiêu đề thẻ "Có gì mới" (bump đủ chỗ)', CHANGELOG[0].v === BAN_DASH && ($('verChip').textContent || '').includes(BAN_DASH) && ($('kcVerNt').textContent || '').includes(BAN_DASH), `${BAN_DASH} · ${CHANGELOG[0].v} · ${($('verChip').textContent || '').trim()} · ${($('kcVerNt').textContent || '').trim()}`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -2472,7 +2530,8 @@ function renderKc(){
     .map(x => `<li>${esc(x[0])} ${esc(x[1])}</li>`).join('');
   table({id:'tKcKiem', rows:D.kiemKho.map(x => ({luc:x.luc, ten:x.ten, dem:x.dem, uoc:x.uoc, chenh:x.chenh, pc:x.uoc ? x.chenh / x.uoc : null, ai:x.ai})), sortDefault:{k:'luc', d:-1}, cols:[{k:'luc', l:'Lúc', f:v => v ? `${dShort(dk(v))} ${p2(v.getHours())}:${p2(v.getMinutes())}` : '—'}, {k:'ten', l:'Nguyên liệu'},
     {k:'dem', l:'Đếm được', r:1, f:fmt}, {k:'uoc', l:'Ước tính lúc kiểm', r:1, f:fmt}, {k:'chenh', l:'Chênh (đếm − ước tính)', r:1, f:v => (v > 0 ? '+' : '') + v.toLocaleString('vi-VN', {maximumFractionDigits:2}), cls:v => v < 0 ? 'dn' : ''}, {k:'pc', l:'% chênh', r:1, f:v => v == null ? '—' : pct(v, 1)}, {k:'ai', l:'Người kiểm'}]});
-  $('kcLog').innerHTML = CHANGELOG.map(c => `<div class="kv"><span><b>${esc(c[0])}</b></span><b></b><span class="muted" style="grid-column:1/-1;font-weight:400">${esc(c[1])}</span></div>`).join('');
+  $('kcLog').innerHTML = '<thead><tr><th>Bản</th><th>Ngày</th><th>Nội dung chính</th></tr></thead><tbody>' + CHANGELOG.map(c => `<tr><td><b>${esc(c.v)}</b></td><td class="muted">${esc(c.ngay)}</td><td style="white-space:normal"><ul style="margin:0;padding-left:16px;display:grid;gap:2px">${c.nd.map(x => `<li>${esc(x)}</li>`).join('')}</ul></td></tr>`).join('') + '</tbody>';
+  renderTreo();
   $('kcNote').innerHTML = `Chỉ dùng số thật trong sheet: <b>kiểm data trước khi tin số</b> · <b>chỉ kết luận khi đủ mẫu</b> · số nào còn là ước tính thì đánh dấu đỏ · tự kiểm bất biến bằng code chạy trên chính data đang xem.`;
   $('kcKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Ngày bán</span><span class="v">${[...new Set(L.map(o => o.k))].length}</span><span class="s">${fmt(A.ly)} ly · cần ≥ 14 ngày cho khung giờ, ≥ 28 ngày cho dự báo theo thứ</span></div>
