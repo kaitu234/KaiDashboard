@@ -1109,8 +1109,22 @@ function nguyenLieu(){
 }
 const kl = (v, dv) => v == null ? '—' : Math.abs(v) >= 1000 ? (v / 1000).toLocaleString('vi-VN', {maximumFractionDigits:2}) + (dv === 'g' ? ' kg' : ' lít') : fmt(v) + ' ' + dv;
 /** Điền giá bán thường vào máy tính (trừ khi người xem đã sửa tay) */
+/** Giá vốn/ly bình quân theo công thức, gia quyền theo số ly từng món đã bán (món chưa có công thức bị bỏ qua) */
+function cogsTheoCT(){
+  const G = giaNL(), by = {}; let t = 0, n = 0;
+  D.orders.forEach(o => by[o.ma] = (by[o.ma] || 0) + o.sl);
+  Object.entries(by).forEach(([ma, ly]) => { const g = giaVonMon(ma, G); if (g.gv != null){ t += g.gv * ly; n += ly; } });
+  return n ? t / n : null;
+}
+/** Lương thực tế bot tính trung bình mỗi ngày có chấm công (gồm cả chủ) */
+function luongNgayTB(){
+  const c = D.cong.filter(x => x.tien != null), nd = new Set(c.map(x => x.k)).size;
+  return nd ? c.reduce((s, x) => s + x.tien, 0) / nd : null;
+}
 function fillCalc(){
   const pr = $('price'); if (D && D.giaThuong && !pr.dataset.touched) pr.value = Math.round(D.giaThuong / 500) * 500;
+  const cg = $('cogs'), c = cogsTheoCT(); if (c && !cg.dataset.touched) cg.value = Math.round(c / 50) * 50;
+  const fx = $('fixed'), l = luongNgayTB(); if (l != null && !fx.dataset.touched) fx.value = Math.round((CHI_CO_DINH_THANG + l * 30) / 250000) * 250000;
 }
 function groupBy(list, key){ const m = new Map(); list.forEach(o => { const k = key(o); if (!m.has(k)) m.set(k, []); m.get(k).push(o); }); return m; }
 function rangeDays(from, to){ const out = []; for (let k = from; k <= to && out.length < 400; k = addDays(k, 1)) out.push(k); return out; }
@@ -1646,7 +1660,7 @@ function renderFin(){
   const AL = agg(D.orders);
   fillCalc();
   $('calcNote').innerHTML = (D.giaThuong ? `Giá bán điền sẵn: <b>${fmt(D.giaThuong)} đ/ly</b> = ${D.giaThuongNguon}.${AL.asp && D.orders.some(o => isPromo(o.k)) ? ` Giá TB thực tế cả đợt khai trương 10K là ${fmt(AL.asp)} đ/ly, không dùng để tính hoà vốn.` : ''}` : 'Chưa có đơn từ bot, giá bán đang giả định.')
-    + ' Mặc định giá vốn 6.300 đ/ly và chi cố định 6,25tr/tháng (lương 3,75tr + thuê 1tr + điện nước 1tr + phí 0,5tr) lấy theo kế hoạch tài chính. Mốc hoà vốn ở tab Bán hàng dùng chính các ô này.';
+    + ` Giá vốn/ly điền sẵn = bình quân theo công thức (tab CongThuc × giá mua trong sổ chi, +${pct(HAO_HUT, 0)} hao hụt, theo số ly từng món đã bán; chưa gồm đường, ly trà đá tính riêng). Chi cố định điền sẵn = ${fmtM(CHI_CO_DINH_THANG)} thuê + điện nước (miễn phí 3 tháng đầu, từ T1/2027 mới tính)${luongNgayTB() != null ? ` + lương thực tế TB ${fmtK(luongNgayTB())}/ngày × 30 (bot tính, kế hoạch cũ là 3,75tr/tháng)` : ''}. Khấu hao ${fmtM(KHAU_HAO.tong / KHAU_HAO.thang)}/tháng (phí NQ + cọc) không nằm trong các số này. Mốc hoà vốn ở tab Bán hàng dùng chính các ô này.`;
   calc(capitalIn);
 }
 function calc(cap){
@@ -1787,6 +1801,7 @@ function renderMon(){
 /* ============ render: hiệu suất ============ */
 const PERF_LY_1NGUOI_30P = 20;   // 1 người pha được khoảng bao nhiêu ly trong 30 phút lúc cao điểm (ước tính – chỉnh theo thực tế)
 const KHAU_HAO = {tong:27e6, thang:6, tu:'2026-10'};   // phí nhượng quyền 22tr + cọc 5tr đã trả đủ, không thu thêm → chia đều 6 tháng từ T10/2026 (chủ chốt 11/10/2026)
+const CHI_CO_DINH_THANG = 2e6;   // thuê chỗ + điện nước…: miễn 3 tháng đầu (T10–T12/2026), từ T1/2027 tổng ~2tr/tháng (chủ chốt 11/10/2026)
 const HAO_HUT = 0.05;   // hao hụt + đổ bỏ: cộng 5% lên giá vốn nguyên liệu mỗi ly (chủ chốt 11/10/2026). Ly trà đá/hàng cho kèm tính riêng, không nằm trong công thức.
 const boDau = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd');
 const tb = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
@@ -1813,8 +1828,9 @@ function giaVonMon(ma, G){
   const ct = D.congThuc[String(ma).toLowerCase()];
   if (!ct || !Object.keys(ct).length) return {gv:null, thieu:[], coCT:false};
   let gv = 0; const thieu = [];
-  Object.entries(ct).forEach(([nl, l]) => { const g = G[nl]; if (g && g.gia != null) gv += l * g.gia; else thieu.push(g ? g.k.ten : nl); });
-  return {gv: gv * (1 + HAO_HUT), thieu, coCT:true};
+  // nguyên liệu có đơn vị tính là "ly" (cacao, kem muối: Kai chia từ số ly đã bán thực tế) đã gồm hao hụt → không cộng thêm 5%
+  Object.entries(ct).forEach(([nl, l]) => { const g = G[nl]; if (g && g.gia != null) gv += l * g.gia * (g.k.dvTinh.toLowerCase() === 'ly' ? 1 : 1 + HAO_HUT); else thieu.push(g ? g.k.ten : nl); });
+  return {gv, thieu, coCT:true};
 }
 const lyTheoNgay = () => { const o = {}; D.orders.forEach(x => o[x.k] = (o[x.k] || 0) + x.sl); return o; };
 
