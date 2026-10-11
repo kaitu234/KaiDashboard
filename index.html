@@ -1512,14 +1512,21 @@ function renderFin(){
   // Lương: tháng nào sổ chi đã ghi khối Nhân sự thì lấy sổ chi (đã nằm trong chiKhac); chưa ghi thì lấy tiền công bot tính (ChamCong) để không bỏ sót
   const nsSo = {}; D.chi.filter(r => blockOf(r) === 'Nhân sự').forEach(r => nsSo[r.m] = (nsSo[r.m] || 0) + r.amt);
   const luongBot = D.cong.filter(c => !nsSo[mkey(c.k)]).reduce((s, c) => s + (c.tien || 0), 0);
-  const lai = totalRev - lyBan * cogs - chiKhac - luongBot, laiSo = totalRev - opex;
+  // Hàng cho kèm (ly trà đá, ly pha trà/bọc đá, trà sâm dứa): tính riêng theo tiền chi thực tế, không hao hụt, không nằm trong giá vốn/ly
+  const choKem = D.chi.filter(r => /^(ly tra da|ly pha tra|tra sam dua)(?![a-z0-9])/.test(boDau(r.desc))).reduce((s, r) => s + r.amt, 0);
+  const lai = totalRev - lyBan * cogs - chiKhac - luongBot - choKem, laiSo = totalRev - opex;
+  // Khấu hao khoản đầu tư nhượng quyền: tính theo tháng tròn, từ tháng bắt đầu tới tháng có dữ liệu mới nhất (tối đa KHAU_HAO.thang tháng)
+  const thangCuoi = Object.keys(revByMonth).sort().pop() || mkey(today());
+  const soThangKH = Math.max(0, Math.min(KHAU_HAO.thang, (+thangCuoi.slice(0, 4) - +KHAU_HAO.tu.slice(0, 4)) * 12 + (+thangCuoi.slice(5, 7) - +KHAU_HAO.tu.slice(5, 7)) + 1));
+  const khauHao = KHAU_HAO.tong / KHAU_HAO.thang * soThangKH, laiSauKH = lai - khauHao;
 
   $('finKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Tiền quỹ còn lại</span><span class="v">${fmtM(cash)}</span><span class="s">${capitalIn ? pct(cash / capitalIn, 1) + ' vốn góp' : ''}${botKet ? ` · chưa trừ ${fmtK(botKet)} chi két (bot)` : ''}</span></div>
     <div class="kpi main"><span class="lb">Doanh thu (bot)</span><span class="v">${fmtM(totalRev)}</span><span class="s">${D.orders.length ? new Set(D.orders.map(o=>o.k)).size + ' ngày bán' : 'lấy từ tab Doanh thu'}</span></div>
     <div class="kpi main"><span class="lb">Tổng chi sổ tháng</span><span class="v">${fmtM(totalChi)}</span><span class="s">${D.chi.filter(r => r.amt).length} khoản</span></div>
     <div class="kpi main"><span class="lb">Vốn góp${otherIn ? ' + thu khác' : ''}</span><span class="v">${fmtM(capitalIn + otherIn)}</span><span class="s">${new Set(D.capital.map(c => c.person)).size} người góp</span></div>
-    <div class="kpi tgt"><span class="lb">Lãi vận hành (ước tính)</span><span class="v ${lai < 0 ? 'dn' : 'up'}">${fmtM(lai)}</span><span class="s">doanh thu − ${fmt(lyBan)} ly × ${fmtK(cogs)} giá vốn − chi vận hành${luongBot ? ` − ${fmtK(luongBot)} lương (bot tính, sổ chi chưa ghi)` : ''} · theo sổ chi (tiền đã nhập hàng): ${fmtM(laiSo)}</span></div>
+    <div class="kpi tgt"><span class="lb">Lãi vận hành (ước tính)</span><span class="v ${lai < 0 ? 'dn' : 'up'}">${fmtM(lai)}</span><span class="s">doanh thu − ${fmt(lyBan)} ly × ${fmtK(cogs)} giá vốn − chi vận hành${luongBot ? ` − ${fmtK(luongBot)} lương (bot tính, sổ chi chưa ghi)` : ''}${choKem ? ` − ${fmtK(choKem)} hàng cho kèm (ly/trà đá)` : ''} · theo sổ chi (tiền đã nhập hàng): ${fmtM(laiSo)}</span></div>
+    <div class="kpi tgt"><span class="lb">Lãi sau khấu hao</span><span class="v ${laiSauKH < 0 ? 'dn' : 'up'}">${fmtM(laiSauKH)}</span><span class="s">lãi vận hành − ${fmtM(khauHao)} khấu hao (${fmtM(KHAU_HAO.tong)} phí NQ + cọc ÷ ${KHAU_HAO.thang} tháng × ${soThangKH} tháng)</span></div>
     <div class="kpi tgt"><span class="lb">Đã thu hồi vốn</span><span class="v">${pct(capitalIn ? Math.max(0, lai) / capitalIn : null, 1)}</span><span class="s">lãi vận hành ước tính ÷ vốn góp</span></div>`;
 
   /* alerts */
@@ -1779,6 +1786,8 @@ function renderMon(){
 
 /* ============ render: hiệu suất ============ */
 const PERF_LY_1NGUOI_30P = 20;   // 1 người pha được khoảng bao nhiêu ly trong 30 phút lúc cao điểm (ước tính – chỉnh theo thực tế)
+const KHAU_HAO = {tong:27e6, thang:6, tu:'2026-10'};   // phí nhượng quyền 22tr + cọc 5tr đã trả đủ, không thu thêm → chia đều 6 tháng từ T10/2026 (chủ chốt 11/10/2026)
+const HAO_HUT = 0.05;   // hao hụt + đổ bỏ: cộng 5% lên giá vốn nguyên liệu mỗi ly (chủ chốt 11/10/2026). Ly trà đá/hàng cho kèm tính riêng, không nằm trong công thức.
 const boDau = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd');
 const tb = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
 /** Dòng sổ chi có phải mua nguyên liệu k không – cùng quy tắc khopNL_ của bot (hạng mục · nội dung bắt đầu bằng · từ khoá trừ "-x") */
@@ -1805,7 +1814,7 @@ function giaVonMon(ma, G){
   if (!ct || !Object.keys(ct).length) return {gv:null, thieu:[], coCT:false};
   let gv = 0; const thieu = [];
   Object.entries(ct).forEach(([nl, l]) => { const g = G[nl]; if (g && g.gia != null) gv += l * g.gia; else thieu.push(g ? g.k.ten : nl); });
-  return {gv, thieu, coCT:true};
+  return {gv: gv * (1 + HAO_HUT), thieu, coCT:true};
 }
 const lyTheoNgay = () => { const o = {}; D.orders.forEach(x => o[x.k] = (o[x.k] || 0) + x.sl); return o; };
 
@@ -1869,7 +1878,7 @@ function renderPerf(){
   $('perfMonNote').innerHTML = [giaChua.length ? `Chưa tính được giá (thiếu dòng mua trong sổ chi hoặc thiếu quy đổi ở tab Kho): <b>${esc(giaChua.join(', '))}</b>.` : '',
     g0.length ? `Sổ chi ghi <b>0 đ</b> cho: ${esc(g0.join(', '))} → giá vốn tính 0 (nếu là hàng được tặng thì đúng, nếu chưa ghi giá thì sửa sổ chi).` : '',
     gTC.length ? `Dùng <b>giá tham chiếu</b> (cột R tab Kho, vì sổ chi ghi 0 đ hoặc chưa có dòng mua): ${gTC.map(g => `${esc(g.k.ten)} ${fmt(g.k.giaTC)} đ/${esc(g.k.dv)}`).join(', ')}.` : '',
-    'Món chưa đủ định lượng trong tab CongThuc để trống.'].filter(Boolean).join(' ');
+    `Giá vốn đã cộng <b>${pct(HAO_HUT, 0)} hao hụt</b>.`, 'Món chưa đủ định lượng trong tab CongThuc để trống.'].filter(Boolean).join(' ');
 
   /* 3 · Khung giờ × người đứng ca */
   (() => {
