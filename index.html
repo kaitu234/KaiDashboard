@@ -335,6 +335,11 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .side .tabs button{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:8px 18px;border-radius:0;border-left:3px solid transparent;font-family:var(--f-display);font-weight:700;font-size:12.5px;color:var(--brand);background:none;cursor:pointer}
 .side .tabs button:hover{background:rgba(94,59,37,.08)}
 .side .tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink);border-left-color:var(--caramel)}
+#ovMsgs{grid-template-columns:minmax(0,1fr)}#ovMsgs .km{cursor:pointer;min-width:0}#ovMsgs .km p{min-width:0;flex:1}
+#ovMsgs .km p .d{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--muted)}#ovMsgs .km.open p .d{white-space:normal;overflow:visible}
+#ovMsgs .km-more{display:none}#ovMsgs.show-all .km-more{display:flex}
+.km-toggle{justify-self:start;background:none;border:0;padding:2px 0;cursor:pointer;color:var(--caramel)}
+.co-so summary{cursor:pointer;display:inline-block}.co-so{margin-top:6px}
 .km a,.cmt a{color:var(--caramel);font-family:var(--f-display);font-weight:700;text-decoration:none;white-space:nowrap}
 .km a:hover,.cmt a:hover{text-decoration:underline}
 .side .tabs button .nm{display:grid;gap:1px;min-width:0}
@@ -617,8 +622,9 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
       <div style="display:grid;gap:6px" id="ovMsgs"></div>
     </div>
     <div class="card" id="sec-ov-14d">
-      <div class="ct">14 ngày gần nhất <span class="nt">· số ly mỗi ngày · rê chuột xem doanh thu</span></div>
-      <div class="cw"><canvas id="cOv14" aria-label="Số ly 14 ngày gần nhất"></canvas></div>
+      <div class="ct">14 ngày gần nhất + ngày mai <span class="nt">· tối đa 14 ngày bán gần nhất, số ly mỗi ngày · rê chuột xem doanh thu</span></div>
+      <div class="cw"><canvas id="cOv14" aria-label="Số ly 14 ngày gần nhất và dự kiến ngày mai"></canvas></div>
+      <div class="legend" id="ov14Lg"></div>
     </div>
   </div>
 
@@ -1374,6 +1380,8 @@ function khoCanhBao(){
     if (D.orders.some(o => o.k === tk) && new Date().getHours() >= 20 && thieu.length) A.push(['warn', 'Kiểm xe', `Hôm nay chưa kiểm xe: ${thieu.map(k => esc(k.ten)).join(', ')}`, 'Nhân viên gõ /kiemxe cuối ngày (ly + cà phê hạt); bot cũng nhắc chủ lúc 21:00.', '→ nhắc nhân viên']); }
   return A;
 }
+/** v1.7.4 — tab chứa chi tiết của 1 cảnh báo (nhãn tag): kho / xe / kiểm → Kho · két thiếu → Nhân sự · còn lại (quỹ, sổ chi, chốt ca…) → Thu chi. Tổng quan dẫn "Xem →" theo hàm này. */
+const tabCuaCanhBao = tag => /^(Kho|Xe|Kiểm xe|Kiểm kho|Vật tư|Nguyên liệu)$/.test(tag) ? 'kho' : /^Két thiếu$/.test(tag) ? 'hr' : 'fin';
 /** Số ngày đủ dùng: dưới 10 ngày hiện 1 chữ số lẻ (0,5 ngày không được hiện thành 0) */
 const ngayTxt = v => v == null ? '—' : Math.max(0, v).toLocaleString('vi-VN', {maximumFractionDigits: v < 10 ? 1 : 0});
 /** Danh sách {ten, ngay} đủ dùng bao nhiêu ngày (tự tính) cho Tổng quan */
@@ -1887,7 +1895,7 @@ function renderFin(){
   $('lgOvMonth').innerHTML = `<span><i style="background:${s1}"></i>Doanh thu</span><span><i style="background:${css('--ghost')}"></i>Chi (sổ tháng)</span><span><i style="background:${s2}"></i>Quỹ cuối tháng</span>`;
   }
 
-  FIN = {cash, lai, luongBot, totalRev, chenhKet:DT.chenh, capitalIn, alerts:A, mRows};   // tab Tổng quan dùng lại
+  FIN = {cash, lai, laiSauKH, khauHao, luongBot, totalRev, chenhKet:DT.chenh, capitalIn, alerts:A, mRows};   // tab Tổng quan dùng lại
   table({id:'tMonth', rows:mRows, sortDefault:{k:'m', d:1}, cols:[
     {k:'m', l:'Tháng', f:v => mlabel(v)}, {k:'rev', l:'Doanh thu', r:1, f:nz}, {k:'gv', l:'Giá vốn', r:1, f:nz}, {k:'vh', l:'Vận hành', r:1, f:nz},
     {k:'dt', l:'Đầu tư', r:1, f:nz}, {k:'chi', l:'Tổng chi', r:1, f:nz},
@@ -2275,7 +2283,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.3';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.4';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2329,6 +2337,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.4', ngay:'13/10/2026', nd:['Tổng quan cô đọng: phần tóm tắt chỉ còn kết luận hoà vốn (số hôm nay, quỹ, kho không lặp lại ở đó nữa; cơ sở tính hoà vốn thu vào mục bấm mở); 6 thẻ gọn: Hôm nay (kèm lãi/lỗ ước tính) · Dự kiến ngày mai · Doanh thu tháng · %Hoà vốn · Quỹ · Lãi vận hành (kèm sau khấu hao).', 'Mới: thẻ "Dự kiến ngày mai" và cột dự kiến trên biểu đồ 14 ngày — cùng một con số với Hiệu suất "Dự báo ngày mai" (hàm dùng chung).', 'Sửa logic: nút "Xem →" của cảnh báo Xe / Kiểm xe / Kiểm kho trước đây dẫn nhầm sang Thu chi, nay dẫn tới tab Kho; thẻ Hôm nay không còn ghi "hoà khi bán 0 ly" khi chưa có đơn; thẻ Lãi không còn trộn lương của tháng với lãi cả kỳ; nhắc rõ dự phóng cả tháng đang giữ nhịp đồng giá 10K khi khuyến mãi sắp hết.', 'Cần chú ý: việc vận hành (kho, xe, chốt ca, két) lên trước việc sổ sách trong cùng mức; hiện 4 dòng đầu (bấm "Còn N cảnh báo nữa" để mở), chi tiết cắt 1 dòng, bấm dòng để mở. Tự kiểm: bất biến 23.']},
   {v:'v1.7.3', ngay:'13/10/2026', nd:['Chi từ két (/chiphi) tự ghi vào sổ Chi tháng như /note (bot note-v3): tab ChiPhi có thêm cột H "Sổ chi" trỏ tới dòng sổ. Cảnh báo "Chi két" và dòng "chưa trừ … chi két" ở Tiền quỹ chỉ tính khoản chưa vào sổ (cột H trống), khoản mới không bị tính hai lần; bảng "Chi từ két qua bot" thêm cột Sổ chi. Chốt ca vẫn tính đủ mọi khoản chi két.']},
   {v:'v1.7.2', ngay:'13/10/2026', nd:['Lịch sử định lượng: cacao đổi từ 10 g sang 7 g/ly từ hôm nay 13/10/2026 (chủ quán chốt). Ly cacao bán tới hết 12/10 tính 10 g, từ 13/10 tính 7 g theo tab CongThuc; áp cho giá vốn PNL / Hiệu suất / Kiểm chứng, nhịp dùng tồn kho và hao hụt thật. Muốn thêm lần đổi sau: thêm dòng vào DINH_LUONG_CU. Tự kiểm: bất biến 22.', 'Còn treo: chủ quán đang đếm số ống hút / bịch, ly hồng / bao, số bọc và quai chữ T / kg trước khi so giá hoá đơn Bảo Yến.']},
   {v:'v1.7.1', ngay:'13/10/2026', nd:['Thu chi, tiền quỹ và kế hoạch quỹ dùng tiền THỰC THU: doanh thu = đơn bot + chênh két từng ca đã chốt (thiếu −, dư +). Ví dụ 12/10 bán 840.000 đ nhưng két thiếu 70.000 đ → thực thu 770.000 đ. Ngày chưa chốt ca tạm tính theo đơn bot và hiện cảnh báo "Chưa chốt ca"; chủ quán chốt bù được bằng /chotca 11/10 <tiền két> <tiền đầu ca> (bot bản chotbu-v1, nhắc chủ lúc 21:00). PNL, Hôm nay và Hiệu suất vẫn dùng doanh thu đơn bot (đo bán hàng). Tự kiểm: bất biến 21 (doanh thu thực thu), bất biến 16 trừ chênh két.', 'Sheet: sheet Doanh thu ngày 12/10 ghi −70.000 đ ở cột Khác (thiếu két) nên Tổng hợp thu chi cũng ra 2.620.000 đ doanh thu và 1.104.425 đ tiền mặt, khớp dashboard. Sheet có thêm các tab xem kho: Bảng kho, Kho theo ngày, Nhập kho (toàn công thức, tự cập nhật theo KiemKho / LayKho / sổ chi).']},
@@ -2571,6 +2580,10 @@ function tuKiem(){
     // 22. Lịch sử định lượng: cacao 10 g tới hết 12/10, 7 g từ 13/10; món không có cacao và công thức gốc không bị đổi
     const ctC = {cc:7, ly:1}, ctK = {cf:18}, hs = [{den:'2026-10-12', nl:'cc', luong:10}], c12 = ctTheoNgay(ctC, hs, '2026-10-12'), c13 = ctTheoNgay(ctC, hs, '2026-10-13');
     ok('Lịch sử định lượng: cacao 10 g tới hết 12/10 và 7 g từ 13/10 · món không có cacao giữ nguyên · công thức gốc không bị sửa', c12.cc === 10 && c12.ly === 1 && c13.cc === 7 && ctTheoNgay(ctK, hs, '2026-10-12') === ctK && ctC.cc === 7, `${c12.cc} · ${c13.cc}`);
+    // 23. Tổng quan: "Xem →" dẫn đúng tab (kho / xe / kiểm → Kho, két thiếu → Nhân sự, còn lại → Thu chi) và dự kiến ngày mai là 1 số duy nhất dùng chung với Hiệu suất
+    const tags = ['Kho', 'Xe', 'Kiểm xe', 'Kiểm kho', 'Két thiếu', 'Chưa chốt ca', 'Chi két', 'Tiền quỹ', 'Đối soát', 'Sổ chi', 'Sai khối', 'Kiểm tra', 'Sổ sheet'], dich = tags.map(tabCuaCanhBao), F1 = duBaoNgayMai(), F2 = duBaoNgayMai();
+    ok('Tổng quan: mọi cảnh báo dẫn tới tab có thật (Kho/Xe/Kiểm → Kho, Két thiếu → Nhân sự) · dự kiến ngày mai nằm trong khoảng min–max và lặp lại ổn định',
+      dich.every(t => VIEWS.includes(t)) && dich.slice(0, 4).every(t => t === 'kho') && dich[4] === 'hr' && dich[5] === 'fin' && (!F1 || (F1.lo <= F1.du && F1.du <= F1.hi && F1.du === F2.du && F1.gia > 0)), `${dich.join(',')} · mai ${F1 ? F1.du + ' ly' : '—'}`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -2798,37 +2811,47 @@ function renderOv(){
   const active = open > mEnd ? 0 : nDays(open, mEnd), el = tk < open ? 0 : nDays(open, tk), run = el ? MT.ly / el * active : 0, lyNgayTT = el ? MT.ly / el : null;
   // v1.3: mốc hoà vốn dùng chung (ly/ngày, 2 mức) của tháng hiện tại, ở giá đang bán thực và ở giá thường; không viết "vượt mốc" khi giá đang bán thấp hơn giá tính mốc
   const HV = thamSoHoaVon(tk.slice(0,7)), beThuc = hoaVonLyNgay(HV.giaThuc, HV), beThuong = hoaVonLyNgay(HV.gia, HV);
-  const luong = D.cong.filter(c => c.k >= m0 && c.k <= tk).reduce((s, c) => s + (c.tien || 0), 0);
-  const ganHet = duNgay().sort((a, b) => a.ngay - b.ngay)[0];
+  const F = duBaoNgayMai();
   const ketLuan = beThuc.sauKH == null || lyNgayTT == null ? 'chưa có số thật để tính mốc hoà vốn'
-    : lyNgayTT >= beThuc.sauKH ? `<span class="hl">đạt mốc hoà vốn sau khấu hao</span> ở giá đang bán ${fmt(HV.giaThuc)} (${fmt(beThuc.sauKH)} ly/ngày)`
+    : lyNgayTT >= beThuc.sauKH ? `<span class="hl">đạt mốc hoà vốn sau khấu hao</span> (${fmt(beThuc.sauKH)} ly/ngày) ở giá đang bán ${fmt(HV.giaThuc)}`
     : lyNgayTT >= beThuc.vanHanh ? `qua mốc hoà vốn vận hành (${fmt(beThuc.vanHanh)} ly/ngày) nhưng <span class="hl">chưa tới mốc sau khấu hao</span> (${fmt(beThuc.sauKH)} ly/ngày) ở giá đang bán ${fmt(HV.giaThuc)}`
-    : `<span class="hl">chưa tới mốc hoà vốn</span> ở giá đang bán ${fmt(HV.giaThuc)}: vận hành ${fmt(beThuc.vanHanh)} · sau khấu hao ${fmt(beThuc.sauKH)} ly/ngày`;
-  $('ovHero').innerHTML = `<p>${mlabel(tk.slice(0,7))}: <span class="hl">${fmt(MT.ly)} ly · ${fmtM(MT.dt)} đ</span> sau ${el} ngày bán, TB <span class="hl">${fmt(lyNgayTT)} ly/ngày</span> (dự phóng cả tháng ${fmt(run)} ly): ${ketLuan}.
-    ${beThuong.sauKH != null ? `Ở giá thường ${fmt(HV.gia)}: hoà vốn vận hành ${fmt(beThuong.vanHanh)} · sau khấu hao ${fmt(beThuong.sauKH)} ly/ngày.` : ''} <span class="sm">Cơ sở: ${coSoHoaVon(HV)}.</span></p>
-    <p class="sm">Hôm nay ${fmt(TD.ly)} ly · ${fmt(TD.dt)} đ, ${PN.lai == null ? 'chưa có giá vốn/ly để ước tính lãi lỗ' : `${PN.lai >= 0 ? "lãi" : "lỗ"} ước tính ${fmt(Math.abs(PN.lai))} đ sau giá vốn và lương ca`}${YD.ly ? ` (hôm qua ${fmt(YD.ly)} ly)` : ''}. Quỹ còn ${fmtM(FIN.cash)} đ.${ganHet ? ` Cần đặt sớm nhất: ${esc(ganHet.ten)}, đủ khoảng ${ngayTxt(ganHet.ngay)} ngày (tồn tự tính).` : ''}${(xl => xl.length ? ` Xe cần lấy từ kho: ${xl.map(x => esc(x.ten) + ' (còn ~' + Math.max(0, x.xe).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' ' + esc(x.dv) + ')').join(', ')}.` : '')(tinhKho().filter(x => x.theoDoi && x.canLay))}${isPromo(tk) ? ` Đang chạy khai trương đồng giá 10K đến ${dShort(PROMO.to)}.` : ''}</p>`;
+    : `<span class="hl">chưa tới mốc hoà vốn</span> ở giá đang bán ${fmt(HV.giaThuc)} (vận hành ${fmt(beThuc.vanHanh)} · sau khấu hao ${fmt(beThuc.sauKH)} ly/ngày)`;
+  const kmConLai = isPromo(tk) && PROMO.to < mEnd;   // dự phóng đang theo nhịp đồng giá 10K, khuyến mãi sắp hết trong tháng
+  // v1.7.4: hero chỉ giữ kết luận hoà vốn (số hôm nay / quỹ / kho nằm ở thẻ và mục "Cần chú ý", không lặp lại ở đây)
+  $('ovHero').innerHTML = `<p>${mlabel(tk.slice(0,7))}: <span class="hl">${fmt(MT.ly)} ly · ${fmtM(MT.dt)} đ</span> sau ${el} ngày bán, TB <span class="hl">${fmt(lyNgayTT)} ly/ngày</span> — ${ketLuan}.</p>
+    <p class="sm">${beThuong.sauKH != null ? `Ở giá thường ${fmt(HV.gia)}: hoà vốn vận hành ${fmt(beThuong.vanHanh)} · sau khấu hao ${fmt(beThuong.sauKH)} ly/ngày.` : ''}${isPromo(tk) ? ` Đang khai trương đồng giá 10K đến ${dShort(PROMO.to)}.` : ''}${kmConLai ? ` Dự phóng cả tháng ${fmt(run)} ly đang giữ nhịp đồng giá 10K, sau ${dShort(PROMO.to)} lượng khách có thể khác.` : ''}</p>
+    <details class="co-so"><summary>Cơ sở tính hoà vốn</summary>${coSoHoaVon(HV)}.</details>`;
   const pk = (lb, v, s, hot) => `<div class="pk${hot ? ' hot' : ''}"><div class="lb">${lb}</div><div class="vl">${v}</div><div class="s1">${s}</div></div>`;
-  $('ovKpis').innerHTML = pk('Hôm nay', `${fmt(TD.ly)} ly`, `${fmt(TD.dt)} đ · ${fmt(TD.don)} đơn`, true)
-    + pk(`Doanh thu ${mlabel(tk.slice(0,7))}`, fmtM(MT.dt), `${fmt(MT.ly)} ly · TB ${el ? fmt(MT.ly / el) : '—'} ly/ngày`)
-    + pk('%Hoà vốn tháng · giá đang bán', pct(beThuc.sauKH && lyNgayTT != null ? lyNgayTT / beThuc.sauKH : null), `${fmt(lyNgayTT)} / ${fmt(beThuc.sauKH)} ly/ngày sau khấu hao · vận hành ${fmt(beThuc.vanHanh)}`, true)
-    + pk('Quỹ còn lại', fmtM(FIN.cash), FIN.capitalIn ? `${pct(FIN.cash / FIN.capitalIn, 1)} vốn góp` : '')
-    + pk('Lãi vận hành ước tính', FIN.lai == null ? 'chưa có số thật' : `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, `cả kỳ · giá vốn theo ly · đã trừ lương ${fmtK(luong)} tháng này`)
-    + pk('Lãi / lỗ hôm nay', PN.lai == null ? 'chưa có số thật' : `<span class="${PN.lai < 0 ? 'dn' : 'up'}">${PN.lai >= 0 ? '+' : ''}${fmtK(PN.lai)}</span>`,
-      PN.lai == null ? 'chưa có giá vốn/ly' : PN.canLy == null ? 'giá bán dưới giá vốn' : `hoà khi bán ${fmt(PN.canLy)} ly · đã bán ${fmt(PN.ly)}`, true);
-  const tabOf = tag => /Vật tư|Nguyên liệu|^Kho$/.test(tag) ? 'kho' : /Két/.test(tag) ? 'hr' : 'fin';
-  const lop = {bad:'bad', warn:'warn', good:'ok'}, thuTu = {bad:0, warn:1, good:2};
-  $('ovMsgs').innerHTML = FIN.alerts.slice().sort((a, b) => thuTu[a[0]] - thuTu[b[0]]).map(([lv, tag, t, d]) =>
-    `<div class="km ${lop[lv] || ''}"><span class="t">${tag}</span><p><b>${t}.</b> ${d} ${lv === 'good' ? '' : `<a href="#" data-go="${tabOf(tag)}">Xem →</a>`}</p></div>`).join('');
-  $('ovMsgs').querySelectorAll('[data-go]').forEach(a => a.onclick = e => { e.preventDefault(); setView(a.dataset.go); scrollTo(0, 0); });
-  // 14 ngày gần nhất
-  const d14 = []; for (let i = 13; i >= 0; i--) d14.push(addDays(tk, -i));
-  const by = groupBy(D.orders, o => o.k), s1 = css('--s1'), s2 = css('--s2'), s3 = css('--s3'), bad = css('--bad');
-  // 1 trục: cột số ly; doanh thu xem trong tooltip (không dùng 2 trục tung)
-  const dt14 = d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.tt, 0));
-  mk('cOv14', {type:'bar', data:{labels:d14.map(k => `${thu(k)} ${dShort(k)}`), datasets:[
-      Object.assign({label:'Ly', data:d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.sl, 0))}, barStyle(s1))]},
+  // Hôm nay: chưa có đơn thì không viết "hoà khi bán 0 ly" (lương ca chưa phát sinh làm số hoà vốn = 0)
+  const hnLai = !TD.ly ? `chưa có đơn${PN.luong ? ` · lương ca tạm ${fmt(PN.luong)} đ` : ''}${YD.ly ? ` · hôm qua ${fmt(YD.ly)} ly` : ''}`
+    : PN.lai == null ? 'chưa có giá vốn/ly để ước tính lãi lỗ'
+    : `<span class="${PN.lai < 0 ? 'dn' : 'up'}">${PN.lai >= 0 ? 'lãi' : 'lỗ'} ước tính ${fmt(Math.abs(PN.lai))} đ</span> · ${PN.canLy == null ? 'giá bán dưới giá vốn' : 'hoà khi bán ' + fmt(PN.canLy) + ' ly'}`;
+  $('ovKpis').innerHTML = pk('Hôm nay', `${fmt(TD.ly)} ly`, `${fmt(TD.dt)} đ · ${fmt(TD.don)} đơn<br>${hnLai}`, true)
+    + pk('Dự kiến ngày mai', F ? `${fmt(F.du)} ly` : '—', F ? `${fmt(F.lo)}–${fmt(F.hi)} ly · ≈ ${fmt(F.du * F.gia)} đ<br>${thu(F.mai)} ${dShort(F.mai)}${F.kmMai ? ' · đồng giá 10K' : ''}` : 'chưa có ngày bán nào để dự báo', true)
+    + pk(`Doanh thu ${mlabel(tk.slice(0,7))}`, fmtM(MT.dt), `${fmt(MT.ly)} ly · TB ${el ? fmt(MT.ly / el) : '—'} ly/ngày<br>dự phóng cả tháng ${fmt(run)} ly`)
+    + pk('%Hoà vốn tháng · giá đang bán', pct(beThuc.sauKH && lyNgayTT != null ? lyNgayTT / beThuc.sauKH : null), `${fmt(lyNgayTT)} / ${fmt(beThuc.sauKH)} ly/ngày sau khấu hao<br>vận hành ${fmt(beThuc.vanHanh)} ly/ngày`)
+    + pk('Quỹ còn lại', fmtM(FIN.cash), FIN.capitalIn ? `${pct(FIN.cash / FIN.capitalIn, 1)} vốn góp<br>tính theo tiền thực thu` : '')
+    + pk('Lãi vận hành ước tính', FIN.lai == null ? 'chưa có số thật' : `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, FIN.lai == null ? 'chưa có giá vốn/ly' : `từ khi mở bán, đã trừ giá vốn + lương<br>sau khấu hao <span class="${FIN.laiSauKH < 0 ? 'dn' : 'up'}">${fmtM(FIN.laiSauKH)}</span>`);
+  // Cần chú ý: việc vận hành (kho, xe, chốt ca, két) lên trước việc sổ sách trong cùng mức; chỉ hiện 4 dòng đầu, dòng chi tiết cắt 1 dòng (bấm để mở)
+  const lop = {bad:'bad', warn:'warn', good:'ok'}, thuTu = {bad:0, warn:1, good:2}, uuTien = {Kho:0, Xe:1, 'Kiểm xe':2, 'Chưa chốt ca':3, 'Két thiếu':4, 'Kiểm kho':5};
+  const al = FIN.alerts.slice().sort((a, b) => thuTu[a[0]] - thuTu[b[0]] || (uuTien[a[1]] ?? 9) - (uuTien[b[1]] ?? 9)), NHIEU = 4;
+  $('ovMsgs').innerHTML = al.map(([lv, tag, t, d], i) =>
+    `<div class="km ${lop[lv] || ''}${i >= NHIEU ? ' km-more' : ''}" tabindex="0" role="group"><span class="t">${tag}</span><p><b>${t}.</b> <span class="d">${d}</span> ${lv === 'good' ? '' : `<a href="#" data-go="${tabCuaCanhBao(tag)}">Xem →</a>`}</p></div>`).join('')
+    + (al.length > NHIEU ? `<button type="button" class="lnk km-toggle" aria-expanded="false">Còn ${al.length - NHIEU} cảnh báo nữa ▾</button>` : '');
+  $('ovMsgs').querySelectorAll('[data-go]').forEach(a => a.onclick = e => { e.preventDefault(); e.stopPropagation(); setView(a.dataset.go); scrollTo(0, 0); });
+  $('ovMsgs').querySelectorAll('.km').forEach(r => { const mo = () => r.classList.toggle('open'); r.onclick = mo; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); mo(); } }; });
+  const tg = $('ovMsgs').querySelector('.km-toggle');
+  if (tg) tg.onclick = () => { const mo = $('ovMsgs').classList.toggle('show-all'); tg.setAttribute('aria-expanded', mo); tg.textContent = mo ? 'Thu gọn ▴' : `Còn ${al.length - NHIEU} cảnh báo nữa ▾`; };
+  // 14 ngày gần nhất + cột dự kiến ngày mai (cùng 1 trục số ly; doanh thu xem trong tooltip)
+  const d14 = []; for (let i = 13; i >= 0; i--) if (!D.first || addDays(tk, -i) >= D.first) d14.push(addDays(tk, -i));   // chưa đủ 14 ngày từ ngày bán đầu thì chỉ vẽ các ngày đã bán
+  const by = groupBy(D.orders, o => o.k), s1 = css('--s1'), s2 = css('--s2'), nD = d14.length;
+  const dt14 = d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.tt, 0)), ly14 = d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.sl, 0));
+  mk('cOv14', {type:'bar', data:{labels:d14.map(k => `${thu(k)} ${dShort(k)}`).concat(F ? ['Mai (dự kiến)'] : []), datasets:[
+      Object.assign({label:'Ly', data:ly14.concat(F ? [F.du] : [])}, barStyle(s1), F ? {backgroundColor:ly14.map(() => s1).concat([s2])} : {})]},
     options:{scales:{x:{grid:{display:false}, ticks:{maxRotation:0, autoSkipPadding:8}}, y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5}}},
-      plugins:{tooltip:{callbacks:{label:c => ` ${c.raw} ly`, footer:it => `Doanh thu ${fmt(dt14[it[0].dataIndex])} đ`}}}}});}
+      plugins:{tooltip:{callbacks:{label:c => c.dataIndex >= nD ? ` Dự kiến ${c.raw} ly (${fmt(F.lo)}–${fmt(F.hi)})` : ` ${c.raw} ly`, footer:it => it[0].dataIndex >= nD ? `Doanh thu dự kiến ${fmt(F.du * F.gia)} đ` : `Doanh thu ${fmt(dt14[it[0].dataIndex])} đ`}}}}});
+  $('ov14Lg').innerHTML = F ? `<span><i style="background:${s1}"></i>Số ly thực tế</span><span><i style="background:${s2}"></i>Mai ${dShort(F.mai)}: dự kiến <b class="num">${fmt(F.du)} ly</b></span>` : '';
+}
 
 /* ============ render: món ============ */
 function renderMon(){
@@ -2929,16 +2952,12 @@ function giaVonMon(ma, G, k){
 }
 const lyTheoNgay = () => { const o = {}; D.orders.forEach(x => o[x.k] = (o[x.k] || 0) + x.sl); return o; };
 
-function renderPerf(){
-  const L = sel(), A = agg(L), G = giaNL(), cogs = cogsO(), hm = m => `${p2(Math.floor(m / 60))}:${p2(m % 60)}`;   // v1.3: chưa tính được giá vốn/ly bình quân → null
-  const ngayKy = [...new Set(L.map(o => o.k))].sort();
-  $('perfNote').innerHTML = `Kỳ đang lọc có <b>${ngayKy.length} ngày bán</b>. ${ngayKy.length < 14 ? 'Khung giờ, dự báo và so sánh khuyến mãi sẽ đáng tin hơn khi có 2–3 tuần dữ liệu; ô "—" là chưa đủ dữ liệu.' : ''}`;
-
-  /* 1 · Dự báo ngày mai (dùng toàn bộ lịch sử, không theo bộ lọc) */
-  (() => {
+/** v1.7.4 — Dự báo số ly ngày mai (dùng chung Hiệu suất "Dự báo ngày mai" và Tổng quan): TB 4 ngày cùng thứ gần nhất (chưa có thì TB 7 ngày bán gần nhất), nhân hệ số khuyến mãi / mưa nếu có đủ ngày để so.
+ *  aspDuPhong = giá TB dự phòng khi chưa biết giá thường. Trả null nếu chưa có ngày bán nào. */
+function duBaoNgayMai(aspDuPhong){
     const tk = today(), mai = addDays(tk, 1), lyN = lyTheoNgay(), daXong = k => k < tk || (k === tk && new Date().getHours() >= 12);
     const ngay = Object.keys(lyN).filter(daXong).sort();
-    if (!ngay.length){ $('perfFc').innerHTML = '<span class="muted" style="grid-column:1/-1">Chưa có ngày bán nào để dự báo.</span>'; return; }
+    if (!ngay.length) return null;
     const cungThu = ngay.filter(k => thu(k) === thu(mai)).slice(-4), mau = cungThu.length ? cungThu : ngay.slice(-7);
     let du = tb(mau.map(k => lyN[k])); const coSo = [cungThu.length ? `TB ${cungThu.length} ${thu(mai)} gần nhất` : `TB ${mau.length} ngày bán gần nhất (chưa có ${thu(mai)} nào)`], ghi = [];
     const kmMau = mau.filter(isPromo).length > mau.length / 2, kmMai = isPromo(mai), P = ngay.filter(isPromo), N = ngay.filter(k => !isPromo(k));
@@ -2950,10 +2969,23 @@ function renderPerf(){
     else if (w && w.mm >= 2) ghi.push('mai có mưa nhưng chưa đủ ngày mưa/khô để biết ảnh hưởng');
     du = Math.round(du * he);
     const lo = Math.round(Math.min(...mau.map(k => lyN[k])) * he), hi = Math.round(Math.max(...mau.map(k => lyN[k])) * he);
+    const gia = kmMai ? PROMO_GIA : (D.giaThuong || aspDuPhong || 0);
+    return {tk, mai, lyN, ngay, mau, coSo, ghi, kmMai, du, lo, hi, gia};
+}
+
+function renderPerf(){
+  const L = sel(), A = agg(L), G = giaNL(), cogs = cogsO(), hm = m => `${p2(Math.floor(m / 60))}:${p2(m % 60)}`;   // v1.3: chưa tính được giá vốn/ly bình quân → null
+  const ngayKy = [...new Set(L.map(o => o.k))].sort();
+  $('perfNote').innerHTML = `Kỳ đang lọc có <b>${ngayKy.length} ngày bán</b>. ${ngayKy.length < 14 ? 'Khung giờ, dự báo và so sánh khuyến mãi sẽ đáng tin hơn khi có 2–3 tuần dữ liệu; ô "—" là chưa đủ dữ liệu.' : ''}`;
+
+  /* 1 · Dự báo ngày mai (dùng toàn bộ lịch sử, không theo bộ lọc) */
+  (() => {
+    const F = duBaoNgayMai(A.asp);
+    if (!F){ $('perfFc').innerHTML = '<span class="muted" style="grid-column:1/-1">Chưa có ngày bán nào để dự báo.</span>'; return; }
+    const {tk, mai, lyN, ngay, mau, coSo, ghi, kmMai, du, lo, hi, gia} = F;
     // cao điểm: tỉ trọng khung 30 phút đông nhất trong ngày (TB các ngày mẫu) → cần mấy người
     const tiTrong = tb(mau.map(k => { const s = {}; D.orders.filter(o => o.k === k && o.min != null).forEach(o => { const b = Math.floor(o.min / 30); s[b] = (s[b] || 0) + o.sl; }); return Math.max(0, ...Object.values(s)) / (lyN[k] || 1); }));
     const dinh = Math.round(du * (tiTrong || 0)), nguoi = NL30() != null ? Math.max(1, Math.ceil(dinh / NL30())) : null;   // v1.3: chưa đo được năng lực → không đề xuất số người
-    const gia = kmMai ? 10000 : (D.giaThuong || A.asp || 0);
     const ly7 = tb(ngay.slice(-7).map(k => lyN[k])) || 0;
     const nl = tinhKho().filter(x => x.nhip > 0 && ly7).map(x => ({x, can: x.nhip * du / ly7})).map(({x, can}) => `${esc(x.ten)} ~${can.toLocaleString('vi-VN', {maximumFractionDigits:2})} ${esc(x.dv)}${x.tonBiet != null && x.tonBiet < can ? ' <span class="dn">(không đủ!)</span>' : ''}`);   // v1.3: nhịp tự tính (tinhKho), không dùng số bot
     $('perfFc').innerHTML = `<span>${thu(mai) === 'CN' ? 'Chủ nhật' : 'Thứ ' + thu(mai).slice(1)} ${dShort(mai)}${leOf(mai) ? ' · ' + esc(leOf(mai)) : ''}${wxTxt(mai) ? ' · ' + wxTxt(mai) : ''}${kmMai ? ' · <span class="pill warn">10K</span>' : ''}</span><b></b>
