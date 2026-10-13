@@ -789,7 +789,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
       <div class="tblwrap"><table id="tChi"></table></div>
     </div>
     <div class="card">
-      <div class="ct">Chi từ két qua bot <span class="nt">· tab ChiPhi (lệnh /chiphi) · cần nhập lại vào sổ Chi tháng nếu chưa có</span></div>
+      <div class="ct">Chi từ két qua bot <span class="nt">· tab ChiPhi (lệnh /chiphi) · khoản mới tự vào sổ Chi tháng; khoản cũ cột "Sổ chi" trống thì cần nhập lại</span></div>
       <div class="tblwrap" style="max-height:260px"><table id="tBotChi"></table></div>
     </div>
   </div>
@@ -1159,9 +1159,9 @@ function parseWorkbook(wb){
     D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: txt(r[9]).toUpperCase() === 'CK' ? 'CK' : 'TM'});
   });
   rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE'}; });
-  // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái
+  // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái · Sổ chi (H = "202610:47" nếu /chiphi đã tự ghi vào dòng 47 sổ Chi T10-2026; trống = chưa vào sổ)
   rowsOf(wb, 'ChiPhi').slice(1).forEach(r => { const k = dayKey(r[0]); if (!k || txt(r[6]).toUpperCase() !== 'OK') return;
-    D.botChi.push({k, ai:txt(r[2]), tien:num(r[3]), nd:txt(r[4]), nguon:txt(r[5]) || 'KET'}); });
+    D.botChi.push({k, ai:txt(r[2]), tien:num(r[3]), nd:txt(r[4]), nguon:txt(r[5]) || 'KET', so:txt(r[7])}); });
   // ChotCa: Ngày · Thời gian · NV · Số ly · Doanh thu · TM phải có · CK · Đầu ca · Két · TM thực thu · Chênh lệch · Chi từ két
   rowsOf(wb, 'ChotCa').slice(1).forEach(r => { const k = dayKey(r[0]); if (!k) return;
     D.chot.push({k, nv:txt(r[2]), ly:num(r[3]), dt:num(r[4]), phaiCo:num(r[5]), ck:num(r[6]), thucThu:num(r[9]), chenh:num(r[10]), chiKet:num(r[11])}); });
@@ -1796,7 +1796,8 @@ function renderFin(){
   const capitalIn = D.capital.filter(c => /góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
   const otherIn = D.capital.filter(c => !/góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
   const cash = D.opening + capitalIn + otherIn + totalRev - totalChi;
-  const botKet = D.botChi.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
+  const botChua = D.botChi.filter(c => !c.so);   // chỉ khoản chưa vào sổ Chi tháng mới làm tiền quỹ lệch (từ bot note-v3 /chiphi tự ghi vào sổ)
+  const botKet = botChua.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
   const isFr = r => r.block === 'Vận hành' && /nhượng quyền/i.test(r.desc);
   const blockOf = r => laDauTu(r) ? 'Đầu tư' : r.block;   // v1.3: cùng quy tắc với PNL (khối Đầu tư hoặc Vận hành có "nhượng quyền"), không còn phụ thuộc ô tick
   const opex = D.chi.filter(r => blockOf(r) !== 'Đầu tư').reduce((s, r) => s + r.amt, 0);
@@ -1827,7 +1828,7 @@ function renderFin(){
   const fr = D.chi.filter(isFr), frSum = fr.reduce((s, r) => s + r.amt, 0);
   if (frSum) A.push(['warn','Sai khối', `${fmt(frSum)} đ có chữ "nhượng quyền" đang ghi khối "Vận hành"`, 'Dashboard (PNL và Thu chi) đang coi là Đầu tư (không trừ vào lãi vận hành). Nếu là phí định kỳ hằng tháng thì đổi nội dung/khối trong sheet để được tính là chi vận hành.', '→ sửa cột Khối trong sheet']);
   if (D.chiBo && D.chiBo.length) A.push(['warn','Sổ chi', `${D.chiBo.length} dòng có tiền (${fmt(D.chiBo.reduce((s, r) => s + r.amt, 0))} đ) thiếu STT / ngày nên chưa vào quỹ`, D.chiBo.slice(0, 4).map(r => `${mlabel(r.m)} ${esc(r.desc)} ${fmt(r.amt)} (${r.lyDo})`).join(' · '), '→ điền STT / ngày trong sheet']);
-  if (botKet) A.push(['warn','Chi két', `Bot ghi ${fmt(botKet)} đ chi từ két (${D.botChi.length} khoản)`, 'Các khoản này nằm ở tab ChiPhi, chưa vào sổ Chi tháng nên tiền quỹ chưa trừ. Nhập vào tab Chi T… tương ứng.', '→ nhập sổ chi tháng']);
+  if (botKet) A.push(['warn','Chi két', `Bot ghi ${fmt(botKet)} đ chi từ két (${botChua.length} khoản)`, 'Các khoản này nằm ở tab ChiPhi, chưa vào sổ Chi tháng nên tiền quỹ chưa trừ. Nhập vào tab Chi T… tương ứng (khoản mới ghi bằng /chiphi tự vào sổ nên không còn ở đây).', '→ nhập sổ chi tháng']);
   const lastM = Object.keys(revByMonth).sort().pop();
   const gvLast = D.chi.filter(r => r.block === 'Giá vốn').filter(r => !lastM || r.m === lastM).reduce((s, r) => s + r.amt, 0);
   if (gvLast && cash < gvLast) A.push(['bad','Tiền quỹ', `Còn ${fmt(cash)} đ, thấp hơn giá vốn tháng gần nhất (${fmt(gvLast)} đ)`, 'Nếu doanh thu chưa đủ bù, lần nhập hàng tới sẽ phải góp thêm.', '→ chốt góp bổ sung']);
@@ -1928,7 +1929,7 @@ function renderFin(){
     {k:'k', l:'Ngày', f:v => dShort(v)}, {k:'cat', l:'Hạng mục'}, {k:'desc', l:'Nội dung'}, {k:'qty', l:'SL', r:1, f:v => (v || 0).toLocaleString('vi-VN')},
     {k:'amt', l:'Số tiền', r:1, heat:1, f:fmt}, {k:'person', l:'Người chi'}, {k:'blk', l:'Khối'}]});
   table({id:'tBotChi', rows:D.botChi.slice(), sortDefault:{k:'k', d:-1}, total:{tien:D.botChi.reduce((s, c) => s + c.tien, 0)}, cols:[
-    {k:'k', l:'Ngày', f:v => dShort(v)}, {k:'tien', l:'Số tiền', r:1, f:fmt}, {k:'nd', l:'Nội dung'}, {k:'nguon', l:'Nguồn', f:v => v === 'CK' ? '🏦 CK' : '💵 Két'}, {k:'ai', l:'Người ghi'}]});
+    {k:'k', l:'Ngày', f:v => dShort(v)}, {k:'tien', l:'Số tiền', r:1, f:fmt}, {k:'nd', l:'Nội dung'}, {k:'nguon', l:'Nguồn', f:v => v === 'CK' ? '🏦 CK' : '💵 Két'}, {k:'ai', l:'Người ghi'}, {k:'so', l:'Sổ chi', f:v => v ? '✓ đã vào sổ' : 'chưa vào sổ'}]});
 
 }
 
@@ -2274,7 +2275,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.2';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.3';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2328,6 +2329,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.3', ngay:'13/10/2026', nd:['Chi từ két (/chiphi) tự ghi vào sổ Chi tháng như /note (bot note-v3): tab ChiPhi có thêm cột H "Sổ chi" trỏ tới dòng sổ. Cảnh báo "Chi két" và dòng "chưa trừ … chi két" ở Tiền quỹ chỉ tính khoản chưa vào sổ (cột H trống), khoản mới không bị tính hai lần; bảng "Chi từ két qua bot" thêm cột Sổ chi. Chốt ca vẫn tính đủ mọi khoản chi két.']},
   {v:'v1.7.2', ngay:'13/10/2026', nd:['Lịch sử định lượng: cacao đổi từ 10 g sang 7 g/ly từ hôm nay 13/10/2026 (chủ quán chốt). Ly cacao bán tới hết 12/10 tính 10 g, từ 13/10 tính 7 g theo tab CongThuc; áp cho giá vốn PNL / Hiệu suất / Kiểm chứng, nhịp dùng tồn kho và hao hụt thật. Muốn thêm lần đổi sau: thêm dòng vào DINH_LUONG_CU. Tự kiểm: bất biến 22.', 'Còn treo: chủ quán đang đếm số ống hút / bịch, ly hồng / bao, số bọc và quai chữ T / kg trước khi so giá hoá đơn Bảo Yến.']},
   {v:'v1.7.1', ngay:'13/10/2026', nd:['Thu chi, tiền quỹ và kế hoạch quỹ dùng tiền THỰC THU: doanh thu = đơn bot + chênh két từng ca đã chốt (thiếu −, dư +). Ví dụ 12/10 bán 840.000 đ nhưng két thiếu 70.000 đ → thực thu 770.000 đ. Ngày chưa chốt ca tạm tính theo đơn bot và hiện cảnh báo "Chưa chốt ca"; chủ quán chốt bù được bằng /chotca 11/10 <tiền két> <tiền đầu ca> (bot bản chotbu-v1, nhắc chủ lúc 21:00). PNL, Hôm nay và Hiệu suất vẫn dùng doanh thu đơn bot (đo bán hàng). Tự kiểm: bất biến 21 (doanh thu thực thu), bất biến 16 trừ chênh két.', 'Sheet: sheet Doanh thu ngày 12/10 ghi −70.000 đ ở cột Khác (thiếu két) nên Tổng hợp thu chi cũng ra 2.620.000 đ doanh thu và 1.104.425 đ tiền mặt, khớp dashboard. Sheet có thêm các tab xem kho: Bảng kho, Kho theo ngày, Nhập kho (toàn công thức, tự cập nhật theo KiemKho / LayKho / sổ chi).']},
   {v:'v1.7', ngay:'12/10/2026', nd:['Tồn kho lấy từ SỐ ĐẾM, không còn trừ hao theo công thức × ly bán (bot kho-thuc-v1 + dashboard cùng quy tắc). Xe = số /kiemxe gần nhất + hàng /laykho sau đó; kho = số /kiemkho gần nhất + hàng nhập (sổ chi) sau đó − hàng đã lấy ra xe; tổng = xe + kho khi có số cả hai nơi.',
