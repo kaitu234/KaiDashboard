@@ -574,7 +574,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     <ul>
       <li><b>Bán hàng</b>: tab <b>DonHang</b> do bot Telegram ghi. Chỉ tính đơn trạng thái <b>OK</b>; đơn huỷ (HUY) bị loại ở mọi chỉ số.</li>
       <li><b>Chi từ két, chốt ca, chấm công</b>: tab ChiPhi, ChotCa, ChamCong của bot.</li>
-      <li><b>Thu chi</b>: tab Vốn &amp; Thu và các tab Chi T10-2026… Tiền quỹ = tiền đầu kỳ + vốn góp + doanh thu bot − chi trong sổ tháng.</li>
+      <li><b>Thu chi</b>: tab Vốn &amp; Thu và các tab Chi T10-2026… Tiền quỹ = tiền đầu kỳ + vốn góp + doanh thu bot − chi đã trả tiền trong sổ tháng (dòng tick cột Công nợ là chưa trả, chưa trừ).</li>
       <li>Trang tự đọc lại sheet <b>mỗi phút</b> khi đang mở (đơn mới trên bot hiện sau tối đa ~1 phút). Bấm nút <b>⟳ Tải lại dữ liệu</b> (hoặc phím <b>R</b>) để đọc ngay, ví dụ vừa chốt đơn xong muốn xem liền. Bot ghi đơn vào sheet tức thì nên bấm là thấy ngay.</li>
       <li><b>Tab Hôm nay</b>: so sánh với cùng thứ tuần trước và hôm qua <i>tính tới cùng giờ hiện tại</i>, để so sánh công bằng giữa ca.</li>
     </ul>
@@ -755,8 +755,12 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
       <div class="ct">Cần xử lý</div>
       <div class="alerts" id="alerts"></div>
     </div>
+    <div class="card" id="sec-fin-no">
+      <div class="ct">Công nợ <span class="nt">· hàng đã nhận, chưa trả tiền (tick cột Công nợ trong sổ chi) · đã tính vào chi và giá vốn, chưa trừ vào quỹ</span></div>
+      <div class="tblwrap" style="max-height:260px"><table id="tNo"></table></div>
+    </div>
     <div class="card">
-      <div class="ct">Theo tháng <span class="nt">· doanh thu từ bot · dòng tiền = vốn + doanh thu − chi</span></div>
+      <div class="ct">Theo tháng <span class="nt">· doanh thu từ bot · dòng tiền = vốn + doanh thu − chi đã trả tiền (công nợ chưa trừ)</span></div>
       <div class="cw sm"><canvas id="cOvMonth" aria-label="Doanh thu, chi và quỹ cuối tháng"></canvas></div>
       <div class="legend" id="lgOvMonth"></div>
       <div class="tblwrap"><table id="tMonth"></table></div>
@@ -1197,7 +1201,7 @@ function parseWorkbook(wb){
         if (num(r[5]) > 0 && (txt(r[2]) || txt(r[3]))) D.chiBo.push({m:mk, stt:txt(r[0]), k: d ? dk(d) : '', desc:txt(r[3]) || txt(r[2]), amt:num(r[5]), lyDo: !d ? 'thiếu ngày' : !(stt > 0) ? 'thiếu STT' : 'STT không nguyên'});
         return;
       }
-      D.chi.push({m:mk, stt, k:dk(d), cat:txt(r[2]), desc:txt(r[3]), qty:num(r[4]), amt:num(r[5]), person:txt(r[6]) || 'Chưa ghi người', block:txt(r[7]) || 'Khác', check:txt(r[9])});
+      D.chi.push({m:mk, stt, k:dk(d), cat:txt(r[2]), desc:txt(r[3]), qty:num(r[4]), amt:num(r[5]), person:txt(r[6]) || 'Chưa ghi người', block:txt(r[7]) || 'Khác', check:txt(r[9]), no: r[11] === true || /^true$/i.test(txt(r[11]))});   // v1.7.10: cột L "Công nợ" (tick = chưa trả tiền)
     });
   });
   D.months.sort();
@@ -1824,13 +1828,19 @@ function quyTienCore(cash, tienMat, tk){
   return {tm, ck:cash - tm};
 }
 
+/** v1.7.10 — Công nợ (chủ quán chốt 15/10/2026): dòng sổ chi tick cột L "Công nợ" = hàng đã nhận nhưng CHƯA trả tiền. Vẫn là chi (giá vốn, PNL, tồn kho, tổng chi) nhưng CHƯA trừ vào tiền quỹ;
+ *  trả rồi thì bỏ tick (lúc đó quỹ mới giảm). tra = chi đã trả tiền = tổng chi − công nợ. */
+function chiVaNoCore(chi){
+  const no = chi.filter(r => r.no && r.amt > 0), tongNo = no.reduce((s, r) => s + r.amt, 0), tong = chi.reduce((s, r) => s + r.amt, 0);
+  return {no, tongNo, tong, tra: tong - tongNo};
+}
 /* ============ render: finance ============ */
 function renderFin(){
   const DT = doanhThuThu(), revByMonth = DT.thang, totalRev = DT.tong;   // v1.7.1: tiền thực thu (đơn bot + chênh két các ca đã chốt)
-  const totalChi = D.chi.reduce((s, r) => s + r.amt, 0);
+  const CN = chiVaNoCore(D.chi), totalChi = CN.tong, chiNo = CN.no, tongNo = CN.tongNo;
   const capitalIn = D.capital.filter(c => /góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
   const otherIn = D.capital.filter(c => !/góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
-  const cash = D.opening + capitalIn + otherIn + totalRev - totalChi, QT = quyTienCore(cash, D.tienMat, today());   // v1.7.6: 2 cục tiền mặt / CK
+  const cash = D.opening + capitalIn + otherIn + totalRev - CN.tra, QT = quyTienCore(cash, D.tienMat, today());   // v1.7.6: 2 cục tiền mặt / CK · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
   const botChua = D.botChi.filter(c => !c.so);   // chỉ khoản chưa vào sổ Chi tháng mới làm tiền quỹ lệch (từ bot note-v3 /chiphi tự ghi vào sổ)
   const botKet = botChua.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
   const isFr = r => r.block === 'Vận hành' && /nhượng quyền/i.test(r.desc);
@@ -1851,8 +1861,9 @@ function renderFin(){
 
   $('finKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Tiền quỹ còn lại</span><span class="v">${fmtM(cash)}</span><span class="s">💵 mặt ${fmtM(QT.tm)} · 🏦 CK ${fmtM(QT.ck)}<br>${capitalIn ? pct(cash / capitalIn, 1) + ' vốn góp' : ''}${botKet ? ` · chưa trừ ${fmtK(botKet)} chi két (bot)` : ''}</span></div>
+    <div class="kpi main"><span class="lb">Công nợ chưa trả</span><span class="v ${tongNo ? 'dn' : ''}">${fmtM(tongNo)}</span><span class="s">${chiNo.length ? `${chiNo.length} khoản · 💵 mặt sau trả nợ ${fmtM(QT.tm - tongNo)}<br>quỹ sau trả nợ ${fmtM(cash - tongNo)}` : 'không có khoản nợ · tick cột Công nợ trong sổ chi khi chưa trả tiền'}</span></div>
     <div class="kpi main"><span class="lb">Doanh thu thực thu</span><span class="v">${fmtM(totalRev)}</span><span class="s">${D.orders.length ? `đơn bot ${fmtM(DT.bot)}${DT.chenh ? ` · ${DT.chenh < 0 ? 'thiếu' : 'dư'} két ${fmt(Math.abs(DT.chenh))}` : ''} · ${DT.ngayChot}/${DT.ngayBan} ngày đã chốt ca` : 'lấy từ tab Doanh thu'}</span></div>
-    <div class="kpi main"><span class="lb">Tổng chi sổ tháng</span><span class="v">${fmtM(totalChi)}</span><span class="s">${D.chi.filter(r => r.amt).length} khoản</span></div>
+    <div class="kpi main"><span class="lb">Tổng chi sổ tháng</span><span class="v">${fmtM(totalChi)}</span><span class="s">${D.chi.filter(r => r.amt).length} khoản${tongNo ? ` · gồm ${fmtM(tongNo)} chưa trả` : ''}</span></div>
     <div class="kpi main"><span class="lb">Vốn góp${otherIn ? ' + thu khác' : ''}</span><span class="v">${fmtM(capitalIn + otherIn)}</span><span class="s">${new Set(D.capital.map(c => c.person)).size} người góp</span></div>
     <div class="kpi tgt"><span class="lb">Lãi vận hành (ước tính)</span><span class="v ${lai == null ? '' : lai < 0 ? 'dn' : 'up'}">${lai == null ? 'chưa có số thật' : fmtM(lai)}</span><span class="s">${lai == null ? 'chưa có giá vốn/ly (tab CongThuc / Kho chưa đủ)' : `doanh thu − ${fmt(lyBan)} ly × ${fmtK(cogs)} giá vốn − chi vận hành${luongBot ? ` − ${fmtK(luongBot)} lương (bot tính, sổ chi chưa ghi)` : ''}${choKem ? ` − ${fmtK(choKem)} hàng cho kèm (ly/trà đá)` : ''}${boQuaFin ? ` · đã bỏ qua ${fmtK(boQuaFin)} marketing + hàng cho kèm T10 (chủ chốt)` : ''}`} · theo sổ chi (tiền đã nhập hàng): ${fmtM(laiSo)}</span></div>
     <div class="kpi tgt"><span class="lb">Lãi sau khấu hao</span><span class="v ${laiSauKH == null ? '' : laiSauKH < 0 ? 'dn' : 'up'}">${laiSauKH == null ? 'chưa có số thật' : fmtM(laiSauKH)}</span><span class="s">lãi vận hành − ${fmtM(khauHao)} khấu hao (${fmtM(KHAU_HAO.tong)} phí NQ + cọc ÷ ${KHAU_HAO.thang} tháng, tính theo ngày tới hôm nay)</span></div>
@@ -1864,12 +1875,14 @@ function renderFin(){
   if (frSum) A.push(['warn','Sai khối', `${fmt(frSum)} đ có chữ "nhượng quyền" đang ghi khối "Vận hành"`, 'Dashboard (PNL và Thu chi) đang coi là Đầu tư (không trừ vào lãi vận hành). Nếu là phí định kỳ hằng tháng thì đổi nội dung/khối trong sheet để được tính là chi vận hành.', '→ sửa cột Khối trong sheet']);
   if (D.chiBo && D.chiBo.length) A.push(['warn','Sổ chi', `${D.chiBo.length} dòng có tiền (${fmt(D.chiBo.reduce((s, r) => s + r.amt, 0))} đ) thiếu STT / ngày nên chưa vào quỹ`, D.chiBo.slice(0, 4).map(r => `${mlabel(r.m)} ${esc(r.desc)} ${fmt(r.amt)} (${r.lyDo})`).join(' · '), '→ điền STT / ngày trong sheet']);
   if (botKet) A.push(['warn','Chi két', `Bot ghi ${fmt(botKet)} đ chi từ két (${botChua.length} khoản)`, 'Các khoản này nằm ở tab ChiPhi, chưa vào sổ Chi tháng nên tiền quỹ chưa trừ. Nhập vào tab Chi T… tương ứng (khoản mới ghi bằng /chiphi tự vào sổ nên không còn ở đây).', '→ nhập sổ chi tháng']);
+  if (tongNo){ const cu = chiNo.slice().sort((a, b) => a.k < b.k ? -1 : 1)[0], ngayNo = nDays(cu.k, today()) - 1;
+    A.push([cash - tongNo < 0 ? 'bad' : 'warn', 'Công nợ', `Còn nợ ${fmt(tongNo)} đ (${chiNo.length} khoản chưa trả tiền)`, `Đã tính vào chi, giá vốn và tồn kho nhưng chưa trừ vào quỹ. Trả hết thì quỹ còn ${fmt(cash - tongNo)} đ (💵 mặt ${fmt(QT.tm - tongNo)} đ). Cũ nhất: ${esc(cu.desc)} ${dShort(cu.k)}${ngayNo > 0 ? ` (${ngayNo} ngày)` : ''}.`, '→ trả rồi bỏ tick cột Công nợ']); }
   const lastM = Object.keys(revByMonth).sort().pop();
   const gvLast = D.chi.filter(r => r.block === 'Giá vốn').filter(r => !lastM || r.m === lastM).reduce((s, r) => s + r.amt, 0);
   if (gvLast && cash < gvLast) A.push(['bad','Tiền quỹ', `Còn ${fmt(cash)} đ, thấp hơn giá vốn tháng gần nhất (${fmt(gvLast)} đ)`, 'Nếu doanh thu chưa đủ bù, lần nhập hàng tới sẽ phải góp thêm.', '→ chốt góp bổ sung']);
   const persons = {};
   D.capital.filter(c => /góp/i.test(c.type)).forEach(c => (persons[c.person] ??= {gop:0, chi:0}).gop += c.amt);
-  D.chi.forEach(r => (persons[r.person] ??= {gop:0, chi:0}).chi += r.amt);
+  D.chi.filter(r => !r.no).forEach(r => (persons[r.person] ??= {gop:0, chi:0}).chi += r.amt);   // v1.7.10: khoản chưa trả (công nợ) chưa phải tiền người đó bỏ ra
   const imbal = Object.entries(persons).filter(([, p]) => p.chi - p.gop > 1e6);
   if (imbal.length) A.push(['warn','Đối soát', imbal.map(([n, p]) => `${esc(n)} đã chi vượt phần góp ${fmt(p.chi - p.gop)} đ`).join('; '), 'Phần chênh đang bù bằng tiền góp của người khác. Nên ghi rõ quỹ chung nằm ở ai.', '→ chốt người giữ quỹ']);
   const chk = D.chi.filter(r => r.check && !/^ok$/i.test(r.check));
@@ -1906,8 +1919,8 @@ function renderFin(){
   const mRows = allM.map(m => { const c = D.chi.filter(r => r.m === m);
     const by = b => c.filter(r => blockOf(r) === b).reduce((s, r) => s + r.amt, 0);
     const cap = D.capital.filter(x => mkey(x.k) === m).reduce((s, x) => s + x.amt, 0);
-    const rev = revByMonth[m] || 0, chi = c.reduce((s, r) => s + r.amt, 0), flow = cap + rev - chi; run += flow;
-    return {m, rev, gv:by('Giá vốn'), vh:by('Vận hành') + by('Nhân sự') + by('Khác'), dt:by('Đầu tư'), chi, flow, run, empty:!rev && !chi && !cap}; });
+    const rev = revByMonth[m] || 0, cn = chiVaNoCore(c), chi = cn.tong, flow = cap + rev - cn.tra; run += flow;   // v1.7.10: dòng tiền chỉ trừ chi đã trả tiền
+    return {m, rev, gv:by('Giá vốn'), vh:by('Vận hành') + by('Nhân sự') + by('Khác'), dt:by('Đầu tư'), chi, no:cn.tongNo, flow, run, empty:!rev && !chi && !cap}; });
   const nz = v => v ? fmt(v) : '–';
   S.sort.tMonth = {k:'m', d:1};
 
@@ -1922,10 +1935,10 @@ function renderFin(){
   $('lgOvMonth').innerHTML = `<span><i style="background:${s1}"></i>Doanh thu</span><span><i style="background:${css('--ghost')}"></i>Chi (sổ tháng)</span><span><i style="background:${s2}"></i>Quỹ cuối tháng</span>`;
   }
 
-  FIN = {cash, tm:QT.tm, ck:QT.ck, lai, laiSauKH, khauHao, luongBot, totalRev, chenhKet:DT.chenh, capitalIn, alerts:A, mRows};   // tab Tổng quan dùng lại
+  FIN = {cash, tm:QT.tm, ck:QT.ck, lai, laiSauKH, khauHao, luongBot, totalRev, chenhKet:DT.chenh, capitalIn, alerts:A, mRows, tongNo};   // tab Tổng quan dùng lại
   table({id:'tMonth', rows:mRows, sortDefault:{k:'m', d:1}, cols:[
     {k:'m', l:'Tháng', f:v => mlabel(v)}, {k:'rev', l:'Doanh thu', r:1, f:nz}, {k:'gv', l:'Giá vốn', r:1, f:nz}, {k:'vh', l:'Vận hành', r:1, f:nz},
-    {k:'dt', l:'Đầu tư', r:1, f:nz}, {k:'chi', l:'Tổng chi', r:1, f:nz},
+    {k:'dt', l:'Đầu tư', r:1, f:nz}, {k:'chi', l:'Tổng chi', r:1, f:(v, r) => nz(v) + (r.no ? ` <span class="pill warn" title="Khoản chưa trả tiền (công nợ), chưa trừ vào dòng tiền">nợ ${fmt(r.no)}</span>` : '')},
     {k:'flow', l:'Dòng tiền', r:1, f:(v, r) => r.empty ? '–' : fmt(v), cls:v => v < 0 ? 'dn' : v > 0 ? 'up' : ''}, {k:'run', l:'Quỹ cuối tháng', r:1, f:(v, r) => r.empty ? '–' : fmt(v)}]});
 
   /* blocks + categories */
@@ -1963,6 +1976,10 @@ function renderFin(){
     {k:'stt', l:'#', f:(v, r) => `${v}${!r.amt ? ' <span class="pill good">tặng</span>' : ''}${r.check && !/^ok$/i.test(r.check) ? ' <span class="pill warn">kiểm tra</span>' : ''}`},
     {k:'k', l:'Ngày', f:v => dShort(v)}, {k:'cat', l:'Hạng mục'}, {k:'desc', l:'Nội dung'}, {k:'qty', l:'SL', r:1, f:v => (v || 0).toLocaleString('vi-VN')},
     {k:'amt', l:'Số tiền', r:1, heat:1, f:fmt}, {k:'person', l:'Người chi'}, {k:'blk', l:'Khối'}]});
+  table({id:'tNo', rows:chiNo.map(r => Object.assign({}, r, {ngayNo: Math.max(0, nDays(r.k, today()) - 1)})), sortDefault:{k:'k', d:1}, total:{amt:tongNo}, cols:[
+    {k:'k', l:'Ngày', f:v => dShort(v)}, {k:'desc', l:'Nội dung'}, {k:'qty', l:'SL', r:1, f:v => (v || 0).toLocaleString('vi-VN')}, {k:'amt', l:'Số tiền nợ', r:1, heat:1, f:fmt},
+    {k:'person', l:'Người đặt'}, {k:'ngayNo', l:'Đã nợ', r:1, f:v => `${v} ngày`}, {k:'m', l:'Sổ tháng', f:v => mlabel(v)}]});
+  if (!chiNo.length) $('tNo').querySelector('tbody').innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:14px">Không có công nợ. Mua hàng chưa trả tiền: tick cột <b>Công nợ</b> (cột L) ở dòng đó trong sổ chi tháng; trả xong thì bỏ tick.</td></tr>';
   table({id:'tBotChi', rows:D.botChi.slice(), sortDefault:{k:'k', d:-1}, total:{tien:D.botChi.reduce((s, c) => s + c.tien, 0)}, cols:[
     {k:'k', l:'Ngày', f:v => dShort(v)}, {k:'tien', l:'Số tiền', r:1, f:fmt}, {k:'nd', l:'Nội dung'}, {k:'nguon', l:'Nguồn', f:v => v === 'CK' ? '🏦 CK' : '💵 Két'}, {k:'ai', l:'Người ghi'}, {k:'so', l:'Sổ chi', f:v => v ? '✓ đã vào sổ' : 'chưa vào sổ'}]});
 
@@ -2161,7 +2178,7 @@ function renderPnl(){
 const planIn = id => Math.max(0, parseFloat($(id).value) || 0);
 const PLAN_IDS = ['plLy', 'plTang', 'plGia', 'plCogs', 'plLuong', 'plCd', 'plBien'];
 const tienQuyHienTai = () => D.opening + D.capital.reduce((s, c) => s + c.amt, 0)
-  + doanhThuThu().tong - D.chi.reduce((s, r) => s + r.amt, 0);   // v1.7.1: tiền thực thu
+  + doanhThuThu().tong - chiVaNoCore(D.chi).tra;   // v1.7.1: tiền thực thu · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
 
 /** Số liệu nền cho kế hoạch: 14 ngày có bán gần nhất (ly/ngày, từng món, giá vốn từng món, lương TB, tiền quỹ) */
 function nenTangKH(){
@@ -2320,7 +2337,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.9';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.10';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2377,6 +2394,9 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.10', ngay:'15/10/2026', nd:['Công nợ: mọi tab sổ chi tháng (Chi T10-2026 … T09-2027) có thêm cột L "Công nợ" (ô tick = hàng đã nhận, chưa trả tiền) và dòng "Công nợ chưa trả" ở bảng Kết quả tháng. Khoản tick vẫn là chi (giá vốn, PNL, tồn kho, tổng chi, nhập kho) nhưng CHƯA trừ vào tiền quỹ; trả xong thì bỏ tick, quỹ mới giảm. Dòng tick tô nền vàng nhạt.',
+    'Tab Thu chi: thẻ "Công nợ chưa trả" (tổng nợ, số khoản, 💵 tiền mặt sau trả nợ, quỹ sau trả nợ), thẻ "Công nợ" liệt kê từng khoản (ngày, nội dung, số tiền, người đặt, đã nợ mấy ngày), cảnh báo "Công nợ", Tổng chi ghi "gồm … chưa trả", bảng theo tháng có nhãn nợ và dòng tiền chỉ trừ chi đã trả. Đối soát người chi vượt phần góp không tính khoản chưa trả. Bất biến 27.',
+    'Đã ghi lô nhập kho 15/10: 12 sữa tươi 1 L 267.264 đ + 24 sữa đặc 1.327.664 đ, đánh dấu công nợ (1.594.928 đ).']},
   {v:'v1.7.9', ngay:'14/10/2026', nd:['Bảng "Lãi lỗ theo món" (tab PNL) liệt kê đủ menu hiện hành (tab Menu, Đang bán): món chưa bán trong kỳ (Phindi hạnh nhân / caramel / hạt phỉ, Matcha latte muối, Cà phê đen / sữa phin…) hiện giá vốn/ly theo công thức mới và lãi/ly + biên ở giá menu, ly / doanh thu / lãi gộp để "—"; thêm cột Nhóm và Biên ở giá menu; món đã bán nhưng đã bỏ khỏi menu vẫn hiện, ghi chú "không còn trong menu". Hai biểu đồ phía trên vẫn chỉ vẽ món đã bán, tổng và bất biến 4 không đổi.']},
   {v:'v1.7.8', ngay:'14/10/2026', nd:['Bỏ quy tắc thưởng theo số ly (chủ quán chốt 14/10): dashboard bỏ thẻ "Bậc lương hôm nay" (tab Hôm nay), cột "Bậc lương" ở bảng ngày và đoạn hướng dẫn mốc 50/85 ly; lương chỉ còn căn bản + thâm niên + phụ cấp dậy sớm. Bot đã tắt bonus ly từ 11/10 nên không đổi cách tính tiền.', 'Tab Nhân sự có thẻ "Chuyên cần": quy tắc (7 ca liên tiếp check-in ≤ 05:30 → +50.000 đ, đếm lại; ngày không lịch không đứt; trễ / vắng ca → về 0; chủ quán không tính) và từng nhân viên: chuỗi hiện tại n/7, 7 ca gần nhất (✓ giờ / trễ / vắng), số lần đã đạt và tình trạng. Tính lại từ chấm công + lịch làm theo đúng thuật toán của bot. Tự kiểm: bất biến 26.']},
   {v:'v1.7.7', ngay:'14/10/2026', nd:['Công thức Phindi mới (chủ chốt 14/10): sữa tươi 40 ml, siro 20 ml, cà phê hạt 10 g, sữa đặc 5 ml cho cả 3 món Phindi (trước là cà phê 18 g + sữa đặc 25 ml như phin thường). Siro hiện chỉ có cho Phindi hạnh nhân (cột siro hạnh nhân 20 ml); caramel và hạt phỉ chờ thêm siro vào tab Kho — giá vốn 2 món đó tạm thiếu phần siro.', 'Sheet: tab CongThuc làm lại cho đẹp như tab Kho (tiêu đề nâu, nhãn cột có biểu tượng và đơn vị, tô màu ô có lượng theo nhóm nguyên liệu, kẻ nhạt, cố định hàng đầu và 2 cột đầu; giá trị ô tiêu đề vẫn là mã nguyên liệu để bot / dashboard đọc đúng). Đầu bảng ở mọi tab: nội dung dùng font cũ (Barlow Condensed tiêu đề + Be Vietnam Pro), tiêu đề cột căn giữa, xuống hàng, kẻ trắng; chỉ tab xem kho / Quỹ tiền / cột mã dùng hệ Every Half. Cột E tab Doanh thu đổi tên thành "Lệch tiền thực vs ghi đơn" (chênh két).']},
@@ -2651,6 +2671,10 @@ function tuKiem(){
     const vang = chuyenCanCore(dungN(1, 4).concat(dungN(6, 6)), [{k:kD(5), id:'1', nv:'An', tt:'OK'}], khong, CCt)['1'], chuCT = chuyenCanCore(dungN(1, 7).map(c => Object.assign({}, c, {chu:true})), [], c => c.chu, CCt);
     ok('Chuyên cần: 7 ca đúng giờ = 1 lần thưởng (ngày ca thứ 7, chuỗi về 0) · đúng 05:30 vẫn tính, 05:31 đứt · ngày không lịch không làm đứt · vắng ca đã nhận → chuỗi về 0 · chủ quán không tính',
       a7.thuong.join() === kD(7) && a7.chuoi === 0 && b1.thuong.length === 1 && b2.thuong.length === 0 && b2.chuoi === 0 && ccC.thuong.join() === kD(13) && vang.thuong.length === 0 && vang.chuoi === 6 && Object.keys(chuCT).length === 0, `${a7.thuong.join()} · ${vang.chuoi}/7`);
+    // 27. Công nợ (chủ chốt 15/10/2026): dòng tick "Công nợ" vẫn là chi (tổng chi 450) nhưng chưa trừ quỹ (chi đã trả 150); quỹ 1.000 → 850, trả hết nợ → 550; không tick / tick nhưng 0 đ không tính nợ; tháng không có nợ không đổi
+    const cnM = chiVaNoCore([{amt:100, no:false}, {amt:300, no:true}, {amt:50}, {amt:0, no:true}]), cn0 = chiVaNoCore([{amt:70}, {amt:30, no:false}]);
+    ok('Công nợ: dòng tick vẫn nằm trong tổng chi 450 nhưng chưa trừ quỹ (đã trả 150, nợ 300 · 1 khoản) → quỹ 1.000 còn 850, sau khi trả hết nợ còn 550; dòng 0 đ tick nợ không tính; không có nợ thì quỹ như cũ',
+      cnM.tong === 450 && cnM.tra === 150 && cnM.tongNo === 300 && cnM.no.length === 1 && 1000 - cnM.tra === 850 && 1000 - cnM.tra - cnM.tongNo === 550 && cn0.tongNo === 0 && cn0.tra === 100 && cn0.no.length === 0, `tổng ${cnM.tong} · trả ${cnM.tra} · nợ ${cnM.tongNo}`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
