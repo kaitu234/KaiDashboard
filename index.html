@@ -1150,7 +1150,7 @@ const leOf = k => NGAY_LE[k] || NGAY_LE[k.slice(5)] || '';
 function rowsOf(wb, name){ return (wb.Sheets[name] || []).map(r => r.map(c => c === '' ? null : c)); }
 
 function parseWorkbook(wb){
-  const D = {orders:[], cancel:[], botChi:[], chot:[], chotSheet:[], cong:[], menu:{}, chi:[], chiBo:[], capital:[], months:[], opening:0, legacyRev:[], tienMat:[]};
+  const D = {orders:[], cancel:[], botChi:[], chot:[], chotSheet:[], daChuyenCK:[], cong:[], menu:{}, chi:[], chiBo:[], capital:[], months:[], opening:0, legacyRev:[], tienMat:[]};
   // Bot: DonHang = Mã đơn · Thời gian · Ngày · Nhân viên · Mã món · Tên món · SL · Đơn giá · Thành tiền · Thanh toán · Trạng thái
   rowsOf(wb, 'DonHang').slice(1).forEach(r => {
     if (!txt(r[0])) return;
@@ -1217,6 +1217,9 @@ function parseWorkbook(wb){
     const t = num(r[2]) + num(r[3]) + num(r[4]); if (t) D.legacyRev.push({k:dk(d), tt:t});
     if (iChot >= 0 && (r[iChot] === true || txt(r[iChot]).toUpperCase() === 'TRUE')) D.chotSheet.push({k:dk(d), chenh:iLech >= 0 ? num(r[iLech]) : 0});   // v1.7.11: ngày đã tick CHỐT CA (bot /chotca hoặc chủ báo số cho Claude) + cột Lệch (chênh két, thiếu −, dư +)
     if (num(r[13])) D.tienMat.push({k:dk(d), tm:num(r[13])}); });   // v1.7.6: cột N "Trích tiền mặt" = phần doanh thu ngày đó giữ lại thành tiền mặt (còn lại tính là tiền CK)
+  // v1.7.14 — tab Quỹ tiền: bảng theo ngày có cột "ĐÃ CHUYỂN TM VÀO QUỸ CK" (ô tick) → ngày đã tick = phần tiền mặt giữ lại của ngày đó đã chuyển sang CK
+  const qr = rowsOf(wb, 'Quỹ tiền'), qh = qr.findIndex(r => r.some(c => /ĐÃ CHUYỂN TM/i.test(txt(c)))), qi = qh >= 0 ? qr[qh].findIndex(c => /ĐÃ CHUYỂN TM/i.test(txt(c))) : -1;
+  if (qi >= 0) qr.slice(qh + 1).forEach(r => { const d = toDate(r[0]); if (d && (r[qi] === true || txt(r[qi]).toUpperCase() === 'TRUE')) D.daChuyenCK.push({k:dk(d)}); });
   // Tab Kho (bot tính: CongThuc × ly bán − lượng mua trong sổ chi, có kiểm kho /kiemkho) → nguồn duy nhất cho tồn kho trên dashboard
   // Cột: Mã · Tên · ĐV tính · ĐV mua · quy đổi · hạng mục · nội dung · báo khi còn ≤ · báo khi đủ < ngày · mua đủ cho · theo dõi · 🤖 tồn · 🤖 dùng/ngày · 🤖 đủ ngày · 🤖 nên mua · 🤖 kiểm gần nhất
   D.khoAll = rowsOf(wb, 'Kho').slice(1).filter(r => txt(r[0]) && txt(r[1])).map(r => ({ma:txt(r[0]).toLowerCase(), ten:txt(r[1]), dvTinh:txt(r[2]), dv:txt(r[3]),
@@ -1836,8 +1839,9 @@ function doanhThuThuCore(orders, chot, legacy, tk, tick){
 const doanhThuThu = () => doanhThuThuCore(D.orders, D.chot, D.legacyRev, today(), D.chotSheet);
 /** v1.7.6 — Tiền còn lại tách 2 cục (chủ quán chốt 14/10/2026): mặc định mọi khoản (vốn góp, chi, doanh thu) là tiền CK; chỉ phần doanh thu từng ngày chủ báo "giữ lại thành tiền mặt" (cột Trích tiền mặt tab Doanh thu: 13/10 giữ 500.000, 14/10 giữ 669.000) là tiền mặt.
  *  tm = Σ trích tới hết hôm nay · ck = tiền còn lại − tm (cộng 2 cục luôn bằng tổng). */
-function quyTienCore(cash, tienMat, tk){
-  const tm = tienMat.filter(x => x.k <= tk).reduce((s, x) => s + x.tm, 0);
+function quyTienCore(cash, tienMat, tk, daChuyen){
+  // v1.7.14 (chủ quán chốt 15/10/2026): tab Quỹ tiền có cột "ĐÃ CHUYỂN TM VÀO QUỸ CK" (ô tick theo ngày) — ngày đã tick thì phần tiền mặt giữ lại của ngày đó đã nộp vào CK, không còn là tiền mặt
+  const da = new Set((daChuyen || []).map(x => x.k)), tm = tienMat.filter(x => x.k <= tk && !da.has(x.k)).reduce((s, x) => s + x.tm, 0);
   return {tm, ck:cash - tm};
 }
 
@@ -1853,7 +1857,7 @@ function renderFin(){
   const CN = chiVaNoCore(D.chi), totalChi = CN.tong, chiNo = CN.no, tongNo = CN.tongNo;
   const capitalIn = D.capital.filter(c => /góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
   const otherIn = D.capital.filter(c => !/góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
-  const cash = D.opening + capitalIn + otherIn + totalRev - CN.tra, QT = quyTienCore(cash, D.tienMat, today());   // v1.7.6: 2 cục tiền mặt / CK · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
+  const cash = D.opening + capitalIn + otherIn + totalRev - CN.tra, QT = quyTienCore(cash, D.tienMat, today(), D.daChuyenCK);   // v1.7.6: 2 cục tiền mặt / CK · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
   const botChua = D.botChi.filter(c => !c.so);   // chỉ khoản chưa vào sổ Chi tháng mới làm tiền quỹ lệch (từ bot note-v3 /chiphi tự ghi vào sổ)
   const botKet = botChua.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
   const isFr = r => r.block === 'Vận hành' && /nhượng quyền/i.test(r.desc);
@@ -2350,7 +2354,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.13';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.14';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2407,6 +2411,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.14', ngay:'15/10/2026', nd:['Tiền mặt / CK của quỹ theo cột "ĐÃ CHUYỂN TM VÀO QUỸ CK" mới ở tab Quỹ tiền (chủ quán nhờ 15/10/2026): ngày nào chủ tick thì phần tiền mặt giữ lại (cột Trích tiền mặt) của ngày đó đã nộp vào CK nên không còn tính là tiền mặt; tổng quỹ không đổi. Thẻ Tiền quỹ ở Thu chi và Tổng quan đọc tab Quỹ tiền qua Dashboard.gs (thêm tab vào DASH_TABS — cần deploy Apps Script; chưa có tab thì như cũ). Tự kiểm: bất biến 30.']},
   {v:'v1.7.13', ngay:'15/10/2026', nd:['Khấu hao phí nhượng quyền + cọc 27.000.000 đ chia đều 12 tháng (chủ chốt 15/10/2026; trước đó 6 tháng): 2.250.000 đ/tháng từ T10/2026 tới T09/2027, vẫn rải theo ngày. Áp cho PNL (Lãi ròng), thẻ "Lãi sau khấu hao", hoà vốn sau khấu hao và dự phóng 12 tháng; tổng khấu hao đủ 27.000.000 đ trong 12 tháng (bất biến cũ vẫn đúng). Sheet Tổng hợp cùng số tháng (ô "Số tháng khấu hao") và giá vốn/ly ở sheet lấy theo tỉ lệ bán trung bình (tab Giá vốn ly) thay cho 6.300 đ kế hoạch ban đầu.']},
   {v:'v1.7.12', ngay:'15/10/2026', nd:['Chốt ca nhiều lần trong ngày không cộng dồn nữa (cùng luật bot chotca-v3): mỗi ngày chỉ 1 dòng ChotCa có hiệu lực = lần chốt CUỐI của chủ quán, chưa có chủ chốt thì lần chốt cuối; mỗi lần chốt là số của cả ngày nên nhân viên chốt sau chủ chỉ để tham khảo. Áp cho doanh thu thực thu, Chênh két, Két thiếu và bảng két theo người. Tự kiểm: bất biến 29.']},
   {v:'v1.7.11', ngay:'15/10/2026', nd:['Chốt ca ghi thẳng ở tab Doanh thu (chủ chốt 15/10/2026): ngày nào chốt ca — gõ /chotca ở bot hoặc chủ báo số cho Claude — thì dòng ngày đó được tick cột CHỐT CA và ghi cột Lệch (chênh két, thiếu −, dư +). Dashboard coi ngày có tick là đã chốt và cộng Lệch vào doanh thu thực thu khi ngày đó không có dòng ChotCa (có cả hai thì ChotCa thắng, không cộng hai lần); đọc cột theo tên tiêu đề nên chủ thêm/bớt cột không làm hỏng. Cảnh báo "Chưa chốt ca" và thẻ Hôm nay theo tick; bot nhắc chủ chốt ca từ 12:00 rồi 3 tiếng 1 lần (12 · 15 · 18, 21:00 do báo cáo cuối ngày) nếu hôm nay có bán mà chưa chốt. Tự kiểm: bất biến 28.']},
@@ -2695,6 +2700,10 @@ function tuKiem(){
     const tkT = [{k:'2026-10-02', chenh:10}, {k:'2026-10-01', chenh:99}], dtK = doanhThuThuCore(odT, ctT, [], '2026-10-03', tkT);
     ok('Chốt ca ở tab Doanh thu: ngày 02/10 tick + Lệch +10 (không có dòng ChotCa) → đã chốt 2/2 ngày, thực thu 300 + (−15) + 10 = 295, hết cảnh báo chưa chốt; ngày 01/10 có cả ChotCa (−20, +5) lẫn tick (+99) thì ChotCa thắng, không cộng hai lần',
       dtK.tong === 295 && dtK.chenh === -5 && dtK.ngayChot === 2 && dtK.chuaChot.length === 0 && dtK.thang['2026-10'] === 295, `${dtK.tong} · chênh ${dtK.chenh} · ${dtK.ngayChot}/${dtK.ngayBan}`);
+    // 30. Quỹ tiền: ngày tick "ĐÃ CHUYỂN TM VÀO QUỸ CK" thì phần tiền mặt giữ lại của ngày đó chuyển sang CK (tổng không đổi)
+    const qtC = quyTienCore(2000000, [{k:'2026-10-13', tm:500000}, {k:'2026-10-14', tm:669000}], '2026-10-14', [{k:'2026-10-13'}]), qtC0 = quyTienCore(2000000, [{k:'2026-10-13', tm:500000}, {k:'2026-10-14', tm:669000}], '2026-10-14', []);
+    ok('Quỹ tiền: tick đã chuyển 13/10 (giữ 500.000) → mặt 669.000, CK 1.331.000, tổng vẫn 2.000.000; không tick ngày nào thì như cũ (mặt 1.169.000)',
+      qtC.tm === 669000 && qtC.ck === 1331000 && qtC.tm + qtC.ck === 2000000 && qtC0.tm === 1169000 && qtC0.ck === 831000, `${fmt(qtC.tm)} + ${fmt(qtC.ck)}`);
     // 29. ChotCa nhiều dòng trong ngày (bot chotca-v3): chỉ 1 dòng có hiệu lực mỗi ngày = lần chốt cuối của chủ, chưa có chủ chốt thì lần chốt cuối; không cộng dồn
     const chH = chotHieuLucCore([{k:'2026-10-15', nv:'Khoa Từ', chenh:35}, {k:'2026-10-15', nv:'An', chenh:-5}, {k:'2026-10-14', nv:'An', chenh:-1}, {k:'2026-10-14', nv:'Bình', chenh:-2}, {k:'2026-10-13', nv:'Khoa Từ', chenh:10}, {k:'2026-10-13', nv:'Khoa Từ', chenh:12}], n => n === 'Khoa Từ');
     const chHv = k => (chH.find(c => c.k === k) || {}).chenh;
