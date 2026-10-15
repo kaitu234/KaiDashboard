@@ -1302,7 +1302,7 @@ function hoaVonLyNgay(gia, p){
 }
 /** Tham số chung cho hoà vốn (làm tròn đồng, cùng một bộ cho mọi tab): giá thường (TB thực ngoài khuyến mãi; chưa có thì giá menu theo cơ cấu món),
  *  giá đang bán thực (TB 14 ngày gần nhất), giá vốn/ly bình quân công thức, lương/ngày TB các ngày có bán, chi cố định + khấu hao của tháng m
- *  (m = 'yyyy-mm'; bỏ trống = tháng ổn định: chi cố định đầy đủ + khấu hao 27.000.000 ÷ 6). */
+ *  (m = 'yyyy-mm'; bỏ trống = tháng ổn định: chi cố định đầy đủ + khấu hao 27.000.000 ÷ KHAU_HAO.thang). */
 function thamSoHoaVon(m){
   const cg = cogsTheoCT(), tk = today(), L14 = agg(D.orders.filter(o => o.k >= addDays(tk, -13) && o.k <= tk)), lu = luongNgayTB();
   const kh = m ? khauHaoNgay(rangeDays(m + '-01', m + '-' + p2(ngayTrongThang(m)))) : KHAU_HAO.tong / KHAU_HAO.thang;
@@ -2350,7 +2350,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.12';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.13';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2394,7 +2394,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Hàng cho kèm', 'Ly trà đá, ly pha trà/bọc đá, trà sâm dứa: tính riêng theo tiền chi thực tế, không hao hụt, trừ đúng 1 lần ở cả PNL và Thu chi. T10/2026 bỏ qua; từ T11 tính theo kho thực', 'Sổ chi', 'PNL, Thu chi'],
   ['Chi vận hành khác', 'Sổ chi khối Vận hành (trừ phí NQ, hàng cho kèm). T10/2026 bỏ qua marketing. Thuê chỗ + điện nước: miễn phí tới T12/2026, từ T1/2027 tạm 2.000.000 đ/tháng nếu sổ chi chưa ghi', 'Sổ chi', 'PNL'],
   ['Lãi vận hành', 'Lãi gộp − hàng cho kèm − lương − chi vận hành khác', '', 'PNL, Thu chi'],
-  ['Khấu hao', 'Phí NQ 22.000.000 + cọc 5.000.000 = 27.000.000 đ chia đều 6 tháng từ T10/2026, rải theo ngày (4.500.000 đ ÷ số ngày trong tháng). Trang thiết bị không khấu hao', 'Chủ chốt 11/10', 'PNL, Thu chi'],
+  ['Khấu hao', 'Phí NQ 22.000.000 + cọc 5.000.000 = 27.000.000 đ chia đều 12 tháng từ T10/2026, rải theo ngày (2.250.000 đ ÷ số ngày trong tháng). Trang thiết bị không khấu hao', 'Chủ chốt 11/10 (6 tháng), đổi 12 tháng 15/10', 'PNL, Thu chi'],
   ['Lãi ròng', 'Lãi vận hành − khấu hao', '', 'PNL'],
   ['Chi phí chung (phân bổ)', '(Hàng cho kèm + lương + chi vận hành) × ly của món ÷ tổng ly. Chỉ là cách chia để so món, không phải chi phí riêng của món', '', 'PNL theo món'],
   ['Khuyến mãi cho đi', 'Σ (giá menu − giá thực bán) × ly, chỉ tính khi giá thực bán thấp hơn giá menu', 'Đơn bot · Menu', 'PNL'],
@@ -2407,6 +2407,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.13', ngay:'15/10/2026', nd:['Khấu hao phí nhượng quyền + cọc 27.000.000 đ chia đều 12 tháng (chủ chốt 15/10/2026; trước đó 6 tháng): 2.250.000 đ/tháng từ T10/2026 tới T09/2027, vẫn rải theo ngày. Áp cho PNL (Lãi ròng), thẻ "Lãi sau khấu hao", hoà vốn sau khấu hao và dự phóng 12 tháng; tổng khấu hao đủ 27.000.000 đ trong 12 tháng (bất biến cũ vẫn đúng). Sheet Tổng hợp cùng số tháng (ô "Số tháng khấu hao") và giá vốn/ly ở sheet lấy theo tỉ lệ bán trung bình (tab Giá vốn ly) thay cho 6.300 đ kế hoạch ban đầu.']},
   {v:'v1.7.12', ngay:'15/10/2026', nd:['Chốt ca nhiều lần trong ngày không cộng dồn nữa (cùng luật bot chotca-v3): mỗi ngày chỉ 1 dòng ChotCa có hiệu lực = lần chốt CUỐI của chủ quán, chưa có chủ chốt thì lần chốt cuối; mỗi lần chốt là số của cả ngày nên nhân viên chốt sau chủ chỉ để tham khảo. Áp cho doanh thu thực thu, Chênh két, Két thiếu và bảng két theo người. Tự kiểm: bất biến 29.']},
   {v:'v1.7.11', ngay:'15/10/2026', nd:['Chốt ca ghi thẳng ở tab Doanh thu (chủ chốt 15/10/2026): ngày nào chốt ca — gõ /chotca ở bot hoặc chủ báo số cho Claude — thì dòng ngày đó được tick cột CHỐT CA và ghi cột Lệch (chênh két, thiếu −, dư +). Dashboard coi ngày có tick là đã chốt và cộng Lệch vào doanh thu thực thu khi ngày đó không có dòng ChotCa (có cả hai thì ChotCa thắng, không cộng hai lần); đọc cột theo tên tiêu đề nên chủ thêm/bớt cột không làm hỏng. Cảnh báo "Chưa chốt ca" và thẻ Hôm nay theo tick; bot nhắc chủ chốt ca từ 12:00 rồi 3 tiếng 1 lần (12 · 15 · 18, 21:00 do báo cáo cuối ngày) nếu hôm nay có bán mà chưa chốt. Tự kiểm: bất biến 28.']},
   {v:'v1.7.10', ngay:'15/10/2026', nd:['Công nợ: mọi tab sổ chi tháng (Chi T10-2026 … T09-2027) có thêm cột L "Công nợ" (ô tick = hàng đã nhận, chưa trả tiền) và dòng "Công nợ chưa trả" ở bảng Kết quả tháng. Khoản tick vẫn là chi (giá vốn, PNL, tồn kho, tổng chi, nhập kho) nhưng CHƯA trừ vào tiền quỹ; trả xong thì bỏ tick, quỹ mới giảm. Dòng tick tô nền vàng nhạt.',
@@ -3083,7 +3084,7 @@ function nangLuc30p(){
 }
 const NL30 = () => nangLuc30p().v;   // null = chưa đo được
 const NL30_TXT = () => NL30() != null ? `${NL30().toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/30 phút` : 'chưa đo được';
-const KHAU_HAO = {tong:27e6, thang:6, tu:'2026-10'};   // phí nhượng quyền 22tr + cọc 5tr đã trả đủ, không thu thêm → chia đều 6 tháng từ T10/2026 (chủ chốt 11/10/2026)
+const KHAU_HAO = {tong:27e6, thang:12, tu:'2026-10'};   // phí nhượng quyền 22tr + cọc 5tr đã trả đủ, không thu thêm → chia đều 12 tháng từ T10/2026 (chủ chốt 15/10/2026; trước đó 6 tháng). Sheet Tổng hợp cùng số tháng ở ô "Số tháng khấu hao"
 const CHI_CO_DINH_THANG = 2e6;   // thuê chỗ + điện nước…: miễn 3 tháng đầu (T10–T12/2026), từ T1/2027 tổng ~2tr/tháng (chủ chốt 11/10/2026)
 const PROMO_GIA = 10000;   // giá đồng giá khai trương
 const HAO_HUT = 0.05;   // hao hụt + đổ bỏ: cộng 5% lên giá vốn nguyên liệu mỗi ly (chủ chốt 11/10/2026). Ly trà đá/hàng cho kèm tính riêng, không nằm trong công thức.
