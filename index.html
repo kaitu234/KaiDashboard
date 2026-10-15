@@ -302,6 +302,8 @@ body.focus-on{overflow:hidden}
 .qt-steps .w .pill{text-transform:none;letter-spacing:0;font-family:inherit}
 .qt-steps p{margin:2px 0 0;font-size:13px;line-height:1.5}
 .qt-steps .sub{margin:2px 0 0;font-size:11.5px;color:var(--muted);line-height:1.45}
+.qo code,.qt-steps code,.qt-head code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:0 5px;white-space:nowrap}
+.qo-ul{margin:0;padding-left:18px;display:grid;gap:7px;font-size:13px;line-height:1.6}
 @media (max-width:899px){.qt-tips{grid-template-columns:1fr}}
 .km.warn{border-left-color:var(--warn);background:var(--warn-bg)}.km.warn .t{color:var(--warn)}
 .km.bad{border-left-color:var(--bad);background:var(--bad-bg)}.km.bad .t{color:var(--bad)}
@@ -530,6 +532,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     <div class="sgrp">Bán hàng</div>
     <button role="tab" id="tab-sales" aria-selected="true" data-v="sales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="nm">Bán hàng<small>doanh thu · ngày · giờ</small></span></button>
     <button role="tab" id="tab-mon" aria-selected="false" data-v="mon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.6 11.2a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z"/><path d="M4 5h16"/><path d="M9 2.5h6"/></svg><span class="nm">Món<small>món chạy · khung giờ</small></span></button>
+    <button role="tab" id="tab-qo" aria-selected="false" data-v="qo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.4"/></svg><span class="nm">Mã món<small>mã · gõ tắt · order nhanh</small></span></button>
     <div class="sgrp">Phân tích</div>
     <button role="tab" id="tab-perf" aria-selected="false" data-v="perf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 12l5-3"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/></svg><span class="nm">Hiệu suất<small>lãi món · khung giờ · dự báo</small></span></button>
     <button role="tab" id="tab-pnl" aria-selected="false" data-v="pnl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v17"/><path d="M5 7h14"/><path d="M5 7l-2.5 6a3 3 0 0 0 5 0z"/><path d="M19 7l-2.5 6a3 3 0 0 0 5 0z"/><path d="M8 20h8"/></svg><span class="nm">PNL<small>lãi lỗ món · ngày · tháng</small></span></button>
@@ -1012,6 +1015,49 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
       <div class="tblwrap" style="max-height:480px"><table id="kcGloss"></table></div>
     </div>
   </div>
+  <!-- ================= MÃ MÓN & ORDER NHANH ================= -->
+  <div class="view qo" id="v-qo" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục tab Mã món"></nav>
+    <div class="card" id="sec-qo-ma">
+      <div class="ct">Mã món <span class="nt">· tự lấy từ tab Menu · cột Gõ tắt là các cách gõ quen của quán (cột F tab Menu)</span></div>
+      <div class="tblwrap" style="max-height:none"><table id="tQoMa"></table></div>
+      <div class="cmt" id="qoMaNote"></div>
+    </div>
+    <div class="g2">
+      <div class="card" id="sec-qo-quytac">
+        <div class="ct">Quy tắc đặt mã</div>
+        <ul class="qo-ul">
+          <li>Cà phê bắt đầu bằng <code>c</code>, rồi chữ cái đầu của từng từ: <code>cdm</code> = <b>c</b>à phê <b>đ</b>en <b>m</b>áy, <code>csp</code> = <b>c</b>à phê <b>s</b>ữa <b>p</b>hin, <code>cst</code> = cà phê sữa tươi.</li>
+          <li>Ngoại lệ: <code>cfm</code> = cà phê muối · <code>bx</code>, <code>bxm</code> = bạc xỉu, bạc xỉu muối · <code>cc</code>, <code>ccs</code>, <code>ccl</code> = cacao nóng/đá, cacao sữa, cacao latte · <code>mt</code>, <code>mtm</code> = matcha latte, matcha latte muối.</li>
+          <li>Phindi bắt đầu bằng <code>pd</code>: <code>pdh</code> hạnh nhân · <code>pdc</code> caramel · <code>pdp</code> hạt phỉ · <code>pdch</code> chocolate.</li>
+          <li>Không nhớ mã cũng được: gõ tên món (có hoặc không dấu) hoặc cách gõ tắt ở bảng trên.</li>
+        </ul>
+      </div>
+      <div class="card" id="sec-qo-order">
+        <div class="ct">Order nhanh trên bot <span class="nt">· gõ thẳng tin nhắn, không cần lệnh</span></div>
+        <ul class="qo-ul">
+          <li>Gõ mã hoặc tên: <code>csp 2 bx</code> · <code>csp2 bx3 ck</code> · <code>2 sữa phin</code> · <code>sữa phin 2 bạc xỉu ck</code> · <code>bac xiu muoi 3</code> (có hoặc không dấu). Số lượng đứng trước hoặc sau tên đều được.</li>
+          <li><code>ck</code> = chuyển khoản; không ghi thì là tiền mặt.</li>
+          <li>Không ghi "phin" thì là pha máy: <code>cf đen</code>, <code>đen</code> → cà phê đen máy.</li>
+          <li>Tên chung nhiều món (<code>sữa</code>, <code>matcha</code>, <code>phindi</code>) → bot hỏi bằng nút, bấm món là lưu. Gõ sai → bot gợi ý bằng nút.</li>
+          <li><b>Bot tự học</b>: nhân viên bấm cùng một món 3 lần liền khi bot hỏi "cụm là món nào?" thì lần sau bot tự hiểu cụm đó.</li>
+          <li>Nhập nhầm → bấm <b>↩️ Huỷ đơn</b> dưới tin xác nhận, hoặc <code>/huydon</code>.</li>
+          <li><code>/order</code> = bảng bấm món · <code>/gotat</code> = xem gõ tắt và cụm bot đã học (chủ: <code>/gotat xoa muối</code> hoặc <code>/gotat xoa het</code>) · <code>/help</code> = mã món.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card" id="sec-qo-vd">
+        <div class="ct">Ví dụ thật</div>
+        <div class="tblwrap" style="max-height:none"><table id="tQoVd"></table></div>
+      </div>
+      <div class="card" id="sec-qo-gia">
+        <div class="ct">Giá khi order</div>
+        <div class="cmt" id="qoGia" style="margin:0"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= CÓ GÌ MỚI ================= -->
   <div class="view" id="v-new" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục tab Có gì mới"></nav>
@@ -1185,7 +1231,7 @@ function parseWorkbook(wb){
     if (txt(r[10]).toUpperCase() !== 'OK'){ if (txt(r[10]).toUpperCase() === 'HUY') D.cancel.push({id:txt(r[0]), k, tt:num(r[8]), sl:num(r[6])}); return; }
     D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: txt(r[9]).toUpperCase() === 'CK' ? 'CK' : 'TM'});
   });
-  rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE'}; });
+  rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE', tat:tatMon(r[5])}; });
   // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái · Sổ chi (H = "202610:47" nếu /chiphi đã tự ghi vào dòng 47 sổ Chi T10-2026; trống = chưa vào sổ)
   rowsOf(wb, 'ChiPhi').slice(1).forEach(r => { const k = dayKey(r[0]); if (!k || txt(r[6]).toUpperCase() !== 'OK') return;
     D.botChi.push({k, ai:txt(r[2]), tien:num(r[3]), nd:txt(r[4]), nguon:txt(r[5]) || 'KET', so:txt(r[7])}); });
@@ -1277,7 +1323,7 @@ function parseWorkbook(wb){
 
 /* ============ state ============ */
 let D = null;
-const VIEWS = ['ov', 'today', 'sales', 'mon', 'perf', 'pnl', 'plan', 'kc', 'fin', 'kho', 'hr', 'new'];
+const VIEWS = ['ov', 'today', 'sales', 'mon', 'perf', 'pnl', 'plan', 'kc', 'fin', 'kho', 'hr', 'qo', 'new'];
 /* Tiêu đề + câu mô tả mỗi tab (kiểu Squad: tab này trả lời câu hỏi gì) */
 const VIEW_INFO = {
   ov:['Tổng quan', 'Tháng này quán đang ở đâu so với mốc hoà vốn, và việc gì cần xử lý trước.'],
@@ -1285,6 +1331,7 @@ const VIEW_INFO = {
   hr:['Nhân sự', 'Ai làm bao nhiêu giờ, bán được bao nhiêu ly trong ca, lương tạm tính và đối soát két.'],
   sales:['Bán hàng', 'Doanh thu, số ly theo ngày và khung giờ trong kỳ đang lọc, so với kỳ trước.'],
   mon:['Món', 'Món nào chạy, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
+  qo:['Mã món & order nhanh', 'Mã từng món, cách gõ tắt và cách order nhanh trên bot; bảng tự lấy từ tab Menu.'],
   fin:['Thu chi', 'Quỹ còn bao nhiêu, lãi vận hành, các khoản chi theo khối và người chi.'],
   kho:['Kho', 'Nguyên liệu và vật tư còn đủ dùng bao nhiêu ngày theo nhịp bán hiện tại.'],
   plan:['Kế hoạch', 'Đề xuất tối ưu theo số thật, kế hoạch mua hàng 7 ngày và dự phóng lãi lỗ 12 tháng; chỉnh giả định để xem kịch bản.'],
@@ -2380,7 +2427,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.16';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.17';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2437,6 +2484,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.17', ngay:'15/10/2026', nd:['Tab mới "Mã món & order nhanh" (nhóm Bán hàng; chủ quán nhờ qua phiên Business Analysis 15/10/2026, theo bot gotat-v1): bảng mã món tự lấy từ tab Menu (mã, tên, giá menu, giá hôm nay trong đợt khai trương, cột F Gõ tắt, nhóm), quy tắc đặt mã, cách order nhanh trên bot (gõ mã hoặc tên có/không dấu, số lượng trước hoặc sau, ck = chuyển khoản, không ghi phin = pha máy, tên chung bot hỏi bằng nút, bot tự học sau 3 lần bấm liền, huỷ đơn, /order /gotat /help), 5 ví dụ thật và giá trong / sau đợt khai trương (KM_RIENG = KHUYEN_MAI.rieng của bot). Menu đọc thêm cột F. Tự kiểm: bất biến 32.']},
   {v:'v1.7.16', ngay:'15/10/2026', nd:['Tab Tổng quan thêm thẻ "Quy trình vận hành" (chủ quán nhờ 15/10/2026): 3 luồng dựng từ checklist xe, checklist kho và lệnh bot — Kiểm hàng xe (nhân viên, hằng ngày), Chốt ca (nhân viên + chủ, hằng ngày), Kiểm kho tổng (chủ, 1–2 lần/tuần, Chủ nhật). Mỗi luồng là các bước đánh số kèm công cụ (checklist / lệnh bot / dashboard) và chấm màu + dòng trạng thái hôm nay lấy từ dữ liệu thật (đã kiểm xe chưa, kiểm kho gần nhất bao nhiêu ngày, đã chốt ca chưa và ngày cũ nào chưa chốt). Ba mẹo tối ưu: đếm một lần rồi gõ đúng số đó, số /kiemxe cuối ca là số đầu ca sau, lấy hàng từ kho một lần mỗi ngày. Tự kiểm: bất biến 31.']},
   {v:'v1.7.15', ngay:'15/10/2026', nd:['Công thức Phindi mới (chủ chốt 15/10/2026): 60 ml sữa tươi, 20 ml siro đúng vị, 15 ml cà phê phin (150 g cà phê phin ra 300 ml = 7,5 g), 5 ml sữa đặc, cho cả 4 vị. Tab Kho thêm Siro caramel / hạt phỉ / chocolate (chai 750 ml, giá tham chiếu 180.000 đ), tab CongThuc điền siro đúng vị cho từng món; ghi chú "giá vốn chưa gồm siro" ở bảng Lãi lỗ theo món tự biến mất. Cà phê phin dùng dòng Cà phê phin (bột) có sẵn: giá vốn theo dòng mua thật 250.000 đ/kg.', 'Cà phê trong CongThuc đổi từ 18 g mọi món sang theo ml của bảng công thức pha chế (18 g = 45 ml → 0,4 g/ml): bạc xỉu, bạc xỉu muối, cà phê sữa tươi 8 g (20 ml), cà phê muối 12 g (30 ml); cà phê máy giữ 18 g. Giá vốn các ly đã bán của 4 món này giảm theo (bạc xỉu và cà phê sữa tươi khoảng 2.500 đ/ly, cà phê muối 1.500 đ/ly, giá vốn / ly bình quân 7.682 → 7.089 đ).', 'Sheet gọn hơn: ẩn các tab bot ghi dữ liệu (DonHang, ChamCong, ChotCa, DangKyCa, ChiPhi, ThuongPhat, KiemKho, LayKho, BuCong), các tab hay dùng xếp ngay sau Tổng hợp; ô "Tính doanh thu tới ngày" tự lấy hôm nay; bỏ dòng cảnh báo MoMo ở tab Doanh thu; viết lại tab Hướng dẫn. Dashboard không đổi cách đọc (API vẫn đọc tab ẩn).']},
   {v:'v1.7.14', ngay:'15/10/2026', nd:['Tiền mặt / CK của quỹ theo cột "ĐÃ CHUYỂN TM VÀO QUỸ CK" mới ở tab Quỹ tiền (chủ quán nhờ 15/10/2026): ngày nào chủ tick thì phần tiền mặt giữ lại (cột Trích tiền mặt) của ngày đó đã nộp vào CK nên không còn tính là tiền mặt; tổng quỹ không đổi. Thẻ Tiền quỹ ở Thu chi và Tổng quan đọc tab Quỹ tiền qua Dashboard.gs (thêm tab vào DASH_TABS — cần deploy Apps Script; chưa có tab thì như cũ). Tự kiểm: bất biến 30.']},
@@ -2746,6 +2794,10 @@ function tuKiem(){
       qvA.xe.tt === 'cho' && qvA.xe.thieu.join() === 'Ly' && qvB.xe.tt === 'tre' && qvC.xe.tt === 'ok' && qvC.kho.tt === 'ok' && qvC.kho.n === 3 && qvC.kho.muc === 2 && qvC.kho.tong === 3 && qvD.kho.tt === 'sap' && qvE.kho.tt === 'tre' && qvF.kho.tt === 'chua'
         && qvA.chot.tt === 'cho' && qvC.chot.tt === 'ok' && qvC.chot.chenh === -1000 && qvD.chot.tt === 'tre' && qvD.chot.chuaChot.join() === '2026-10-14' && qvE.chot.tt === 'ok' && qvF.chot.tt === 'chua-ban' && qvF.xe.tt === 'chua-ban',
       [qvA.xe.tt, qvB.xe.tt, qvC.kho.tt, qvD.kho.tt, qvE.kho.tt, qvF.kho.tt, qvD.chot.tt].join(' · '));
+    // 32. Mã món & order nhanh: giá hôm nay trong đợt khai trương (đồng giá 10K, riêng matcha latte 15K, matcha muối giá menu, Phindi 20K) rồi từ 17/10 đúng giá menu; cột Gõ tắt tách theo dấu phẩy / chấm phẩy
+    const qgA = k => [giaDangBan('cdm', 15000, k), giaDangBan('mt', 20000, k), giaDangBan('mtm', 22000, k), giaDangBan('pdh', 25000, k), giaDangBan('pdch', 25000, k)], qgT = tatMon('chocolate, choco; socola,  sô cô la');
+    ok('Mã món: ngày 15/10 cà phê đen máy 10.000 · matcha latte 15.000 · matcha muối 22.000 (giá menu) · Phindi 20.000; ngày 17/10 đúng giá menu (15.000 · 20.000 · 22.000 · 25.000); Gõ tắt "chocolate, choco; socola,  sô cô la" → 4 cụm, ô trống → 0 cụm',
+      qgA('2026-10-15').join() === '10000,15000,22000,20000,20000' && qgA('2026-10-17').join() === '15000,20000,22000,25000,25000' && qgT.length === 4 && qgT[3] === 'sô cô la' && tatMon(undefined).length === 0 && tatMon('  ').length === 0, `${qgA('2026-10-15').join('/')} · ${qgT.join('|')}`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -3027,6 +3079,26 @@ function renderHr(){
     {k:'t', l:'Ngày', f:(v, r) => `${thu(r.k)} ${dShort(r.k)}`}, {k:'nv', l:'NV'}, {k:'vao', l:'Vào', f:v => tm(v)}, {k:'ra', l:'Ra', f:v => tm(v)},
     {k:'gio', l:'Giờ', r:1, f:v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:2})}, {k:'luongGio', l:'Lương/giờ', r:1, f:v => v ? fmtK(v) : '—'},
     {k:'tien', l:'Tiền công', r:1, f:v => v == null ? '—' : fmt(v)}, {k:'note', l:'Ghi chú', f:v => esc(v || '')}]});
+}
+
+/* ============ mã món & order nhanh (v1.7.17) ============
+ * Tab hướng dẫn gõ order trên bot (bản gotat-v1 của bot, 15/10/2026): bảng mã món lấy từ tab Menu (cột F "Gõ tắt (cách nhau dấu phẩy)"), quy tắc mã, cách order nhanh, ví dụ, giá.
+ * Giá trong đợt khai trương: đồng giá PROMO_GIA, riêng một số món — CÙNG số với KHUYEN_MAI.rieng của bot (0 = bán giá tab Menu); đổi bên bot thì đổi ở KM_RIENG. */
+const KM_RIENG = {mt:15000, mtm:0, pdh:20000, pdc:20000, pdp:20000, pdch:20000};
+const giaDangBan = (ma, giaMenu, k) => !isPromo(k) ? giaMenu : (ma in KM_RIENG ? (KM_RIENG[ma] || giaMenu) : PROMO_GIA);
+/** Cột F tab Menu → danh sách cách gõ tắt (cách nhau dấu phẩy hoặc chấm phẩy) */
+const tatMon = v => txt(v).split(/[,;]/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+const QO_VI_DU = [['2 muối ck', '2 cà phê muối, chuyển khoản'], ['bx muối 2', '2 bạc xỉu muối'], ['mt muối', '1 matcha latte muối'], ['sm2 dm', '2 cà phê sữa máy + 1 cà phê đen máy'], ['muối hết rồi', 'không thành đơn (bot không hiểu đây là đơn)']];
+function renderQo(){
+  const tk = today(), rows = Object.entries(D.menu).map(([ten, m], i) => ({i, ma:m.ma, ten, nhom:m.nhom, ban:m.ban, gia:m.gia, nay:giaDangBan(m.ma.toLowerCase(), m.gia, tk), tat:(m.tat || []).join(', ')}));
+  table({id:'tQoMa', rows, sortDefault:{k:'i', d:1}, cols:[
+    {k:'ma', l:'Mã', f:v => `<code>${esc(v)}</code>`}, {k:'ten', l:'Tên món', f:(v, r) => esc(v) + (r && !r.ban ? ' <span class="pill neu">ngừng bán</span>' : '')},
+    {k:'gia', l:'Giá menu', r:1, f:fmt}, {k:'nay', l:'Giá hôm nay', r:1, f:(v, r) => fmt(v) + (r && v !== r.gia ? ' <span class="pill warn">KM</span>' : '')},
+    {k:'tat', l:'Gõ tắt', f:v => v ? v.split(', ').map(t => `<code>${esc(t)}</code>`).join(' ') : '<span class="muted">—</span>'}, {k:'nhom', l:'Nhóm'}]});
+  const bat = rows.filter(r => r.ban).length, coTat = rows.filter(r => r.tat).length;
+  $('qoMaNote').innerHTML = `${bat} món đang bán, ${coTat} món có cột Gõ tắt. Chủ điền hoặc sửa cách gõ tắt ở tab Menu (cột F, cách nhau dấu phẩy); bảng này tự cập nhật theo Sheet sau khi tải lại dữ liệu. Món không có gõ tắt vẫn gõ được bằng mã hoặc tên.`;
+  table({id:'tQoVd', rows:QO_VI_DU.map(([go, kq], i) => ({i, go, kq})), sortDefault:{k:'i', d:1}, cols:[{k:'go', l:'Gõ', f:v => `<code>${esc(v)}</code>`}, {k:'kq', l:'Bot hiểu'}]});
+  $('qoGia').innerHTML = `<b>Đợt khai trương (tới hết ${dShort(PROMO.to)}):</b> đồng giá ${fmt(PROMO_GIA)}, riêng matcha latte ${fmt(KM_RIENG.mt)}, matcha latte muối ${fmt(D.menu['Matcha latte muối'] ? D.menu['Matcha latte muối'].gia : 0)} (giá menu), Phindi 4 vị ${fmt(KM_RIENG.pdh)}. <b>Từ ${dShort(addDays(PROMO.to, 1))}:</b> bán đúng giá tab Menu. Bot tự áp giá theo ngày, nhân viên chỉ cần gõ món; muốn bật đồng giá bằng tay thì chủ dùng <code>/dongia</code> (tắt bằng <code>/dongia 0</code>).`;
 }
 
 /* ============ quy trình vận hành (v1.7.16) ============
@@ -3469,9 +3541,9 @@ function render(){
   if (!D) return;
   chartBase();
   $('hdrRange').textContent = S.view === 'today' ? `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`
-    : ['ov', 'fin', 'kho', 'plan', 'kc', 'new'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
+    : ['ov', 'fin', 'kho', 'plan', 'kc', 'new', 'qo'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips(); demLoc();
-  ({ov:renderOv, today:renderToday, sales:renderSales, mon:() => { renderSales(); renderMon(); }, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, new:renderNew, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
+  ({ov:renderOv, today:renderToday, sales:renderSales, mon:() => { renderSales(); renderMon(); }, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
