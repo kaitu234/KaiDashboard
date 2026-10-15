@@ -1179,6 +1179,7 @@ function parseWorkbook(wb){
   const chuId = new Set((CHU_SV || []).map(x => String(x.id)));
   D.cong.forEach(c => c.chu = chuId.has(c.id));
   D.chuTen = new Set([...(CHU_SV || []).map(x => ten(x.ten)), ...D.cong.filter(c => c.chu).map(c => c.nv)]);
+  D.chotAll = D.chot; D.chot = chotHieuLucCore(D.chotAll, n => D.chuTen.has(n));   // v1.7.12 (bot chotca-v3): mỗi ngày CHỈ 1 dòng ChotCa có hiệu lực, không cộng dồn các lần chốt
   // v1.7.5 — Lịch làm do bot ghi (/lichca · /dangkyca): Ca = mã · tên · bắt đầu · kết thúc · số người cần · DangKyCa = ngày · mã ca · Telegram ID · tên · lúc đăng ký · trạng thái (OK nhận · CHO chờ chủ duyệt · HUY / TUCHOI bỏ) · người xếp
   // NghiBan = ngày · mã ca (ALL = cả ngày) · lý do · người hủy · lúc · trạng thái (OK đang hủy bán · MO đã mở lại) · DoiCa = tạo lúc · ngày · mã ca · ID người nhờ · người nhờ · ID người thay · người thay · lý do · trạng thái (MOI/CHO còn chờ). Chưa có tab → D.lich = null (API chưa cập nhật)
   const hm = v => { const m = /(\d{1,2}):(\d{2})/.exec(String(v == null ? '' : v)); return m ? p2(m[1]) + ':' + m[2] : ''; };
@@ -1815,6 +1816,12 @@ function renderToday(){
 /* ============ doanh thu THỰC THU (cho tài chính) ============
  * v1.7.1 (chủ quán chốt 13/10/2026): Thu chi, tiền quỹ và kế hoạch quỹ dùng tiền THỰC THU = doanh thu đơn bot + chênh két của từng ca đã chốt (/chotca: thiếu −, dư +),
  * vì tiền két đếm được = tiền bán TM − chi từ két ± chênh. Ngày bán chưa chốt ca chưa có tiền thật → tạm tính theo đơn bot (hiện cảnh báo). PNL / hiệu suất vẫn dùng doanh thu đơn bot (đo bán hàng). */
+/** Dòng ChotCa có hiệu lực của từng ngày (cùng luật bot chotHieuLuc_, chotca-v3): lần chốt CUỐI của chủ; chưa có chủ chốt thì lần chốt cuối. Mỗi lần chốt là số của cả ngày (bot so với toàn bộ đơn trong ngày) nên KHÔNG cộng dồn. Nhân viên chốt sau chủ chỉ để tham khảo. */
+function chotHieuLucCore(chot, laChuFn){
+  const by = new Map();
+  chot.forEach(c => { const e = by.get(c.k) || {chu:null, cuoi:null}; if (laChuFn(c.nv)) e.chu = c; e.cuoi = c; by.set(c.k, e); });
+  return [...by.values()].map(e => e.chu || e.cuoi);
+}
 function doanhThuThuCore(orders, chot, legacy, tk, tick){
   const thang = {}, ngayBan = new Set(orders.map(o => o.k)), chotNgay = new Set(chot.map(c => c.k)); let bot = 0, chenh = 0;
   const cong = (m, v) => { thang[m] = (thang[m] || 0) + v; };
@@ -2343,7 +2350,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.11';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.12';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2400,6 +2407,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.12', ngay:'15/10/2026', nd:['Chốt ca nhiều lần trong ngày không cộng dồn nữa (cùng luật bot chotca-v3): mỗi ngày chỉ 1 dòng ChotCa có hiệu lực = lần chốt CUỐI của chủ quán, chưa có chủ chốt thì lần chốt cuối; mỗi lần chốt là số của cả ngày nên nhân viên chốt sau chủ chỉ để tham khảo. Áp cho doanh thu thực thu, Chênh két, Két thiếu và bảng két theo người. Tự kiểm: bất biến 29.']},
   {v:'v1.7.11', ngay:'15/10/2026', nd:['Chốt ca ghi thẳng ở tab Doanh thu (chủ chốt 15/10/2026): ngày nào chốt ca — gõ /chotca ở bot hoặc chủ báo số cho Claude — thì dòng ngày đó được tick cột CHỐT CA và ghi cột Lệch (chênh két, thiếu −, dư +). Dashboard coi ngày có tick là đã chốt và cộng Lệch vào doanh thu thực thu khi ngày đó không có dòng ChotCa (có cả hai thì ChotCa thắng, không cộng hai lần); đọc cột theo tên tiêu đề nên chủ thêm/bớt cột không làm hỏng. Cảnh báo "Chưa chốt ca" và thẻ Hôm nay theo tick; bot nhắc chủ chốt ca từ 12:00 rồi 3 tiếng 1 lần (12 · 15 · 18, 21:00 do báo cáo cuối ngày) nếu hôm nay có bán mà chưa chốt. Tự kiểm: bất biến 28.']},
   {v:'v1.7.10', ngay:'15/10/2026', nd:['Công nợ: mọi tab sổ chi tháng (Chi T10-2026 … T09-2027) có thêm cột L "Công nợ" (ô tick = hàng đã nhận, chưa trả tiền) và dòng "Công nợ chưa trả" ở bảng Kết quả tháng. Khoản tick vẫn là chi (giá vốn, PNL, tồn kho, tổng chi, nhập kho) nhưng CHƯA trừ vào tiền quỹ; trả xong thì bỏ tick, quỹ mới giảm. Dòng tick tô nền vàng nhạt.',
     'Tab Thu chi: thẻ "Công nợ chưa trả" (tổng nợ, số khoản, 💵 tiền mặt sau trả nợ, quỹ sau trả nợ), thẻ "Công nợ" liệt kê từng khoản (ngày, nội dung, số tiền, người đặt, đã nợ mấy ngày), cảnh báo "Công nợ", Tổng chi ghi "gồm … chưa trả", bảng theo tháng có nhãn nợ và dòng tiền chỉ trừ chi đã trả. Đối soát người chi vượt phần góp không tính khoản chưa trả. Bất biến 27.',
@@ -2686,6 +2694,11 @@ function tuKiem(){
     const tkT = [{k:'2026-10-02', chenh:10}, {k:'2026-10-01', chenh:99}], dtK = doanhThuThuCore(odT, ctT, [], '2026-10-03', tkT);
     ok('Chốt ca ở tab Doanh thu: ngày 02/10 tick + Lệch +10 (không có dòng ChotCa) → đã chốt 2/2 ngày, thực thu 300 + (−15) + 10 = 295, hết cảnh báo chưa chốt; ngày 01/10 có cả ChotCa (−20, +5) lẫn tick (+99) thì ChotCa thắng, không cộng hai lần',
       dtK.tong === 295 && dtK.chenh === -5 && dtK.ngayChot === 2 && dtK.chuaChot.length === 0 && dtK.thang['2026-10'] === 295, `${dtK.tong} · chênh ${dtK.chenh} · ${dtK.ngayChot}/${dtK.ngayBan}`);
+    // 29. ChotCa nhiều dòng trong ngày (bot chotca-v3): chỉ 1 dòng có hiệu lực mỗi ngày = lần chốt cuối của chủ, chưa có chủ chốt thì lần chốt cuối; không cộng dồn
+    const chH = chotHieuLucCore([{k:'2026-10-15', nv:'Khoa Từ', chenh:35}, {k:'2026-10-15', nv:'An', chenh:-5}, {k:'2026-10-14', nv:'An', chenh:-1}, {k:'2026-10-14', nv:'Bình', chenh:-2}, {k:'2026-10-13', nv:'Khoa Từ', chenh:10}, {k:'2026-10-13', nv:'Khoa Từ', chenh:12}], n => n === 'Khoa Từ');
+    const chHv = k => (chH.find(c => c.k === k) || {}).chenh;
+    ok('ChotCa nhiều dòng một ngày: 15/10 chủ chốt +35 rồi nhân viên chốt −5 → lấy của chủ (+35); 14/10 chỉ nhân viên (−1 rồi −2) → lần cuối (−2); 13/10 chủ chốt 2 lần (+10 rồi +12) → lần cuối (+12); 3 ngày = 3 dòng, tổng +45 (không cộng dồn)',
+      chH.length === 3 && chHv('2026-10-15') === 35 && chHv('2026-10-14') === -2 && chHv('2026-10-13') === 12 && chH.reduce((s, c) => s + c.chenh, 0) === 45, chH.map(c => `${c.k.slice(8)}:${c.chenh}`).join(' · '));
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
