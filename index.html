@@ -283,6 +283,26 @@ body.focus-on{overflow:hidden}
 .km .t{font-family:var(--f-display);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--caramel);flex:0 0 92px}
 .km p{margin:0;font-size:12.5px}
 .km.ok{border-left-color:var(--good);background:var(--good-bg)}.km.ok .t{color:var(--good)}
+.qt-tips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 10px}
+.qt-tips span{border:1px solid var(--line);border-left:4px solid var(--caramel);border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;line-height:1.45;background:var(--surface-2)}
+.qt-tips b{font-family:var(--f-display);letter-spacing:.04em;text-transform:uppercase;font-size:11px;color:var(--caramel);display:block}
+.qt-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.qt-tabs button{font:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px}
+.qt-tabs button[aria-selected="true"]{background:var(--s1);border-color:var(--s1);color:#fff}
+.qt-tabs .dot{width:9px;height:9px;border-radius:50%;background:var(--ghost);display:inline-block;border:1.5px solid var(--surface)}
+.qt-tabs .dot.ok{background:var(--good)}.qt-tabs .dot.warn{background:var(--warn)}.qt-tabs .dot.bad{background:var(--bad)}
+.qt-head{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:0 0 4px}
+.qt-head b{font-family:var(--f-display);font-size:17px;letter-spacing:.03em;text-transform:uppercase}
+.qt-steps{list-style:none;margin:10px 0 0;padding:0}
+.qt-steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;position:relative;padding-bottom:12px}
+.qt-steps li::before{content:'';position:absolute;left:13px;top:30px;bottom:2px;width:2px;background:var(--line)}
+.qt-steps li:last-child{padding-bottom:0}.qt-steps li:last-child::before{display:none}
+.qt-steps .n{width:28px;height:28px;border-radius:50%;background:var(--s1);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-weight:700;font-size:14px;z-index:1}
+.qt-steps .w{font-family:var(--f-display);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:11.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.qt-steps .w .pill{text-transform:none;letter-spacing:0;font-family:inherit}
+.qt-steps p{margin:2px 0 0;font-size:13px;line-height:1.5}
+.qt-steps .sub{margin:2px 0 0;font-size:11.5px;color:var(--muted);line-height:1.45}
+@media (max-width:899px){.qt-tips{grid-template-columns:1fr}}
 .km.warn{border-left-color:var(--warn);background:var(--warn-bg)}.km.warn .t{color:var(--warn)}
 .km.bad{border-left-color:var(--bad);background:var(--bad-bg)}.km.bad .t{color:var(--bad)}
 @media (max-width:560px){.km{flex-direction:column;gap:2px}.km .t{flex:none}}
@@ -614,6 +634,12 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     <div class="card" id="sec-ov-msg">
       <div class="ct">Cần chú ý <span class="nt">· gom từ mọi tab, việc gấp lên trước</span></div>
       <div style="display:grid;gap:6px" id="ovMsgs"></div>
+    </div>
+    <div class="card" id="sec-ov-qt">
+      <div class="ct">Quy trình vận hành <span class="nt">· kiểm hàng xe · chốt ca · kiểm kho (chủ), dựng từ checklist xe, checklist kho và lệnh bot · chấm màu = việc hôm nay</span></div>
+      <div class="qt-tips" id="qtTips"></div>
+      <div class="qt-tabs" id="qtTabs" role="tablist" aria-label="Chọn quy trình"></div>
+      <div id="qtBody"></div>
     </div>
     <div class="card" id="sec-ov-14d">
       <div class="ct">14 ngày gần nhất + ngày mai <span class="nt">· tối đa 14 ngày bán gần nhất, số ly mỗi ngày · rê chuột xem doanh thu</span></div>
@@ -2354,7 +2380,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.15';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.16';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2411,6 +2437,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.16', ngay:'15/10/2026', nd:['Tab Tổng quan thêm thẻ "Quy trình vận hành" (chủ quán nhờ 15/10/2026): 3 luồng dựng từ checklist xe, checklist kho và lệnh bot — Kiểm hàng xe (nhân viên, hằng ngày), Chốt ca (nhân viên + chủ, hằng ngày), Kiểm kho tổng (chủ, 1–2 lần/tuần, Chủ nhật). Mỗi luồng là các bước đánh số kèm công cụ (checklist / lệnh bot / dashboard) và chấm màu + dòng trạng thái hôm nay lấy từ dữ liệu thật (đã kiểm xe chưa, kiểm kho gần nhất bao nhiêu ngày, đã chốt ca chưa và ngày cũ nào chưa chốt). Ba mẹo tối ưu: đếm một lần rồi gõ đúng số đó, số /kiemxe cuối ca là số đầu ca sau, lấy hàng từ kho một lần mỗi ngày. Tự kiểm: bất biến 31.']},
   {v:'v1.7.15', ngay:'15/10/2026', nd:['Công thức Phindi mới (chủ chốt 15/10/2026): 60 ml sữa tươi, 20 ml siro đúng vị, 15 ml cà phê phin (150 g cà phê phin ra 300 ml = 7,5 g), 5 ml sữa đặc, cho cả 4 vị. Tab Kho thêm Siro caramel / hạt phỉ / chocolate (chai 750 ml, giá tham chiếu 180.000 đ), tab CongThuc điền siro đúng vị cho từng món; ghi chú "giá vốn chưa gồm siro" ở bảng Lãi lỗ theo món tự biến mất. Cà phê phin dùng dòng Cà phê phin (bột) có sẵn: giá vốn theo dòng mua thật 250.000 đ/kg.', 'Cà phê trong CongThuc đổi từ 18 g mọi món sang theo ml của bảng công thức pha chế (18 g = 45 ml → 0,4 g/ml): bạc xỉu, bạc xỉu muối, cà phê sữa tươi 8 g (20 ml), cà phê muối 12 g (30 ml); cà phê máy giữ 18 g. Giá vốn các ly đã bán của 4 món này giảm theo (bạc xỉu và cà phê sữa tươi khoảng 2.500 đ/ly, cà phê muối 1.500 đ/ly, giá vốn / ly bình quân 7.682 → 7.089 đ).', 'Sheet gọn hơn: ẩn các tab bot ghi dữ liệu (DonHang, ChamCong, ChotCa, DangKyCa, ChiPhi, ThuongPhat, KiemKho, LayKho, BuCong), các tab hay dùng xếp ngay sau Tổng hợp; ô "Tính doanh thu tới ngày" tự lấy hôm nay; bỏ dòng cảnh báo MoMo ở tab Doanh thu; viết lại tab Hướng dẫn. Dashboard không đổi cách đọc (API vẫn đọc tab ẩn).']},
   {v:'v1.7.14', ngay:'15/10/2026', nd:['Tiền mặt / CK của quỹ theo cột "ĐÃ CHUYỂN TM VÀO QUỸ CK" mới ở tab Quỹ tiền (chủ quán nhờ 15/10/2026): ngày nào chủ tick thì phần tiền mặt giữ lại (cột Trích tiền mặt) của ngày đó đã nộp vào CK nên không còn tính là tiền mặt; tổng quỹ không đổi. Thẻ Tiền quỹ ở Thu chi và Tổng quan đọc tab Quỹ tiền qua Dashboard.gs (thêm tab vào DASH_TABS — cần deploy Apps Script; chưa có tab thì như cũ). Tự kiểm: bất biến 30.']},
   {v:'v1.7.13', ngay:'15/10/2026', nd:['Khấu hao phí nhượng quyền + cọc 27.000.000 đ chia đều 12 tháng (chủ chốt 15/10/2026; trước đó 6 tháng): 2.250.000 đ/tháng từ T10/2026 tới T09/2027, vẫn rải theo ngày. Áp cho PNL (Lãi ròng), thẻ "Lãi sau khấu hao", hoà vốn sau khấu hao và dự phóng 12 tháng; tổng khấu hao đủ 27.000.000 đ trong 12 tháng (bất biến cũ vẫn đúng). Sheet Tổng hợp cùng số tháng (ô "Số tháng khấu hao") và giá vốn/ly ở sheet lấy theo tỉ lệ bán trung bình (tab Giá vốn ly) thay cho 6.300 đ kế hoạch ban đầu.']},
@@ -2710,6 +2737,15 @@ function tuKiem(){
     const chHv = k => (chH.find(c => c.k === k) || {}).chenh;
     ok('ChotCa nhiều dòng một ngày: 15/10 chủ chốt +35 rồi nhân viên chốt −5 → lấy của chủ (+35); 14/10 chỉ nhân viên (−1 rồi −2) → lần cuối (−2); 13/10 chủ chốt 2 lần (+10 rồi +12) → lần cuối (+12); 3 ngày = 3 dòng, tổng +45 (không cộng dồn)',
       chH.length === 3 && chHv('2026-10-15') === 35 && chHv('2026-10-14') === -2 && chHv('2026-10-13') === 12 && chH.reduce((s, c) => s + c.chenh, 0) === 45, chH.map(c => `${c.k.slice(8)}:${c.chenh}`).join(' · '));
+    // 31. Quy trình vận hành (Tổng quan): trạng thái 3 luồng theo dữ liệu hôm nay — kiểm xe (10h chờ, 21h thiếu, đủ), kiểm kho (≤ 4 ngày ổn, 6 ngày sắp tới hạn, 9 ngày quá hạn, chưa đếm), chốt ca (trước 12h chờ, sau 12h trễ, tick/ChotCa là đã chốt)
+    const qvK = [{ma:'cf', ten:'Cà phê hạt', theoDoi:true, kiemNgay:true}, {ma:'ly', ten:'Ly', theoDoi:true, kiemNgay:true}, {ma:'sd', ten:'Sữa đặc', theoDoi:true, kiemNgay:false}], qvDon = [{k:'2026-10-15', sl:1, tt:10000}];
+    const qvGio = h => new Date(2026, 9, 15, h, 0).getTime(), qvKk = (ma, d, noi = 'xe') => ({noi, ma, dem:1, luc:new Date(2026, 9, 15 - d, 10, 0)}), qvQ = (gio, o) => quyTrinhCore(Object.assign({tk:'2026-10-15', gio, now:qvGio(gio), orders:qvDon, khoAll:qvK, kiemKho:[], chot:[], tick:[]}, o));
+    const qvA = qvQ(10, {kiemKho:[qvKk('cf', 0)]}), qvB = qvQ(21, {kiemKho:[qvKk('cf', 0)]}), qvC = qvQ(21, {kiemKho:[qvKk('cf', 0), qvKk('ly', 0), qvKk('cf', 3, 'kho'), qvKk('ly', 3, 'kho')], chot:[{k:'2026-10-15', chenh:-1000}]});
+    const qvD = qvQ(13, {orders:qvDon.concat([{k:'2026-10-14', sl:1, tt:10000}]), kiemKho:[qvKk('cf', 6, 'kho')]}), qvE = qvQ(13, {kiemKho:[qvKk('cf', 9, 'kho')], tick:[{k:'2026-10-15', chenh:0}]}), qvF = quyTrinhCore({tk:'2026-10-16', gio:9, now:qvGio(9) + 864e5, orders:qvDon, khoAll:qvK, kiemKho:[], chot:[], tick:[]});
+    ok('Quy trình vận hành: kiểm xe 10h chỉ đếm cà phê → chờ cuối ngày (thiếu Ly), 21h → chưa kiểm, đếm đủ ly + cà phê → đủ · kiểm kho 3 ngày trước ổn (2/3 mục), 6 ngày sắp tới hạn, 9 ngày quá hạn, chưa đếm lần nào · chốt ca: 10h chờ, 13h chưa chốt (ngày cũ 14/10 cũng chưa chốt), ChotCa hoặc tick là đã chốt, ngày chưa bán không nhắc',
+      qvA.xe.tt === 'cho' && qvA.xe.thieu.join() === 'Ly' && qvB.xe.tt === 'tre' && qvC.xe.tt === 'ok' && qvC.kho.tt === 'ok' && qvC.kho.n === 3 && qvC.kho.muc === 2 && qvC.kho.tong === 3 && qvD.kho.tt === 'sap' && qvE.kho.tt === 'tre' && qvF.kho.tt === 'chua'
+        && qvA.chot.tt === 'cho' && qvC.chot.tt === 'ok' && qvC.chot.chenh === -1000 && qvD.chot.tt === 'tre' && qvD.chot.chuaChot.join() === '2026-10-14' && qvE.chot.tt === 'ok' && qvF.chot.tt === 'chua-ban' && qvF.xe.tt === 'chua-ban',
+      [qvA.xe.tt, qvB.xe.tt, qvC.kho.tt, qvD.kho.tt, qvE.kho.tt, qvF.kho.tt, qvD.chot.tt].join(' · '));
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -2993,6 +3029,66 @@ function renderHr(){
     {k:'tien', l:'Tiền công', r:1, f:v => v == null ? '—' : fmt(v)}, {k:'note', l:'Ghi chú', f:v => esc(v || '')}]});
 }
 
+/* ============ quy trình vận hành (v1.7.16) ============
+ * 3 luồng trên tab Tổng quan, dựng từ checklist xe + checklist kho (in 15/10/2026) và lệnh bot: kiểm hàng xe (nhân viên, hằng ngày) · chốt ca (nhân viên + chủ, hằng ngày) · kiểm kho tổng (chủ, 1–2 lần/tuần, ngày kiểm tuần Chủ nhật).
+ * Nội dung bước là chữ cố định (QUY_TRINH); trạng thái "hôm nay" lấy từ dữ liệu thật qua quyTrinhCore — cùng ngưỡng với mục Cần chú ý (kiểm xe nhắc sau 20h, kiểm kho quá 7 ngày, chốt ca bot nhắc từ 12h). */
+const QUY_TRINH = [
+  {id:'xe', ten:'Kiểm hàng xe', icon:'🚚', ai:'Nhân viên', khi:'mỗi ngày', go:'kho', nguon:'Checklist xe — mục 1 Tồn trên xe, 2 Đầu ca, 4 Cuối ca', buoc:[
+    {w:'Đầu ca · 5g30', tool:'📋 Checklist xe', t:'Check in. Đọc tin <code>/kiemxe</code> cuối ca hôm qua trong group: đã có số <b>ly</b> và <b>cà phê</b>, không phải đếm lại hai món này.'},
+    {w:'Đầu ca', tool:'📋 Checklist xe', t:'Đếm các món còn lại, ghi bút lông vào cột "Số đếm đầu ca" và so với mức tối thiểu in sẵn.', sub:'Tối thiểu trên xe: sữa đặc 2 hộp · sữa tươi 2 hộp · cà phê 2 kg · cacao 0,5 hũ · ly 100 · nắp 100 · ống hút 2 bịch · túi quai T 2 bịch.'},
+    {w:'Đầu ngày', tool:'🤖 /laykho', t:'Món nào thiếu thì lấy từ kho <b>một lần</b> cho cả ngày, rồi báo <code>/laykho ly 100 cf 2</code> (ghi vào nhóm xuất/nhập kho).'},
+    {w:'Cuối ca · 10g30', tool:'🤖 /kiemxe', t:'Đếm <b>ly</b> và <b>cà phê hạt (kg)</b> rồi gõ <code>/kiemxe ly 120 cf 2,4</code>; số này là số đầu ca hôm sau. <b>Chủ nhật</b> đếm đủ mọi mục.'},
+    {w:'Tự động', tool:'📊 Dashboard · tab Kho', t:'Tồn xe và kho tự tính, mục "Xe cần lấy" hiện ở Cần chú ý; hao hụt thật đo giữa hai lần kiểm xe.'}]},
+  {id:'chot', ten:'Chốt ca', icon:'🔒', ai:'Nhân viên + chủ', khi:'mỗi ngày', go:'fin', nguon:'Checklist xe — mục 4 Cuối ca', buoc:[
+    {w:'Cuối ca · 10g30', tool:'📋 Checklist xe', t:'Dọn quầy: 1 bạn rửa dụng cụ, 1 bạn dọn đồ ở xe; bọc nguyên liệu dư cất tủ mát; vệ sinh xe, máy.'},
+    {w:'Đếm tiền', tool:'📋 Checklist xe', t:'Kiểm kê <b>tiền mặt</b> và <b>chuyển khoản</b>; bọc tiền bằng giấy sổ ghi <b>"ngày + số tiền"</b>.'},
+    {w:'Chốt ca', tool:'🤖 /chotca', t:'Gõ <code>/chotca tm 745 ck 220</code> (đơn vị nghìn; tm = tiền mặt thực thu, ck = chuyển khoản thực nhận) rồi <code>/checkout</code>. Bot so với đơn trong ngày để ra chênh két.'},
+    {w:'Trước khi về', tool:'📋 Checklist xe', t:'<b>Khóa tủ tiền, khóa xe</b>, cất chìa khóa cẩn thận; tick các ô cuối ca.'},
+    {w:'Chủ quán', tool:'📊 Sheet · tab Doanh thu', t:'Tab Doanh thu tự tick <b>CHỐT CA</b> và ghi cột Lệch. Chủ ghi <b>TRÍCH TIỀN MẶT</b> (phần giữ lại thành tiền mặt) và tick <b>ĐÃ CHUYỂN TM VÀO QUỸ CK</b> khi nộp quỹ.'},
+    {w:'Quên chốt', tool:'🤖 /chotca ngày', t:'Chủ chốt bù ngày cũ: <code>/chotca 14/10 tm … ck …</code>. Bot nhắc chủ từ 12:00, rồi 3 tiếng một lần.'}]},
+  {id:'kho', ten:'Kiểm kho tổng', icon:'🏠', ai:'Chủ quán', khi:'1–2 lần/tuần · Chủ nhật', go:'kho', nguon:'Checklist kiểm kho tổng', buoc:[
+    {w:'Chuẩn bị', tool:'📋 Checklist kho', t:'Lấy tờ <b>Kiểm kho tổng</b>, viết ngày vào cột trống (bút lông). Ngày kiểm tuần là <b>Chủ nhật</b>, cùng lúc nhân viên đếm đủ mọi mục ở xe.'},
+    {w:'Đếm', tool:'📋 Checklist kho', t:'Đếm đủ các mục trên tờ, đúng đơn vị ở cột ĐV (cà phê ghi kg: 505 g = 0,505; ly ghi cái hoặc cây; nắp theo cây). Chỉ đếm hàng cất trong kho, không tính hàng đang ở xe.'},
+    {w:'Gửi số đếm', tool:'🤖 /kiemkho', t:'Gõ <b>một tin</b> cho cả tờ: <code>/kiemkho cf 3,2 ly 1800 sd 24 …</code> (chỉ chủ), hoặc đọc số trên tờ cho Claude ghi. Số đếm là gốc của tồn kho, hàng nhập sau cộng tiếp.'},
+    {w:'Tự động', tool:'📊 Dashboard · tab Kho', t:'Bảng kho tính tồn, "đủ ~ngày" và "nên mua"; món cần mua hiện ở Cần chú ý.'},
+    {w:'Mua hàng', tool:'📊 Sổ chi', t:'Món cần mua thì mua rồi ghi sổ chi: tự khớp vào Nhập kho, không cộng hai lần.'},
+    {w:'Xong', tool:'📋 Checklist kho', t:'Ghi tên vào dòng Người kiểm. Hết 6 cột ngày thì lau sạch dùng lại.'}]},
+];
+const QT_MEO = [['Đếm một lần', 'Ghi số lên checklist rồi gõ đúng số đó cho bot, không đếm lại.'], ['Cuối ca = đầu ca sau', 'Số ly và cà phê gõ /kiemxe cuối ca chính là số đầu ca hôm sau.'], ['Lấy hàng một lần', 'Lấy từ kho một lần mỗi ngày; Chủ nhật kiểm xe và kiểm kho cùng ngày.']];
+/** Trạng thái hôm nay của 3 luồng. src = {tk, gio (giờ trong ngày), now (ms), orders, khoAll, kiemKho, chot (ChotCa có hiệu lực), tick (tick CHỐT CA ở tab Doanh thu)}
+ *  xe: tt 'chua-ban' (hôm nay chưa bán) · 'ok' (đã đếm đủ mục hằng ngày) · 'cho' (trước 20h) · 'tre' · kho: 'chua' (chưa đếm lần nào) · 'ok' (≤ 4 ngày) · 'sap' (5–7) · 'tre' (> 7) · chot: 'ok' · 'cho' (trước 12h) · 'tre' */
+function quyTrinhCore(src){
+  const {tk, gio, now} = src, banHn = src.orders.some(o => o.k === tk);
+  const da = new Set(src.kiemKho.filter(x => x.noi === 'xe' && x.luc && dk(x.luc) === tk).map(x => x.ma)), ngayK = src.khoAll.filter(k => k.theoDoi && k.kiemNgay), thieu = ngayK.filter(k => !da.has(k.ma));
+  const xe = {banHn, thieu:thieu.map(k => k.ten), tong:ngayK.length, tt:!banHn ? 'chua-ban' : !thieu.length ? 'ok' : gio >= 20 ? 'tre' : 'cho'};
+  const lan = src.kiemKho.filter(x => x.noi === 'kho' && x.luc).map(x => x.luc).sort((a, b) => b - a)[0], n = lan ? Math.floor((now - lan.getTime()) / 864e5) : null;
+  const muc = lan ? new Set(src.kiemKho.filter(x => x.noi === 'kho' && x.luc && dk(x.luc) === dk(lan)).map(x => x.ma)).size : 0;
+  const kho = {lan, n, muc, tong:src.khoAll.filter(k => k.theoDoi).length, tt:lan == null ? 'chua' : n > 7 ? 'tre' : n >= 5 ? 'sap' : 'ok'};
+  const ch = src.chot.find(c => c.k === tk), tick = (src.tick || []).find(t => t.k === tk), daChot = !!(ch || tick), chenh = ch ? ch.chenh : tick ? tick.chenh : null;
+  const chot = {banHn, daChot, chenh, chuaChot:doanhThuThuCore(src.orders, src.chot, [], tk, src.tick || []).chuaChot, tt:!banHn ? 'chua-ban' : daChot ? 'ok' : gio >= 12 ? 'tre' : 'cho'};
+  return {xe, kho, chot};
+}
+let QT_TAB = 'xe';
+function renderQuyTrinh(){
+  const now = new Date(), T = quyTrinhCore({tk:today(), gio:now.getHours(), now:now.getTime(), orders:D.orders, khoAll:D.khoAll, kiemKho:D.kiemKho, chot:D.chot, tick:D.chotSheet});
+  const mau = {ok:'good', cho:'neu', sap:'warn', tre:'bad', chua:'warn', 'chua-ban':'neu'}, cham = {ok:'ok', sap:'warn', chua:'warn', tre:'bad'};
+  const xeLay = khoTheoDoi().filter(x => x.canLay).map(x => x.ten);
+  const cheChot = c => c == null ? '' : c === 0 ? ' · khớp két' : c > 0 ? ` · dư ${fmt(c)} đ` : ` · thiếu ${fmt(-c)} đ`;
+  const nhan = {
+    xe: () => ({'chua-ban': 'Hôm nay chưa bán', ok: `Đã kiểm xe hôm nay (đủ ${T.xe.tong} mục hằng ngày)`, cho: `Chờ cuối ngày: chưa đếm ${esc(T.xe.thieu.join(', '))}`, tre: `Chưa kiểm xe hôm nay: ${esc(T.xe.thieu.join(', '))}`}[T.xe.tt]) + (xeLay.length ? ` · xe cần lấy: ${esc(xeLay.join(', '))}` : ''),
+    chot: () => ({'chua-ban': 'Hôm nay chưa bán', ok: 'Đã chốt hôm nay' + cheChot(T.chot.chenh), cho: 'Chưa chốt ca (bot nhắc từ 12:00)', tre: 'Chưa chốt ca hôm nay'}[T.chot.tt]) + (T.chot.chuaChot.length ? ` · còn ${T.chot.chuaChot.length} ngày cũ chưa chốt: ${T.chot.chuaChot.slice(-4).map(dShort).join(', ')}` : ''),
+    kho: () => T.kho.lan == null ? 'Chưa đếm kho lần nào' : `Kiểm kho gần nhất ${dShort(dk(T.kho.lan))} · ${T.kho.n === 0 ? 'hôm nay' : T.kho.n + ' ngày trước'} · ${T.kho.muc}/${T.kho.tong} mục${T.kho.tt === 'sap' ? ' · sắp tới hạn (1–2 lần/tuần)' : T.kho.tt === 'tre' ? ' · quá hạn' : ''}`};
+  const tt = {xe: xeLay.length && T.xe.tt === 'ok' ? 'sap' : T.xe.tt, chot: T.chot.tt === 'ok' && T.chot.chuaChot.length ? 'sap' : T.chot.tt, kho: T.kho.tt};
+  $('qtTips').innerHTML = QT_MEO.map(([a, b]) => `<span><b>${a}</b>${b}</span>`).join('');
+  $('qtTabs').innerHTML = QUY_TRINH.map(q => `<button type="button" role="tab" aria-selected="${q.id === QT_TAB}" data-qt="${q.id}"><i class="dot ${cham[tt[q.id]] || ''}"></i>${q.icon} ${q.ten}</button>`).join('');
+  const q = QUY_TRINH.find(x => x.id === QT_TAB) || QUY_TRINH[0];
+  $('qtBody').innerHTML = `<div class="qt-head"><b>${q.ten}</b><span class="pill neu">${q.ai}</span><span class="pill neu">${q.khi}</span><span class="pill ${mau[tt[q.id]] || 'neu'}">${nhan[q.id]()}</span> <a href="#" class="lnk" data-go="${q.go}">Xem tab →</a></div>
+    <div class="muted" style="font-size:11.5px">Theo: ${q.nguon}</div>
+    <ol class="qt-steps">${q.buoc.map((b, i) => `<li><span class="n">${i + 1}</span><div><div class="w">${b.w} <span class="pill neu">${b.tool}</span></div><p>${b.t}</p>${b.sub ? `<div class="sub">${b.sub}</div>` : ''}</div></li>`).join('')}</ol>`;
+  $('qtTabs').querySelectorAll('button').forEach(b => b.onclick = () => { QT_TAB = b.dataset.qt; renderQuyTrinh(); });
+  $('qtBody').querySelectorAll('[data-go]').forEach(a => a.onclick = e => { e.preventDefault(); setView(a.dataset.go); scrollTo(0, 0); });
+}
+
 /* ============ render: tổng quan ============ */
 let FIN = null;
 function renderOv(){
@@ -3037,6 +3133,7 @@ function renderOv(){
   $('ovMsgs').querySelectorAll('.km').forEach(r => { const mo = () => r.classList.toggle('open'); r.onclick = mo; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); mo(); } }; });
   const tg = $('ovMsgs').querySelector('.km-toggle');
   if (tg) tg.onclick = () => { const mo = $('ovMsgs').classList.toggle('show-all'); tg.setAttribute('aria-expanded', mo); tg.textContent = mo ? 'Thu gọn ▴' : `Còn ${al.length - NHIEU} cảnh báo nữa ▾`; };
+  renderQuyTrinh();   // v1.7.16: 3 quy trình (kiểm hàng xe · chốt ca · kiểm kho) + trạng thái hôm nay
   // 14 ngày gần nhất + cột dự kiến ngày mai (cùng 1 trục số ly; doanh thu xem trong tooltip)
   const d14 = []; for (let i = 13; i >= 0; i--) if (!D.first || addDays(tk, -i) >= D.first) d14.push(addDays(tk, -i));   // chưa đủ 14 ngày từ ngày bán đầu thì chỉ vẽ các ngày đã bán
   const by = groupBy(D.orders, o => o.k), s1 = css('--s1'), s2 = css('--s2'), nD = d14.length;
