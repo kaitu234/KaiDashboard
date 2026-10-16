@@ -548,6 +548,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
   <div class="sfoot" id="sfoot">
     <button class="reload" id="refresh" data-reload disabled title="Đọc lại Google Sheet ngay"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại dữ liệu</span></button>
     <div class="sacts">
+      <button class="lnk" id="layoutBtn" title="Đổi bố cục: tự động → điện thoại → máy tính (phím M)">📱🖥 Tự động</button>
       <button class="lnk" id="themeBtn" title="Đổi giao diện sáng / tối">🌓 Tự động</button>
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
       <button class="lnk" id="openSheet" aria-haspopup="dialog">🔒 Mở sheet</button>
@@ -600,6 +601,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
       <li><b>Chi từ két, chốt ca, chấm công</b>: tab ChiPhi, ChotCa, ChamCong của bot.</li>
       <li><b>Thu chi</b>: tab Vốn &amp; Thu và các tab Chi T10-2026… Tiền quỹ = tiền đầu kỳ + vốn góp + doanh thu bot − chi đã trả tiền trong sổ tháng (dòng tick cột Công nợ là chưa trả, chưa trừ).</li>
       <li>Trang tự đọc lại sheet <b>mỗi phút</b> khi đang mở (đơn mới trên bot hiện sau tối đa ~1 phút). Bấm nút <b>⟳ Tải lại dữ liệu</b> (hoặc phím <b>R</b>) để đọc ngay, ví dụ vừa chốt đơn xong muốn xem liền. Bot ghi đơn vào sheet tức thì nên bấm là thấy ngay.</li>
+      <li><b>Bố cục điện thoại / máy tính</b>: bấm nút <b>📱🖥</b> (menu <b>⋯</b> trên điện thoại, cuối thanh bên trên máy tính) hoặc phím <b>M</b> để đổi <b>Tự động → Điện thoại → Máy tính</b>; máy nhớ lựa chọn. Máy mới thấy sai bố cục thì chọn thẳng: mở link dashboard thêm <code>?giaodien=mobile</code> (hoặc <code>desktop</code>, <code>auto</code>).</li>
       <li><b>Tab Hôm nay</b>: so sánh với cùng thứ tuần trước và hôm qua <i>tính tới cùng giờ hiện tại</i>, để so sánh công bằng giữa ca. Hai biểu đồ nhịp bán và ly theo giờ có thêm <b>đường mờ = hôm qua</b> (cả ngày); biểu đồ ly theo khung giờ ở tab Bán hàng có đường mờ = kỳ liền trước cùng số ngày. Khi đã có dữ liệu cách đây một tháng, các biểu đồ và thẻ tự thêm <b>cùng ngày tháng trước</b> (đường chấm màu hổ phách; bảng theo ngày thêm cột MoM), chưa có thì không hiện.</li>
     </ul>
     <h4>Thẻ chỉ số</h4>
@@ -2463,7 +2465,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.26';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.27';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2520,6 +2522,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.27', ngay:'16/10/2026', nd:['Nút đổi bố cục Điện thoại / Máy tính (chủ quán yêu cầu 16/10, máy mới cài app vẫn chưa ra giao diện điện thoại): nút 📱🖥 trong menu ⋯ (điện thoại) và cuối thanh bên (máy tính), hoặc phím M, đổi vòng Tự động → Điện thoại → Máy tính; máy nhớ lựa chọn (kai_layout). Link dashboard thêm ?giaodien=mobile (hoặc desktop, auto) đặt sẵn cho máy mới. Cách làm: mọi điều kiện @media bề ngang được tính như màn hình 390 px / 1280 px; chế độ Máy tính còn đặt viewport 1280 cho điện thoại. Tự động: điện thoại thật (cảm ứng, cạnh ngắn ≤ 500 px) mà Chrome dựng khung ≥ 900 px (vd "Trang web cho máy tính") thì tự dùng bố cục điện thoại. Tự kiểm: bất biến 37.']},
   {v:'v1.7.26', ngay:'16/10/2026', nd:['Sửa lỗi người mới cài app từ Chrome không thấy giao diện điện thoại: trang đầu (Tổng quan) có dòng "Cần chú ý" với chữ 1 dòng quá dài trên điện thoại, làm trang rộng hơn màn hình nên Chrome nới khung nhìn và thu nhỏ cả trang (nhìn như bản máy tính, chữ bé). Sửa gốc: dòng cảnh báo co theo bề ngang màn hình (chữ dài hiện dấu … khi thu gọn, bấm để mở xuống dòng); thêm lớp bảo vệ cắt phần tràn ngang ở html / body để sau này không tái phát. Đã thử bằng giả lập điện thoại 375 px: khung nhìn từ 559 px về đúng 375 px, 13 tab đều vừa màn hình.']},
   {v:'v1.7.25', ngay:'16/10/2026', nd:['Lịch làm không đếm chủ gốc vào "Số người cần" của ca (chủ quán chốt 16/10, cùng bot khongdemchu-v1 / Apps Script bản 113): Khoa Từ xếp mình vào ca được và tên vẫn hiện (ghi "chủ, không tính"), nhưng chỉ nhân viên mới tính vào thiếu / đủ — ngày chỉ có bơ + Khoa Từ báo thiếu 1 người, giống bot. Áp cho thẻ Lịch làm (Nhân sự), cảnh báo "Lịch ca" ở Tổng quan và ghi chú 14 ngày tới. Cần deploy lại Apps Script với Dashboard.gs mới (dashChu_ gửi thêm cờ goc theo CHU_GOC của bot, ID không nằm trong repo); chưa có cờ thì lịch đếm như cũ. Tự kiểm: bất biến 24 thêm ca chủ gốc + 1 nhân viên vẫn thiếu 1.']},
   {v:'v1.7.24', ngay:'16/10/2026', nd:['Chủ quán chốt 16/10: tạm bỏ mọi đường thể hiện mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn) — chỉ vẽ số liệu thật; cờ HIEN_LINE_MUC_TIEU = false, đổi thành true là có lại. Mục tiêu ly/ngày đổi 60 → 80: ô Mục tiêu ly/ngày, thẻ %Đạt mục tiêu (Bán hàng, Hôm nay), cột %Đạt bảng theo ngày, câu "cần thêm N ly" ở Hôm nay; khoá lưu trong trình duyệt đổi sang kai_tgt2 để không giữ 60 cũ. Tự kiểm: bất biến 36.']},
@@ -2868,6 +2871,10 @@ function tuKiem(){
     const mtC = Object.values(charts).filter(c => c && c.data && c.data.datasets.some(d => /mục tiêu/i.test(d.label || ''))).length;
     ok('Đường mục tiêu ly tạm tắt (không biểu đồ nào vẽ đường "mục tiêu") và mục tiêu mặc định = 80 ly / ngày',
       (HIEN_LINE_MUC_TIEU || mtC === 0) && S.tgt > 0 && (!($('fTgt')) || +$('fTgt').value === S.tgt), `${mtC} biểu đồ có đường mục tiêu · mục tiêu ${S.tgt}`);
+    // 37. Bố cục điện thoại / máy tính: điều kiện @media được tính theo bề ngang giả lập (điện thoại 390 px, máy tính 1280 px), điều kiện không phải bề ngang giữ nguyên
+    const gdA = [mqVoiRong('(max-width: 899px)', 390), mqVoiRong('(min-width: 900px)', 390), mqVoiRong('(max-width: 899px)', 1280), mqVoiRong('(min-width: 900px)', 1280), mqVoiRong('(max-width:560px) and (prefers-reduced-motion: reduce)', 1280), mqVoiRong('(prefers-color-scheme: dark)', 390), mqVoiRong('(max-width: 899px)', null), mqVoiRong('(max-width: 380px)', 390)];
+    ok('Bố cục: 390 px → max-width 899 đúng, min-width 900 sai; 1280 px → ngược lại; "(max-width:560px) and (prefers-reduced-motion…)" ở 1280 chỉ đổi phần bề ngang; màu tối và bề ngang thật (null) giữ nguyên; max-width 380 ở 390 px sai',
+      gdA.join('|') === '(min-width: 0px)|(min-width: 99999px)|(min-width: 99999px)|(min-width: 0px)|(min-width: 99999px) and (prefers-reduced-motion: reduce)|(prefers-color-scheme: dark)|(max-width: 899px)|(min-width: 99999px)' && LAYOUT_NHAN[LAYOUT] != null, gdA.slice(0, 4).join(' · '));
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -3542,7 +3549,7 @@ function nangCapThe(root){
     ct.insertAdjacentHTML('beforeend', `<span class="cbtns"><span class="zctl"><button class="cbtn" data-z="-1" title="Thu nhỏ">−</button><span class="zpct">100%</span><button class="cbtn" data-z="1" title="Phóng to">+</button><button class="cbtn" data-z="0" style="width:auto;padding:0 8px" title="Về cỡ mặc định">Vừa khung</button></span><button class="cbtn col" title="Thu gọn / mở thẻ">▾</button><button class="cbtn foc" title="Phóng to thẻ · Esc để đóng">⤢</button></span>`);
     if (GOP.has(c.id)) c.classList.add('collapsed');
   });
-  if (window.matchMedia('(max-width:899px)').matches) root.querySelectorAll(':scope > .cmt').forEach(c => {   // điện thoại: ghi chú dài gọn 4 dòng, bấm "Xem thêm"
+  if (laManHep()) root.querySelectorAll(':scope > .cmt').forEach(c => {   // điện thoại: ghi chú dài gọn 4 dòng, bấm "Xem thêm"
     const dai = (c.innerText || '').length > 240, nhan = () => c.classList.contains('mo') ? 'Thu gọn ▴' : 'Xem thêm ▾';
     if (dai && !c._more){ const b = document.createElement('button'); b.type = 'button'; b.className = 'lnk cmt-more'; c._more = b; c.insertAdjacentElement('afterend', b);
       b.onclick = () => { c.classList.toggle('mo'); c.classList.toggle('gon', !c.classList.contains('mo')); b.textContent = nhan(); }; }
@@ -3757,6 +3764,36 @@ function apTheme(t){
 }
 apTheme(document.documentElement.dataset.theme || 'auto');
 $('themeBtn').onclick = () => { const cur = document.documentElement.dataset.theme || 'auto'; apTheme({auto:'light', light:'dark', dark:'auto'}[cur]); };
+
+/* ---- Bố cục Điện thoại / Máy tính (v1.7.27): Tự động → Điện thoại → Máy tính; máy nhớ lựa chọn (kai_layout). Link ?giaodien=mobile | desktop | auto đặt sẵn cho máy mới.
+ *  Cách làm: mọi @media (min/max-width) của trang được tính như màn hình 390 px (điện thoại) hoặc 1280 px (máy tính) thay vì bề ngang thật; chế độ Máy tính còn đặt viewport = 1280 để điện thoại dựng đủ khung.
+ *  Tự động: giữ nguyên theo bề ngang thật, riêng điện thoại thật (cảm ứng, cạnh ngắn ≤ 500 px) bị Chrome dựng khung ≥ 900 px (vd "Trang web cho máy tính") thì dùng bố cục điện thoại. ---- */
+const LAYOUT_NHAN = {auto:'📱🖥 Tự động', mobile:'📱 Điện thoại', desktop:'🖥 Máy tính'}, LAYOUT_RONG = {mobile:390, desktop:1280};
+/** Viết lại điều kiện bề ngang của một @media như thể màn hình rộng w px: đúng → (min-width: 0px), sai → (min-width: 99999px); điều kiện khác (màu tối, in…) giữ nguyên */
+const mqVoiRong = (mt, w) => w == null ? mt : String(mt).replace(/\(\s*(min|max)-width\s*:\s*(\d+(?:\.\d+)?)px\s*\)/g, (m, k, n) => ((k === 'min' ? w >= +n : w <= +n) ? '(min-width: 0px)' : '(min-width: 99999px)'));
+let LAYOUT = 'auto';
+try { const g = new URLSearchParams(location.search).get('giaodien'), l = localStorage.getItem('kai_layout');
+  if (g && /^(auto|mobile|desktop)$/.test(g)){ LAYOUT = g; g === 'auto' ? localStorage.removeItem('kai_layout') : localStorage.setItem('kai_layout', g);
+    const u = new URL(location.href); u.searchParams.delete('giaodien'); history.replaceState(null, '', u.pathname + u.search + u.hash); }
+  else if (l === 'mobile' || l === 'desktop') LAYOUT = l; } catch(e){}
+const laDienThoaiThat = () => { try { return matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) <= 500; } catch(e){ return false; } };
+const rongLayout = () => LAYOUT === 'auto' ? (laDienThoaiThat() && innerWidth >= 900 ? LAYOUT_RONG.mobile : null) : LAYOUT_RONG[LAYOUT];
+const laManHep = () => { const w = rongLayout(); return w != null ? w <= 899 : window.matchMedia('(max-width:899px)').matches; };
+const MQ_GOC = new Map();
+function apLayout(){
+  const w = rongLayout(), vp = document.querySelector('meta[name="viewport"]');
+  if (vp) vp.setAttribute('content', LAYOUT === 'desktop' ? 'width=1280' : 'width=device-width, initial-scale=1, viewport-fit=cover');
+  for (const sh of document.styleSheets){ let rs; try { rs = sh.cssRules; } catch(e){ continue; }   // font Google (khác nguồn) không đọc được: bỏ qua
+    for (const r of rs){ if (r.type !== 4) continue; if (!MQ_GOC.has(r)) MQ_GOC.set(r, r.media.mediaText); const moi = mqVoiRong(MQ_GOC.get(r), w); if (r.media.mediaText !== moi) r.media.mediaText = moi; } }
+  $('layoutBtn').textContent = LAYOUT_NHAN[LAYOUT];
+}
+apLayout();
+$('layoutBtn').onclick = () => {
+  LAYOUT = {auto:'mobile', mobile:'desktop', desktop:'auto'}[LAYOUT];
+  try { LAYOUT === 'auto' ? localStorage.removeItem('kai_layout') : localStorage.setItem('kai_layout', LAYOUT); } catch(e){}
+  apLayout(); if (D) render(); toast('Bố cục: <b>' + LAYOUT_NHAN[LAYOUT] + '</b>' + (LAYOUT === 'auto' ? ' (theo bề ngang màn hình)' : ''));
+};
+document.addEventListener('keydown', e => { if ((e.key === 'm' || e.key === 'M') && !e.metaKey && !e.ctrlKey && !e.altKey && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) $('layoutBtn').click(); });
 
 /* ---- Cài app (PWA) ---- */
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
