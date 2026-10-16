@@ -48,8 +48,8 @@
   --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --paper:#2C2016; --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c-khac:#6F5D4D; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
-body{margin:0}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;overflow-x:clip}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:13.5px;line-height:1.45}
 .page{max-width:1360px;margin:0 auto;padding-inline:16px;padding-block:14px 48px;display:grid;gap:12px}
 .num{font-variant-numeric:tabular-nums}
@@ -308,7 +308,7 @@ body.focus-on{overflow:hidden}
 @media (max-width:899px){.qt-tips{grid-template-columns:1fr}}
 .km.warn{border-left-color:var(--warn);background:var(--warn-bg)}.km.warn .t{color:var(--warn)}
 .km.bad{border-left-color:var(--bad);background:var(--bad-bg)}.km.bad .t{color:var(--bad)}
-@media (max-width:560px){.km{flex-direction:column;gap:2px}.km .t{flex:none}}
+@media (max-width:560px){.km{flex-direction:column;align-items:stretch;gap:2px}.km .t{flex:none}}
 
 /* ---------- hệ chữ chính Kai Café: Barlow Condensed (tiêu đề, số lớn, nhãn – in hoa) + Be Vietnam Pro (nội dung, bảng) ---------- */
 body{font-size:13px;letter-spacing:0}
@@ -2463,7 +2463,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.25';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.26';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2520,6 +2520,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.26', ngay:'16/10/2026', nd:['Sửa lỗi người mới cài app từ Chrome không thấy giao diện điện thoại: trang đầu (Tổng quan) có dòng "Cần chú ý" với chữ 1 dòng quá dài trên điện thoại, làm trang rộng hơn màn hình nên Chrome nới khung nhìn và thu nhỏ cả trang (nhìn như bản máy tính, chữ bé). Sửa gốc: dòng cảnh báo co theo bề ngang màn hình (chữ dài hiện dấu … khi thu gọn, bấm để mở xuống dòng); thêm lớp bảo vệ cắt phần tràn ngang ở html / body để sau này không tái phát. Đã thử bằng giả lập điện thoại 375 px: khung nhìn từ 559 px về đúng 375 px, 13 tab đều vừa màn hình.']},
   {v:'v1.7.25', ngay:'16/10/2026', nd:['Lịch làm không đếm chủ gốc vào "Số người cần" của ca (chủ quán chốt 16/10, cùng bot khongdemchu-v1 / Apps Script bản 113): Khoa Từ xếp mình vào ca được và tên vẫn hiện (ghi "chủ, không tính"), nhưng chỉ nhân viên mới tính vào thiếu / đủ — ngày chỉ có bơ + Khoa Từ báo thiếu 1 người, giống bot. Áp cho thẻ Lịch làm (Nhân sự), cảnh báo "Lịch ca" ở Tổng quan và ghi chú 14 ngày tới. Cần deploy lại Apps Script với Dashboard.gs mới (dashChu_ gửi thêm cờ goc theo CHU_GOC của bot, ID không nằm trong repo); chưa có cờ thì lịch đếm như cũ. Tự kiểm: bất biến 24 thêm ca chủ gốc + 1 nhân viên vẫn thiếu 1.']},
   {v:'v1.7.24', ngay:'16/10/2026', nd:['Chủ quán chốt 16/10: tạm bỏ mọi đường thể hiện mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn) — chỉ vẽ số liệu thật; cờ HIEN_LINE_MUC_TIEU = false, đổi thành true là có lại. Mục tiêu ly/ngày đổi 60 → 80: ô Mục tiêu ly/ngày, thẻ %Đạt mục tiêu (Bán hàng, Hôm nay), cột %Đạt bảng theo ngày, câu "cần thêm N ly" ở Hôm nay; khoá lưu trong trình duyệt đổi sang kai_tgt2 để không giữ 60 cũ. Tự kiểm: bất biến 36.']},
   {v:'v1.7.23', ngay:'16/10/2026', nd:['So sánh "cùng ngày tháng trước" tự hiện khi đã có đủ dữ liệu (chủ quán yêu cầu 16/10): tab Hôm nay — thẻ Doanh thu / Số ly / Số đơn thêm "vs dd/mm tháng trước", nhịp bán cộng dồn và ly theo giờ thêm đường chấm màu hổ phách; tab Bán hàng — số ly theo ngày thêm đường chấm, bảng theo ngày thêm cột MoM ly. Điều kiện hiện: ngày tháng trước (31 dồn về ngày cuối tháng trước) từ ngày bán đầu tiên trở đi và hôm đó có đơn — tới lúc đó dashboard vẫn như cũ (cùng thứ tuần trước + hôm qua). Tự kiểm: bất biến 35.']},
