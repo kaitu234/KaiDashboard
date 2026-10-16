@@ -709,8 +709,8 @@ html.mcap{background:var(--paper)}
 
     <div class="g2">
       <div class="card">
-        <div class="ct">Cơ cấu thanh toán</div>
-        <div class="cw sm"><canvas id="cPay" aria-label="Tỉ lệ doanh thu tiền mặt và chuyển khoản"></canvas></div>
+        <div class="ct">Thanh toán theo đơn bot <span class="nt">· nút 💵 / 🏦 nhân viên bấm khi chốt đơn · tiền thật sau chốt ca: tab Doanh thu thuần</span></div>
+        <div class="cw sm"><canvas id="cPay" aria-label="Tỉ lệ đơn bot tiền mặt và chuyển khoản"></canvas></div>
         <div class="legend" id="lgPay"></div>
         <div class="cmt" id="payCmt"></div>
       </div>
@@ -730,8 +730,8 @@ html.mcap{background:var(--paper)}
         <div class="legend" id="lgHour"></div>
       </div>
       <div class="card">
-        <div class="ct">Doanh thu TM vs CK theo ngày <span class="nt">· cột chồng = tổng doanh thu</span></div>
-        <div class="cw"><canvas id="cMix" aria-label="Doanh thu tiền mặt và chuyển khoản theo ngày"></canvas></div>
+        <div class="ct">Theo đơn bot: tiền mặt / CK theo ngày <span class="nt">· nút nhân viên bấm · cột chồng = doanh thu bot ghi · tiền thật: tab Doanh thu thuần</span></div>
+        <div class="cw"><canvas id="cMix" aria-label="Doanh thu bot ghi theo nút tiền mặt và chuyển khoản, theo ngày"></canvas></div>
         <div class="legend" id="lgMix"></div>
       </div>
       <div class="card">
@@ -741,7 +741,7 @@ html.mcap{background:var(--paper)}
     </div>
 
     <div class="card">
-      <div class="ct">Chi tiết theo ngày <span class="nt">· %Đạt = ly ÷ mục tiêu ngày · WoW = so cùng thứ tuần trước · MoM = so cùng ngày tháng trước (hiện khi đã có dữ liệu) · chênh két lấy từ /chotca</span></div>
+      <div class="ct">Chi tiết theo ngày <span class="nt">· %Đạt = ly ÷ mục tiêu ngày · WoW = so cùng thứ tuần trước · MoM = so cùng ngày tháng trước (hiện khi đã có dữ liệu) · số theo đơn bot; tiền thật, chi két, chênh két ở tab Doanh thu thuần</span></div>
       <div class="tblwrap"><table id="tDate"></table></div>
     </div>
 
@@ -1710,15 +1710,14 @@ function renderSales(){
 
   /* --- payment donut --- */
   const s1 = css('--s1'), s2 = css('--s2'), s3 = css('--s3'), ghost = css('--ghost'), surf = css('--surface');
-  const NTp = nguonTien(), locP = !!(S.nv || S.pt || S.mon || S.hour != null), PY = locP ? {tt:A.dt, tm:A.tm, ck:A.ck, chuaChot:0} : nguonTienTong(NTp, [...new Set(L.map(o => o.k))]);   // v1.7.34: tiền thật sau chốt ca
+  const PY = {tt:A.dt, tm:A.tm, ck:A.ck};   // v1.7.36: Bán hàng chỉ dùng số đơn bot (nút nhân viên bấm); tiền thật sau chốt ca ở tab Doanh thu thuần
   mk('cPay', {type:'doughnut', data:{labels:['Tiền mặt','Chuyển khoản'], datasets:[{data:[PY.tm, PY.ck], backgroundColor:[s1, s2], borderColor:surf, borderWidth:2}]},
     options:{cutout:'62%', plugins:{tooltip:{callbacks:{label:c => ` ${c.label}: ${fmt(c.raw)} đ (${pct(PY.tt ? c.raw / PY.tt : 0)})`}}}}});
-  $('lgPay').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt <b class="num">${fmtK(PY.tm)}</b> · ${pct(PY.tt ? PY.tm/PY.tt : null)}</span><span><i style="background:${s2}"></i>Chuyển khoản <b class="num">${fmtK(PY.ck)}</b> · ${pct(PY.tt ? PY.ck/PY.tt : null)}</span><span class="muted">· ${locP ? 'theo đơn bot (đang lọc nhân viên / món / giờ / cách trả)' : `tiền thật sau chốt ca (mặt = phần giữ lại, CK = phần còn lại)${PY.chuaChot ? `; ${PY.chuaChot} ngày chưa chốt tạm theo đơn bot` : ''}`}</span>`;
+  $('lgPay').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt <b class="num">${fmtK(PY.tm)}</b> · ${pct(PY.tt ? PY.tm/PY.tt : null)}</span><span><i style="background:${s2}"></i>Chuyển khoản <b class="num">${fmtK(PY.ck)}</b> · ${pct(PY.tt ? PY.ck/PY.tt : null)}</span><span class="muted">· theo đơn bot</span>`;
   const chotIn = D.chot.filter(c => c.k >= S.from && c.k <= S.to);
   const chenh = chotIn.reduce((s, c) => s + c.chenh, 0);
-  $('payCmt').innerHTML = chotIn.length
-    ? `Két ${chotIn.length} lần chốt ca: ${chenh === 0 ? '<b class="up">khớp</b>' : chenh > 0 ? `<b>dư ${fmt(chenh)} đ</b>` : `<b class="dn">thiếu ${fmt(-chenh)} đ</b>`}.`
-    : 'Chưa có lần <b>/chotca</b> nào trong kỳ, tiền mặt chưa được đối soát.';
+  $('payCmt').innerHTML = `Theo nút nhân viên bấm khi chốt đơn trên bot (khách trả kiểu nào thì bấm kiểu đó). Tiền mặt / CK thật sau chốt ca (phần giữ lại thành tiền mặt) và chênh két: tab <a href="#" data-goto="dtt">Doanh thu thuần →</a>.`;
+  $('payCmt').querySelector('[data-goto]').onclick = e => { e.preventDefault(); setView('dtt'); render(); window.scrollTo(0, 0); };
 
   /* --- daily --- */
   const days = rangeDays(S.from, S.to).filter(dayOk);
@@ -1784,34 +1783,24 @@ function renderSales(){
 
   /* --- date table --- */
   const chotBy = groupBy(D.chot, c => c.k), chiBy = groupBy(D.botChi, c => c.k), congBy = groupBy(D.cong, c => c.k);
-  // v1.7.34: cột Thực thu / TM / CK = tiền thật sau chốt ca (cùng luật Sheet tab Doanh thu); đang lọc nhân viên / món / giờ / cách trả thì theo đơn bot
-  const NT = nguonTien(), locDon = !!(S.nv || S.pt || S.mon || S.hour != null), tienNgay = (k, a) => { const n = NT[k]; return !locDon && n ? {tt:n.tt, tm:n.tm, ck:n.ck} : {tt:a.dt, tm:a.tm, ck:a.ck}; };
-  const dateRows = days.map((k, i) => { const l = byDay.get(k) || [], a = agg(l), w = wowLy[i], mm = momLy[i], tn = tienNgay(k, a);
+  // v1.7.36: bảng theo ngày chỉ số đơn bot; tiền thật / chi két / chênh két chuyển sang tab Doanh thu thuần
+  const dateRows = days.map((k, i) => { const l = byDay.get(k) || [], a = agg(l), w = wowLy[i], mm = momLy[i];
     const ch = chotBy.get(k), cg = congBy.get(k);
-    return {k, thu:thu(k), don:a.don, ly:a.ly, dt:a.dt, tt:tn.tt, tm:tn.tm, ck:tn.ck, ckp: tn.tt ? tn.ck / tn.tt : null, asp:a.asp,
+    return {k, thu:thu(k), don:a.don, ly:a.ly, dt:a.dt, ckp: a.dt ? a.ck / a.dt : null, asp:a.asp,
       achv: a.ly / S.tgt, wow: w ? (a.ly - w) / w : null, mom: mm ? (a.ly - mm) / mm : null, bac:a.ly,
-      chi:(chiBy.get(k) || []).reduce((s, c) => s + c.tien, 0) || null,
-      chenh: ch ? ch.reduce((s, c) => s + c.chenh, 0) : null,
       nv: cg ? [...new Set(cg.map(c => c.nv))].join(', ') : ''}; });
-  const TT = dateRows.reduce((s, r) => ({tt:s.tt + r.tt, tm:s.tm + r.tm, ck:s.ck + r.ck}), {tt:0, tm:0, ck:0});
-  const T = {don:A.don, ly:A.ly, dt:A.dt, tt:TT.tt, tm:TT.tm, ck:TT.ck, ckp: TT.tt ? TT.ck / TT.tt : null, asp:A.asp, achv: achv,
-    chi: dateRows.reduce((s, r) => s + (r.chi || 0), 0) || null, chenh: chotIn.length ? chenh : null};
+  const T = {don:A.don, ly:A.ly, dt:A.dt, ckp: A.dt ? A.ck / A.dt : null, asp:A.asp, achv: achv};
   table({id:'tDate', rows:dateRows, sortDefault:{k:'k', d:-1}, total:T, cols:[
     {k:'k', l:'Ngày', f:(v, r) => r.thu ? `${r.thu} ${dShort(v)}${isPromo(v) ? ' <span class="pill warn">10K</span>' : ''}${leOf(v) ? ` <span class="pill neu" title="${esc(leOf(v))}">lễ</span>` : ''}` : ''},
     {k:'wx', l:'Thời tiết', f:(v, r) => r.thu ? (wxTxt(r.k) || '—') : ''},
     {k:'don', l:'Đơn', r:1, heat:1, f:fmt},
     {k:'ly', l:'Ly', r:1, heat:1, f:fmt},
     {k:'dt', l:'Doanh thu (đơn bot)', r:1, heat:1, f:fmt},
-    {k:'tt', l:'Thực thu', r:1, f:fmt},
-    {k:'tm', l:'TM', r:1, f:fmt},
-    {k:'ck', l:'CK', r:1, f:fmt},
-    {k:'ckp', l:'%CK', r:1, f:v => pct(v)},
+    {k:'ckp', l:'%CK (bot)', r:1, f:v => pct(v)},
     {k:'asp', l:'Giá TB', r:1, f:fmt},
     {k:'achv', l:'%Đạt', r:1, f:v => pct(v), cls:v => v == null ? '' : v >= 1 ? 'up' : v < .7 ? 'dn' : ''},
     {k:'wow', l:'WoW ly', r:1, f:v => v == null ? '—' : `${v >= 0 ? '▲' : '▼'} ${pct(Math.abs(v))}`, cls:v => v == null ? '' : v >= 0 ? 'up' : 'dn'},
     ...(hasMom ? [{k:'mom', l:'MoM ly', r:1, f:v => v == null ? '—' : `${v >= 0 ? '▲' : '▼'} ${pct(Math.abs(v))}`, cls:v => v == null ? '' : v >= 0 ? 'up' : 'dn'}] : []),
-    {k:'chi', l:'Chi két', r:1, f:fmt},
-    {k:'chenh', l:'Chênh két', r:1, f:v => v == null ? '—' : v === 0 ? '<span class="up">khớp</span>' : fmt(v), cls:v => v ? (v < 0 ? 'dn' : '') : ''},
     {k:'nv', l:'Ca làm', f:v => esc(v || '—')},
   ]});
 
@@ -2541,7 +2530,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.35';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.36';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2598,6 +2587,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.36', ngay:'16/10/2026', nd:['Tách vai Bán hàng / Doanh thu thuần cho khỏi trùng (chủ quán chốt 16/10): Bán hàng chỉ còn số theo ĐƠN BOT (ly, món, giờ, nhân viên, nút 💵 / 🏦 nhân viên bấm) — thẻ "Cơ cấu thanh toán" đổi thành "Thanh toán theo đơn bot", biểu đồ TM / CK theo ngày ghi rõ "theo đơn bot", bảng Chi tiết theo ngày bỏ các cột Thực thu / TM / CK thật, Chi két, Chênh két (cột %CK tính theo đơn bot). Tiền thật sau chốt ca, chi két, chênh két chỉ ở tab Doanh thu thuần (có liên kết từ thẻ thanh toán). Thu chi giữ quỹ, chi, công nợ.']},
   {v:'v1.7.35', ngay:'16/10/2026', nd:['Tab mới "Doanh thu thuần" (nhóm Bán hàng, chủ quán yêu cầu 16/10): theo dõi doanh thu THỰC THU như tab Doanh thu của Sheet, theo kỳ đang lọc. 6 thẻ (thực thu · tiền mặt · chuyển khoản · lệch tiền thực vs đơn bot · số ly và giá TB/ly thực thu · số ngày đã chốt ca), biểu đồ cột chồng tiền mặt + CK theo ngày kèm nét đứt doanh thu bot ghi, bảng hằng ngày (TM · CK · thực thu · bot ghi · lệch · ly · giá TB/ly · chốt ca · chênh MoMo nếu có · ghi chú của Sheet) và bảng theo tháng (thực thu · ngày bán · mục tiêu · %đạt · dự phóng tháng này). Số mỗi ngày dùng chung nguonTien() với Tổng quan / Thu chi (ngày đã chốt = đơn bot + chênh két, tiền mặt = cột C tab Doanh thu; chưa chốt = theo đơn bot); ghi chú, chênh MoMo, mục tiêu tháng đọc từ tab Doanh thu theo tên cột (docDtSheet). Tự kiểm: bất biến 42.']},
   {v:'v1.7.34', ngay:'16/10/2026', nd:['Sửa lỗi tiền mặt / CK (chủ quán báo 16/10/2026: chốt ca tm 780 ck 250 mà Sheet ghi cả 1.030.000 vào CK). Sheet tab Doanh thu cột C Tiền mặt = Trích tiền mặt nếu chủ nhập, chưa nhập thì lấy số tm lúc chốt ca (khi chốt đủ tm + ck); Quỹ tiền và ô mặt/CK 12 tab Chi tháng đọc cột C. Dashboard đọc tiền mặt từ cột C (một nguồn với Quỹ tiền), tổng dự phòng từ cột H. Tab Bán hàng: bảng theo ngày thêm cột Thực thu, cột TM / CK và biểu đồ cách trả theo tiền thật sau chốt ca (đang lọc nhân viên / món / giờ thì theo đơn bot). Hôm nay: 2 dòng đầu khối tiền ghi rõ theo đơn bot.']},
   {v:'v1.7.33', ngay:'16/10/2026', nd:['Tiền mặt / CK sau chốt ca hiện ở mọi chỗ có doanh thu (chủ quán nhờ 16/10/2026), cùng luật tab Doanh thu và Quỹ tiền: ngày đã chốt ca (dòng ChotCa hiệu lực hoặc tick CHỐT CA) = thực thu (đơn bot + Lệch), 💵 mặt = phần chủ giữ lại (cột Trích tiền mặt), 🏦 CK = phần còn lại; ngày chưa chốt ca tạm theo đơn bot và ghi rõ "chưa chốt ca". Tổng quan: câu đầu, thẻ Hôm nay (thực thu + mặt/CK) và thẻ Doanh thu tháng (thực thu tháng + mặt/CK, số ngày chưa chốt) · Thu chi: thẻ Doanh thu thực thu thêm dòng mặt/CK · Hôm nay: khối tiền thêm 3 dòng thực thu, mặt, CK. Tab Bán hàng vẫn theo đơn bot (cách nhân viên bấm lúc bán) và có ghi chú. Tự kiểm: bất biến 40.']},
