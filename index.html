@@ -1268,6 +1268,7 @@ function parseWorkbook(wb){
   const hm = v => { const m = /(\d{1,2}):(\d{2})/.exec(String(v == null ? '' : v)); return m ? p2(m[1]) + ':' + m[2] : ''; };
   const dkDa = new Set();
   D.lich = wb.Sheets['Ca'] && wb.Sheets['DangKyCa'] ? {
+    gocId: new Set((CHU_SV || []).filter(x => x.goc).map(x => String(x.id))),   // v1.7.25: chủ gốc (cờ goc do Dashboard.gs gửi từ CHU_GOC của bot) không đếm vào "Số người cần"; không có cờ (API cũ) → rỗng, đếm hết như trước
     ca: rowsOf(wb, 'Ca').slice(1).filter(r => txt(r[0])).map(r => ({ma:txt(r[0]).toUpperCase(), ten:txt(r[1]), bd:hm(r[2]), kt:hm(r[3]), can:num(r[4]) || 1})),
     dk: rowsOf(wb, 'DangKyCa').slice(1).map(r => ({k:dayKey(r[0]), ca:txt(r[1]).toUpperCase(), id:txt(r[2]), nv:ten(tenMoi[txt(r[2])] || txt(r[3])), tt:txt(r[5]).toUpperCase(), xep:txt(r[6])}))
       .filter(x => x.k && (x.tt === 'OK' || x.tt === 'CHO') && !dkDa.has([x.k, x.ca, x.id || x.nv, x.tt].join('|')) && dkDa.add([x.k, x.ca, x.id || x.nv, x.tt].join('|'))),
@@ -1482,20 +1483,21 @@ function khoCanhBao(){
 /** v1.7.4 — tab chứa chi tiết của 1 cảnh báo (nhãn tag): kho / xe / kiểm → Kho · két thiếu → Nhân sự · còn lại (quỹ, sổ chi, chốt ca…) → Thu chi. Tổng quan dẫn "Xem →" theo hàm này. */
 const tabCuaCanhBao = tag => /^(Kho|Xe|Kiểm xe|Kiểm kho|Vật tư|Nguyên liệu)$/.test(tag) ? 'kho' : /^(Két thiếu|Lịch ca)$/.test(tag) ? 'hr' : 'fin';
 /** v1.7.5 — Lịch làm. Trạng thái các ca của ngày k theo lịch L (tab Ca · DangKyCa · NghiBan do bot ghi) đối chiếu chấm công cong; tk = hôm nay, nowMin = phút từ 0h.
- *  thieu = số người còn thiếu so với "Số người cần" của ca, CHỈ tính ca chưa kết thúc và không nghỉ bán (cùng luật /lichca của bot).
+ *  thieu = số người còn thiếu so với "Số người cần" của ca, CHỈ tính ca chưa kết thúc và không nghỉ bán (cùng luật /lichca của bot). v1.7.25: chủ gốc (L.gocId, theo Telegram ID) không đếm vào dem / thieu nhưng vẫn nằm trong ai (goc:true).
  *  Mỗi người: tt = xong (đã chấm công, ca đã hết) · dang (đã vào ca, ca chưa hết) · vang (ca đã hết mà không có chấm công) · chua (ca đã bắt đầu, chưa check-in) · '' (chưa tới giờ). ngoai = có chấm công nhưng không nằm trong lịch. */
 const phutHM = hm => { const m = /^(\d{1,2}):(\d{2})/.exec(hm || ''); return m ? +m[1] * 60 + +m[2] : 0; };
 function lichCaNgay(L, cong, k, tk, nowMin){
   if (!L) return [];
-  const cc = cong.filter(x => x.k === k);
+  const cc = cong.filter(x => x.k === k), laGoc = x => !!(x.id && L.gocId && L.gocId.has(x.id));   // v1.7.25 (bot khongdemchu-v1): chủ gốc xếp mình vào ca được nhưng KHÔNG đếm vào "Số người cần"; nhận theo Telegram ID như demCa_ của bot, cờ goc do API gửi (API cũ chưa có cờ → như cũ)
   return L.ca.map(c => {
     const nghi = L.nghi.find(x => x.k === k && (x.ca === 'ALL' || x.ca === c.ma)) || null;
     const nhan = L.dk.filter(x => x.k === k && x.ca === c.ma && x.tt === 'OK'), cho = L.dk.filter(x => x.k === k && x.ca === c.ma && x.tt === 'CHO');
     const daHet = k < tk || (k === tk && nowMin >= phutHM(c.kt)), daBd = k < tk || (k === tk && nowMin >= phutHM(c.bd));
     const khop = (x, y) => (x.id && y.id && x.id === y.id) || x.nv === y.nv;
-    const ai = nhan.map(x => { const co = cc.some(y => khop(x, y)); return {nv:x.nv, co, tt: nghi ? '' : co ? (daHet ? 'xong' : 'dang') : daHet ? 'vang' : daBd ? 'chua' : ''}; });
-    return {ma:c.ma, ten:c.ten, bd:c.bd, kt:c.kt, can:c.can, nghi, ai, cho:cho.map(x => x.nv), daHet,
-      thieu: nghi || daHet ? 0 : Math.max(0, c.can - nhan.length),
+    const ai = nhan.map(x => { const co = cc.some(y => khop(x, y)); return {nv:x.nv, goc:laGoc(x), co, tt: nghi ? '' : co ? (daHet ? 'xong' : 'dang') : daHet ? 'vang' : daBd ? 'chua' : ''}; });
+    const dem = ai.filter(a => !a.goc).length;   // số người tính vào "Số người cần" (tên chủ gốc vẫn nằm trong ai)
+    return {ma:c.ma, ten:c.ten, bd:c.bd, kt:c.kt, can:c.can, nghi, ai, dem, cho:cho.map(x => x.nv), daHet,
+      thieu: nghi || daHet ? 0 : Math.max(0, c.can - dem),
       ngoai: k <= tk ? cc.filter(y => !nhan.some(x => khop(x, y))).map(y => y.nv) : []};
   });
 }
@@ -1509,7 +1511,7 @@ function lichCanhBao(){
     lichCaNgay(L, D.cong, k, tk, nowMin).forEach(c => { if (c.thieu) thieu.push({k, c}); c.ai.filter(a => a.tt === 'vang').forEach(a => vang.push({k, nv:a.nv})); });
   }
   if (thieu.length) A.push([thieu.some(x => x.k <= addDays(tk, 1)) ? 'bad' : 'warn', 'Lịch ca', `Thiếu người: ${thieu.slice(0, 4).map(x => `${nhan(x.k)} thiếu ${x.c.thieu}`).join(', ')}${thieu.length > 4 ? ` và ${thieu.length - 4} ca nữa` : ''}`,
-    `Mỗi ca cần ${[...new Set(L.ca.map(c => c.can))].join('/')} người (tab Ca). Chủ xếp người ở /lichca hoặc nhắn nhân viên /dangkyca.`, '→ xếp người']);
+    `Mỗi ca cần ${[...new Set(L.ca.map(c => c.can))].join('/')} người (tab Ca${L.gocId && L.gocId.size ? '; chủ gốc xếp vào ca nhưng không tính' : ''}). Chủ xếp người ở /lichca hoặc nhắn nhân viên /dangkyca.`, '→ xếp người']);
   if (vang.length) A.push(['warn', 'Lịch ca', `Có tên trong lịch nhưng không chấm công: ${vang.map(x => `${esc(x.nv)} ${dShort(x.k)}`).join(', ')}`,
     'ChamCong không có dòng check-in của ngày này. Nếu đã đổi ca hoặc nghỉ thì bỏ qua; nếu quên check-in thì chủ quán bù công.', '→ xem lịch ở tab Nhân sự']);
   return A;
@@ -2461,7 +2463,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.24';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.25';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2514,10 +2516,11 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Đủ ~ngày', 'Tồn (lấy từ số đếm, cùng quy tắc bot, KHÔNG trừ hao theo công thức) ÷ nhịp dùng 7 ngày gần nhất. Tồn = xe + kho (xe: /kiemxe + /laykho; kho: /kiemkho + mua − /laykho, chưa đếm kho thì số nhập − hàng đã ra xe); thiếu số một nơi thì chưa có tổng. Số bot (tab Kho) chỉ hiện để đối chiếu', 'Kho · sổ chi · DonHang · KiemKho · LayKho', 'Kho, Tổng quan, Thu chi, Kế hoạch'],
   ['Chuyên cần', 'Quy tắc nhân sự (bot chốt 12/10/2026): đủ 7 ca liên tiếp của một người check-in ≤ 05:30 → thưởng 50.000 đ rồi đếm lại; ngày không có lịch không đứt chuỗi; check-in sau 05:30 hoặc vắng ca đã nhận → về 0; chủ quán không tính. Dashboard tính lại từ chấm công + lịch làm, cùng thuật toán bot', 'ChamCong · DangKyCa', 'Nhân sự'],
   ['Tiền mặt / Tiền CK', 'Tiền còn lại tách 2 cục: tiền mặt = phần doanh thu từng ngày chủ báo giữ lại thành tiền mặt (cột Trích tiền mặt, tab Doanh thu); tiền CK = tiền còn lại − tiền mặt (vốn góp, chi, phần doanh thu đã nộp / chuyển đều tính vào CK)', 'Doanh thu (cột N) · quỹ', 'Thu chi'],
-  ['Lịch làm', 'Ca nhân viên đăng ký / chủ xếp trong bot (DangKyCa, trạng thái OK); thiếu = "Số người cần" của ca (tab Ca) − người đã nhận, chỉ tính ca chưa kết thúc và không nghỉ bán (NghiBan); ✓ / ✗ so với chấm công (ChamCong)', 'DangKyCa · Ca · NghiBan · ChamCong', 'Nhân sự'],
+  ['Lịch làm', 'Ca nhân viên đăng ký / chủ xếp trong bot (DangKyCa, trạng thái OK); thiếu = "Số người cần" của ca (tab Ca) − người đã nhận, KHÔNG đếm chủ gốc (xếp mình vào ca được, tên vẫn hiện; cờ goc do Dashboard.gs gửi theo CHU_GOC của bot), chỉ tính ca chưa kết thúc và không nghỉ bán (NghiBan); ✓ / ✗ so với chấm công (ChamCong)', 'DangKyCa · Ca · NghiBan · ChamCong · NhanVien (cờ chủ gốc)', 'Nhân sự'],
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.25', ngay:'16/10/2026', nd:['Lịch làm không đếm chủ gốc vào "Số người cần" của ca (chủ quán chốt 16/10, cùng bot khongdemchu-v1 / Apps Script bản 113): Khoa Từ xếp mình vào ca được và tên vẫn hiện (ghi "chủ, không tính"), nhưng chỉ nhân viên mới tính vào thiếu / đủ — ngày chỉ có bơ + Khoa Từ báo thiếu 1 người, giống bot. Áp cho thẻ Lịch làm (Nhân sự), cảnh báo "Lịch ca" ở Tổng quan và ghi chú 14 ngày tới. Cần deploy lại Apps Script với Dashboard.gs mới (dashChu_ gửi thêm cờ goc theo CHU_GOC của bot, ID không nằm trong repo); chưa có cờ thì lịch đếm như cũ. Tự kiểm: bất biến 24 thêm ca chủ gốc + 1 nhân viên vẫn thiếu 1.']},
   {v:'v1.7.24', ngay:'16/10/2026', nd:['Chủ quán chốt 16/10: tạm bỏ mọi đường thể hiện mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn) — chỉ vẽ số liệu thật; cờ HIEN_LINE_MUC_TIEU = false, đổi thành true là có lại. Mục tiêu ly/ngày đổi 60 → 80: ô Mục tiêu ly/ngày, thẻ %Đạt mục tiêu (Bán hàng, Hôm nay), cột %Đạt bảng theo ngày, câu "cần thêm N ly" ở Hôm nay; khoá lưu trong trình duyệt đổi sang kai_tgt2 để không giữ 60 cũ. Tự kiểm: bất biến 36.']},
   {v:'v1.7.23', ngay:'16/10/2026', nd:['So sánh "cùng ngày tháng trước" tự hiện khi đã có đủ dữ liệu (chủ quán yêu cầu 16/10): tab Hôm nay — thẻ Doanh thu / Số ly / Số đơn thêm "vs dd/mm tháng trước", nhịp bán cộng dồn và ly theo giờ thêm đường chấm màu hổ phách; tab Bán hàng — số ly theo ngày thêm đường chấm, bảng theo ngày thêm cột MoM ly. Điều kiện hiện: ngày tháng trước (31 dồn về ngày cuối tháng trước) từ ngày bán đầu tiên trở đi và hôm đó có đơn — tới lúc đó dashboard vẫn như cũ (cùng thứ tuần trước + hôm qua). Tự kiểm: bất biến 35.']},
   {v:'v1.7.22', ngay:'16/10/2026', nd:['Các biểu đồ ly theo giờ thêm đường MỜ so sánh (chủ quán yêu cầu 16/10): tab Hôm nay — nhịp bán cộng dồn thêm đường mờ hôm qua (cả ngày, bên cạnh nét đứt cùng thứ tuần trước) và biểu đồ ly theo giờ thêm đường mờ hôm qua đè lên cột hôm nay, chú giải ghi tổng ly cả ngày hôm qua; xem ngày cũ thì so với ngày liền trước đó. Tab Bán hàng — ly theo khung giờ thêm đường mờ kỳ liền trước cùng số ngày (kỳ 1 ngày hôm nay = hôm qua), cùng bộ lọc món / nhân viên / thanh toán; click vào cột vẫn lọc giờ như cũ. Tự kiểm: bất biến 34.']},
@@ -2799,6 +2802,14 @@ function tuKiem(){
     ok('Lịch làm: ca hết giờ mà không chấm công = vắng, đang trong ca = đang làm, thiếu người chỉ tính ca chưa hết, nghỉ bán không thiếu, chờ duyệt không tính đủ người, người chấm công ngoài lịch được nêu',
       lcA.ai[0].tt === 'xong' && lcA.ai[1].tt === 'vang' && lcA.thieu === 0 && lcA.ngoai.join() === 'Dũng' && lcB.ai[0].tt === 'dang' && lcB.ai[1].tt === 'chua' && lcB.thieu === 0 && lcC.thieu === 1 && !!lcD.nghi && lcD.thieu === 0 && lcE.thieu === 0 && lcE.cho.join() === 'Chi' && lichCaNgay(null, cf, '2026-10-13', '2026-10-13', 1).length === 0,
       `13/10 ${lcA.ai.map(a => a.tt).join('/')} · 14/10 thiếu ${lcC.thieu}`);
+    // 24b. (v1.7.25, bot khongdemchu-v1) chủ gốc xếp vào ca nhưng không đếm vào "Số người cần": chủ + 1 nhân viên vẫn thiếu 1, chủ + 2 nhân viên đủ, chỉ chủ thiếu 2; tên chủ vẫn nằm trong ai; API cũ chưa có cờ thì đếm hết như trước
+    const dkG = [{k:'2026-10-17', ca:'S', id:'0', nv:'Khoa', tt:'OK'}, {k:'2026-10-17', ca:'S', id:'1', nv:'An', tt:'OK'},
+        {k:'2026-10-18', ca:'S', id:'0', nv:'Khoa', tt:'OK'}, {k:'2026-10-18', ca:'S', id:'1', nv:'An', tt:'OK'}, {k:'2026-10-18', ca:'S', id:'2', nv:'Bình', tt:'OK'}, {k:'2026-10-19', ca:'S', id:'0', nv:'Khoa', tt:'OK'}],
+      Lg = Object.assign({}, Lf, {dk:dkG, gocId:new Set(['0'])}), Lg0 = Object.assign({}, Lf, {dk:dkG}), lg = (k, L) => lichCaNgay(L, [], k, '2026-10-13', 0)[0];
+    const lgA = lg('2026-10-17', Lg), lgB = lg('2026-10-18', Lg), lgC = lg('2026-10-19', Lg), lgOld = lg('2026-10-17', Lg0);
+    ok('Lịch làm: chủ gốc xếp vào ca không đếm vào số người cần (chủ + 1 nhân viên vẫn thiếu 1 · chủ + 2 nhân viên đủ · chỉ chủ thiếu 2), tên chủ vẫn hiện; API chưa có cờ chủ gốc thì đếm hết như cũ',
+      lgA.thieu === 1 && lgA.dem === 1 && lgA.ai.length === 2 && lgA.ai[0].nv === 'Khoa' && lgA.ai[0].goc === true && lgA.ai[1].goc === false && lgB.thieu === 0 && lgB.dem === 2 && lgC.thieu === 2 && lgC.ai.length === 1 && lgOld.thieu === 0 && lgOld.dem === 2,
+      `chủ+1 NV thiếu ${lgA.thieu} · chủ+2 NV thiếu ${lgB.thieu} · chỉ chủ thiếu ${lgC.thieu} · API cũ thiếu ${lgOld.thieu}`);
     // 25. Tiền còn lại tách 2 cục: mặt = Σ trích tới hôm nay (ngày chưa tới không tính), CK = còn lại, cộng 2 cục = tổng
     const qt = quyTienCore(2000000, [{k:'2026-10-13', tm:500000}, {k:'2026-10-14', tm:669000}, {k:'2026-10-20', tm:300000}], '2026-10-14'), qt0 = quyTienCore(1000, [], '2026-10-14');
     ok('Tiền mặt / CK: mặt = tiền trích tới hôm nay (13/10 giữ 500.000 + 14/10 giữ 669.000), ngày chưa tới không tính, CK = tổng − mặt, chưa ghi trích = toàn bộ là CK', qt.tm === 1169000 && qt.ck === 831000 && qt.tm + qt.ck === 2000000 && qt0.tm === 0 && qt0.ck === 1000, `${fmt(qt.tm)} + ${fmt(qt.ck)}`);
@@ -3028,7 +3039,7 @@ function renderLich(){
   const tk = today(), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes(), t2 = addDays(tk, -((THU.indexOf(thu(tk)) + 6) % 7)), ngay = Array.from({length:21}, (_, i) => addDays(t2, i)), gap = k => k <= addDays(tk, 1);
   const o = ngay.map(k => ({k, cs:lichCaNgay(L, D.cong, k, tk, nowMin)})), coNgoai = o.some(x => x.cs.some(c => c.ngoai.length));   // cột "Ngoài lịch" chỉ hiện khi có người chấm công ngoài lịch
   const ovCell = (k, c) => c.nghi ? `<span class="pill neu">🚫 nghỉ bán</span>${c.nghi.ly ? ' <span class="muted">' + esc(c.nghi.ly) + '</span>' : ''}`
-    : ([...c.ai.map(a => `<span class="${a.tt === 'vang' ? 'dn' : a.tt === 'xong' || a.tt === 'dang' ? 'up' : ''}">${esc(a.nv)}${{xong:' ✓', dang:' ✓ đang làm', vang:' ✗ vắng', chua:' · chưa vào ca'}[a.tt] || ''}</span>`), ...c.cho.map(n => `<span class="muted">${esc(n)} (chờ duyệt)</span>`)].join(' · ') || '<span class="muted">chưa ai</span>')
+    : ([...c.ai.map(a => `<span class="${a.tt === 'vang' ? 'dn' : a.tt === 'xong' || a.tt === 'dang' ? 'up' : ''}">${esc(a.nv)}${{xong:' ✓', dang:' ✓ đang làm', vang:' ✗ vắng', chua:' · chưa vào ca'}[a.tt] || ''}${a.goc ? ' <span class="muted" title="Chủ gốc xếp vào ca nhưng không tính vào số người cần">(chủ, không tính)</span>' : ''}</span>`), ...c.cho.map(n => `<span class="muted">${esc(n)} (chờ duyệt)</span>`)].join(' · ') || '<span class="muted">chưa ai</span>')
       + (c.thieu ? ` <span class="pill ${gap(k) ? 'bad' : 'warn'}">thiếu ${c.thieu}</span>` : '');
   let html = `<thead><tr><th>Ngày</th>${L.ca.map(c => `<th>${esc(c.ten)} ${c.bd}–${c.kt} <span class="muted">(cần ${c.can})</span></th>`).join('')}${coNgoai ? '<th>Chấm công ngoài lịch</th>' : ''}</tr></thead><tbody>`;
   o.forEach(({k, cs}, i) => {
@@ -3041,7 +3052,7 @@ function renderLich(){
   const toi = o.filter(x => x.k >= tk && x.k <= addDays(tk, 13)), xep = toi.reduce((s, x) => s + x.cs.reduce((t, c) => t + (c.nghi ? 0 : c.ai.length), 0), 0), thieu = toi.filter(x => x.cs.some(c => c.thieu));
   const cho = L.dk.filter(x => x.tt === 'CHO' && x.k >= tk).length, doi = L.doi.filter(x => x.k >= tk).length;
   note.hidden = false;
-  note.innerHTML = `<b>14 ngày tới:</b> ${fmt(xep)} lượt đã xếp · ${thieu.length ? `<b class="dn">thiếu người: ${thieu.slice(0, 6).map(x => `${thu(x.k)} ${dShort(x.k)} (${x.cs.reduce((t, c) => t + c.thieu, 0)})`).join(', ')}${thieu.length > 6 ? ' …' : ''}</b>` : '<b class="up">đủ người các ca còn lại</b>'}${cho ? ` · ${cho} lượt chờ chủ duyệt` : ''}${doi ? ` · ${doi} yêu cầu đổi ca đang chờ` : ''}. <span class="muted">Số người cần của mỗi ca lấy ở tab Ca; chủ xếp / nhân viên đăng ký trong bot.</span>`;
+  note.innerHTML = `<b>14 ngày tới:</b> ${fmt(xep)} lượt đã xếp · ${thieu.length ? `<b class="dn">thiếu người: ${thieu.slice(0, 6).map(x => `${thu(x.k)} ${dShort(x.k)} (${x.cs.reduce((t, c) => t + c.thieu, 0)})`).join(', ')}${thieu.length > 6 ? ' …' : ''}</b>` : '<b class="up">đủ người các ca còn lại</b>'}${cho ? ` · ${cho} lượt chờ chủ duyệt` : ''}${doi ? ` · ${doi} yêu cầu đổi ca đang chờ` : ''}. <span class="muted">Số người cần của mỗi ca lấy ở tab Ca${L.gocId && L.gocId.size ? ' (chủ gốc xếp vào ca được nhưng không tính vào số người)' : ''}; chủ xếp / nhân viên đăng ký trong bot.</span>`;
 }
 /** v1.7.8 — CHUYÊN CẦN (quy tắc bot chốt 12/10/2026, cùng thuật toán chuyenCanTatCa_ của bot): đủ `soCa` CA LIÊN TIẾP của người đó đều check-in ≤ `gio` → +`tien`, rồi đếm lại từ 0.
  *  Ngày không có lịch không làm đứt chuỗi; check-in sau `gio` hoặc VẮNG ca đã nhận (ngày đã qua, không có chấm công) → chuỗi về 0. Chủ quán không tính. Mỗi ngày lấy lần check-in sớm nhất.
