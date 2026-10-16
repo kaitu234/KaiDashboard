@@ -586,7 +586,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     <div class="fi"><label for="fPt">Thanh toán</label><select id="fPt"><option value="">Tất cả</option><option value="TM">💵 Tiền mặt</option><option value="CK">🏦 Chuyển khoản</option></select></div>
     <div class="fi"><label for="fMon">Món</label><select id="fMon"><option value="">Tất cả</option></select></div>
     <div class="fi"><label for="fDay">Loại ngày</label><select id="fDay"><option value="">Tất cả</option><option value="promo">🏷 Khai trương 10K</option><option value="wkend">Cuối tuần (T7–CN)</option><option value="wkday">Ngày thường (T2–T6)</option></select></div>
-    <div class="fi"><label for="fTgt">Mục tiêu ly/ngày</label><input type="number" id="fTgt" min="1" step="5" value="60"></div>
+    <div class="fi"><label for="fTgt">Mục tiêu ly/ngày</label><input type="number" id="fTgt" min="1" step="5" value="80"></div>
     <button class="clr" id="clearAll">Xoá mọi bộ lọc</button>
   </div>
 
@@ -606,7 +606,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     <ul>
       <li>4 thẻ nâu: <b>Doanh thu · Số ly · Số đơn · Giá TB/ly</b>. ▲▼ so với kỳ liền trước cùng số ngày (vd xem 7 ngày thì so với 7 ngày trước đó).</li>
       <li><b>%Hoà vốn tháng</b> = ly cả quán trong tháng ÷ mốc hoà vốn (chi cố định ÷ lãi gộp mỗi ly, sửa ở ô Hoà vốn tab Thu chi). Vạch đỏ là % số ngày bán đã qua, tính từ ngày mở bán: thanh vượt vạch là kịp tiến độ.</li>
-      <li><b>%Đạt mục tiêu</b> = ly bán ÷ (mục tiêu ly/ngày × số ngày có bán). Sửa mục tiêu ở ô <b>Mục tiêu ly/ngày</b>.</li>
+      <li><b>%Đạt mục tiêu</b> = ly bán ÷ (mục tiêu ly/ngày × số ngày có bán). Sửa mục tiêu ở ô <b>Mục tiêu ly/ngày</b> (đang 80). Biểu đồ tạm không vẽ đường mục tiêu, chỉ vẽ số liệu thật.</li>
     </ul>
     <h4>Thao tác</h4>
     <ul>
@@ -664,7 +664,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     </div>
     <div class="g311">
       <div class="card">
-        <div class="ct">Nhịp bán cộng dồn <span class="nt">· số ly lũy kế theo 15 phút · nét đứt = cùng thứ tuần trước · đường mờ = hôm qua · chấm = nhịp cần để đạt mục tiêu</span></div>
+        <div class="ct">Nhịp bán cộng dồn <span class="nt">· số ly lũy kế theo 15 phút · nét đứt = cùng thứ tuần trước · đường mờ = hôm qua</span></div>
         <div class="cw tall"><canvas id="cPace" aria-label="Số ly cộng dồn trong ngày"></canvas></div>
         <div class="legend" id="lgPace"></div>
       </div>
@@ -707,7 +707,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
         <div class="cmt" id="payCmt"></div>
       </div>
       <div class="card">
-        <div class="ct">Số ly theo ngày <span class="nt">· nét đứt = cùng thứ tuần trước · vạch = mục tiêu</span></div>
+        <div class="ct">Số ly theo ngày <span class="nt">· nét đứt = cùng thứ tuần trước</span></div>
         <div class="cw"><canvas id="cDay" aria-label="Số ly theo ngày"></canvas></div>
         <div class="legend" id="lgDay"></div>
       </div>
@@ -1351,9 +1351,11 @@ const VIEW_INFO = {
   pnl:['PNL', 'Lãi lỗ chi tiết: từ doanh thu tới lãi ròng, theo món, theo ngày, theo nguyên liệu. Dự phóng và độ nhạy xem tab Kế hoạch.'],
   perf:['Hiệu suất', 'Dự báo ngày mai, khung giờ cần mấy người, khuyến mãi theo món, giỏ hàng, nhịp cao điểm. Mục chưa đủ dữ liệu để trống. (Lãi theo món xem tab PNL; két theo người ở tab Nhân sự; hao hụt và mua hàng ở tab Kho.)'],
 };
-const S = {view:'ov', tdK:'', preset:'mtd', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:60,
+/** Đường mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn): TẠM TẮT 16/10/2026 theo chủ quán — chỉ vẽ số liệu thật. Bật lại = true (và trả chữ "vạch / chấm = mục tiêu" vào tiêu đề 2 biểu đồ). */
+const HIEN_LINE_MUC_TIEU = false;
+const S = {view:'ov', tdK:'', preset:'mtd', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:80,   // mục tiêu ly/ngày: 80 (chủ quán chốt 16/10/2026)
   sort:{}, open:new Set(), finMonth:'all'};
-try { const t = +localStorage.getItem('kai_tgt'); if (t > 0) S.tgt = t; } catch(e){}
+try { const t = +localStorage.getItem('kai_tgt2'); if (t > 0) S.tgt = t; } catch(e){}   // khoá mới 'kai_tgt2': bỏ mục tiêu 60 cũ còn lưu trong trình duyệt
 try { const v = localStorage.getItem('kai_view'); if (v) S.view = v; } catch(e){}
 $('fTgt').value = S.tgt;
 
@@ -1680,8 +1682,8 @@ function renderSales(){
       Object.assign({label:'Ly', data:dayLy, order:2}, barStyle(s1)),
       {type:'line', label:'Cùng thứ tuần trước', data:wowLy, borderColor:ghost, borderDash:[5,4], borderWidth:2, pointRadius:0, pointHoverRadius:4, order:1, tension:.25},
       ...(hasMom ? [{type:'line', label:'Cùng ngày tháng trước', data:momLy, borderColor:s3, backgroundColor:s3, borderDash:[1,3], borderWidth:2, pointRadius:0, pointHoverRadius:4, order:1, tension:.25}] : []),
-      {type:'line', label:'Mục tiêu', data:days.map(() => S.tgt), borderColor:css('--bad'), borderWidth:1, pointRadius:0, borderDash:[2,3], order:0}]}});
-  $('lgDay').innerHTML = `<span><i style="background:${s1}"></i>Ly trong ngày</span><span><i class="dash"></i>Cùng thứ tuần trước</span>${hasMom ? `<span><i class="dash" style="border-top-color:${s3};border-top-style:dotted"></i>Cùng ngày tháng trước</span>` : ''}<span><i class="dash" style="border-top-color:${css('--bad')};border-top-style:dotted"></i>Mục tiêu ${S.tgt} ly</span>`;
+      ...(HIEN_LINE_MUC_TIEU ? [{type:'line', label:'Mục tiêu', data:days.map(() => S.tgt), borderColor:css('--bad'), borderWidth:1, pointRadius:0, borderDash:[2,3], order:0}] : [])]}});
+  $('lgDay').innerHTML = `<span><i style="background:${s1}"></i>Ly trong ngày</span><span><i class="dash"></i>Cùng thứ tuần trước</span>${hasMom ? `<span><i class="dash" style="border-top-color:${s3};border-top-style:dotted"></i>Cùng ngày tháng trước</span>` : ''}${HIEN_LINE_MUC_TIEU ? `<span><i class="dash" style="border-top-color:${css('--bad')};border-top-style:dotted"></i>Mục tiêu ${S.tgt} ly</span>` : ''}`;
 
   /* --- hour --- */
   const hours = []; for (let h = 5; h <= 12; h++) hours.push(h);
@@ -1857,9 +1859,9 @@ function renderToday(){
       {label:`${thu(addDays(k, -7))} tuần trước`, data:wkCum, borderColor:ghost, borderDash:[5,4], borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.2},
       {label:ydLb, data:ydCum, borderColor:mauMo(s1), backgroundColor:mauMo(s1), borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.2, order:2},
       ...(hasM ? [{label:mmLb, data:cum(mmL, 24 * 60), borderColor:s3, backgroundColor:s3, borderDash:[1,3], borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.2, order:3}] : []),
-      {label:'Nhịp mục tiêu', data:tgtLine, borderColor:bad, borderDash:[2,3], borderWidth:1.2, pointRadius:0, pointHoverRadius:0}]},
+      ...(HIEN_LINE_MUC_TIEU ? [{label:'Nhịp mục tiêu', data:tgtLine, borderColor:bad, borderDash:[2,3], borderWidth:1.2, pointRadius:0, pointHoverRadius:0}] : [])]},
     options:{scales:{x:{grid:{display:false}, ticks:{maxRotation:0, autoSkip:true, maxTicksLimit:8}}}, plugins:{tooltip:{callbacks:{label:c => c.raw == null ? null : ` ${c.dataset.label}: ${fmt(c.raw)} ly`}}}}});
-  $('lgPace').innerHTML = `<span><i style="background:${s1}"></i>Hôm nay${isToday ? ` (tới ${p2(now.getHours())}:${p2(now.getMinutes())})` : ''}</span><span><i class="dash"></i>${thu(addDays(k, -7))} tuần trước${hasW ? ` · cả ngày ${fmt(lastWkFull.ly)} ly` : ' · chưa có dữ liệu'}</span><span><i class="mo"></i>${ydLb}${hasY ? ` · cả ngày ${fmt(ydFull.ly)} ly` : ' · chưa có dữ liệu'}</span>${hasM ? `<span><i class="dash" style="border-top-color:${s3};border-top-style:dotted"></i>${mmLb} · cả ngày ${fmt(mmFull.ly)} ly</span>` : ''}<span><i class="dash" style="border-top-color:${bad};border-top-style:dotted"></i>Nhịp để đạt ${S.tgt} ly lúc 11:00</span>`;
+  $('lgPace').innerHTML = `<span><i style="background:${s1}"></i>Hôm nay${isToday ? ` (tới ${p2(now.getHours())}:${p2(now.getMinutes())})` : ''}</span><span><i class="dash"></i>${thu(addDays(k, -7))} tuần trước${hasW ? ` · cả ngày ${fmt(lastWkFull.ly)} ly` : ' · chưa có dữ liệu'}</span><span><i class="mo"></i>${ydLb}${hasY ? ` · cả ngày ${fmt(ydFull.ly)} ly` : ' · chưa có dữ liệu'}</span>${hasM ? `<span><i class="dash" style="border-top-color:${s3};border-top-style:dotted"></i>${mmLb} · cả ngày ${fmt(mmFull.ly)} ly</span>` : ''}${HIEN_LINE_MUC_TIEU ? `<span><i class="dash" style="border-top-color:${bad};border-top-style:dotted"></i>Nhịp để đạt ${S.tgt} ly lúc 11:00</span>` : ''}`;
 
   /* hour */
   const hrs = []; for (let h = Math.floor(start / 60); h <= Math.floor((end - 1) / 60); h++) hrs.push(h);
@@ -2459,7 +2461,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.23';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.24';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2516,6 +2518,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.24', ngay:'16/10/2026', nd:['Chủ quán chốt 16/10: tạm bỏ mọi đường thể hiện mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn) — chỉ vẽ số liệu thật; cờ HIEN_LINE_MUC_TIEU = false, đổi thành true là có lại. Mục tiêu ly/ngày đổi 60 → 80: ô Mục tiêu ly/ngày, thẻ %Đạt mục tiêu (Bán hàng, Hôm nay), cột %Đạt bảng theo ngày, câu "cần thêm N ly" ở Hôm nay; khoá lưu trong trình duyệt đổi sang kai_tgt2 để không giữ 60 cũ. Tự kiểm: bất biến 36.']},
   {v:'v1.7.23', ngay:'16/10/2026', nd:['So sánh "cùng ngày tháng trước" tự hiện khi đã có đủ dữ liệu (chủ quán yêu cầu 16/10): tab Hôm nay — thẻ Doanh thu / Số ly / Số đơn thêm "vs dd/mm tháng trước", nhịp bán cộng dồn và ly theo giờ thêm đường chấm màu hổ phách; tab Bán hàng — số ly theo ngày thêm đường chấm, bảng theo ngày thêm cột MoM ly. Điều kiện hiện: ngày tháng trước (31 dồn về ngày cuối tháng trước) từ ngày bán đầu tiên trở đi và hôm đó có đơn — tới lúc đó dashboard vẫn như cũ (cùng thứ tuần trước + hôm qua). Tự kiểm: bất biến 35.']},
   {v:'v1.7.22', ngay:'16/10/2026', nd:['Các biểu đồ ly theo giờ thêm đường MỜ so sánh (chủ quán yêu cầu 16/10): tab Hôm nay — nhịp bán cộng dồn thêm đường mờ hôm qua (cả ngày, bên cạnh nét đứt cùng thứ tuần trước) và biểu đồ ly theo giờ thêm đường mờ hôm qua đè lên cột hôm nay, chú giải ghi tổng ly cả ngày hôm qua; xem ngày cũ thì so với ngày liền trước đó. Tab Bán hàng — ly theo khung giờ thêm đường mờ kỳ liền trước cùng số ngày (kỳ 1 ngày hôm nay = hôm qua), cùng bộ lọc món / nhân viên / thanh toán; click vào cột vẫn lọc giờ như cũ. Tự kiểm: bất biến 34.']},
   {v:'v1.7.21', ngay:'16/10/2026', nd:['Sửa lại v1.7.20 theo chủ quán: nắp đỏ lẻ là nắp của ly BÁN, mỗi ly bán 1 nắp (ly và nắp tính số lượng như nhau) nên trở lại là nguyên liệu trong công thức (cột Nắp đỏ của tab CongThuc = 1 cho cả 17 món, +126 đ giá vốn / ly) và không còn tính là hàng cho kèm; nắp + ly trà cho kèm vẫn chưa tính vào giá vốn. Đường chai "Không còn dùng" giữ nguyên. Tự kiểm: bất biến 33 sửa ca nắp đỏ.']},
@@ -2849,6 +2852,10 @@ function tuKiem(){
     const ttA = ['2026-11-16', '2026-03-31', '2027-01-05', '2028-03-31', '2026-12-31'].map(ngayThangTruoc);
     ok('Cùng ngày tháng trước: 16/11 → 16/10 · 31/03 → 28/02 · 05/01/2027 → 05/12/2026 · 31/03/2028 → 29/02 · 31/12 → 30/11; tháng trước của ngày bán đầu tiên chưa có dữ liệu',
       ttA.join() === '2026-10-16,2026-02-28,2026-12-05,2028-02-29,2026-11-30' && !coDuLieuNgay(ngayThangTruoc(D.first)), ttA.join(' '));
+    // 36. Tạm tắt đường mục tiêu ly: không biểu đồ nào đang vẽ đường tên "mục tiêu" khi HIEN_LINE_MUC_TIEU = false; mục tiêu mặc định 80 ly/ngày
+    const mtC = Object.values(charts).filter(c => c && c.data && c.data.datasets.some(d => /mục tiêu/i.test(d.label || ''))).length;
+    ok('Đường mục tiêu ly tạm tắt (không biểu đồ nào vẽ đường "mục tiêu") và mục tiêu mặc định = 80 ly / ngày',
+      (HIEN_LINE_MUC_TIEU || mtC === 0) && S.tgt > 0 && (!($('fTgt')) || +$('fTgt').value === S.tgt), `${mtC} biểu đồ có đường mục tiêu · mục tiêu ${S.tgt}`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -3608,7 +3615,7 @@ document.querySelectorAll('#presets button').forEach(b => b.onclick = () => { if
 $('dFrom').onchange = () => { S.preset = ''; S.from = $('dFrom').value || S.from; if (S.to < S.from) S.to = S.from; syncFilters(); render(); };
 $('dTo').onchange = () => { S.preset = ''; S.to = $('dTo').value || S.to; if (S.to < S.from) S.from = S.to; syncFilters(); render(); };
 [['fNv', 'nv'], ['fPt', 'pt'], ['fMon', 'mon'], ['fDay', 'day']].forEach(([id, k]) => $(id).onchange = () => { S[k] = $(id).value; render(); });
-$('fTgt').oninput = () => { const v = +$('fTgt').value; if (v > 0){ S.tgt = v; try { localStorage.setItem('kai_tgt', v); } catch(e){} render(); } };
+$('fTgt').oninput = () => { const v = +$('fTgt').value; if (v > 0){ S.tgt = v; try { localStorage.setItem('kai_tgt2', v); } catch(e){} render(); } };
 $('clearAll').onclick = () => { S.nv = S.pt = S.mon = S.day = ''; S.hour = null; S.open.clear(); setPreset('mtd'); syncFilters(); render(); };
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setView(b.dataset.v));
 $('tdPick').onchange = () => { const v = $('tdPick').value; S.tdK = v && v !== today() ? v : ''; render(); };
