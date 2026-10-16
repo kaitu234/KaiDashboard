@@ -576,7 +576,7 @@ html.mcap{background:var(--paper)}
     <span class="ago" data-ago></span>
     <div class="fi"><label for="tdPick">Xem ngày khác</label><input type="date" id="tdPick"></div>
     <div class="presets"><button id="tdPrev">◀ Hôm trước</button><button id="tdNow">Hôm nay</button><button id="tdNext">Hôm sau ▶</button></div>
-    <span class="muted tdnote" style="margin-left:auto;font-size:12px">Số liệu từ bot Telegram (tab DonHang) · đơn huỷ không tính · so sánh = <b>cùng thứ tuần trước và hôm qua (đường mờ), tới cùng giờ</b>; có đủ dữ liệu thì thêm <b>cùng ngày tháng trước</b></span>
+    <span class="muted tdnote" style="margin-left:auto;font-size:12px">Số liệu từ bot Telegram (tab DonHang) · đơn huỷ không tính · so sánh = <b>cùng thứ tuần trước, hôm qua (đường mờ) và trung bình 30 ngày bán liền trước, tới cùng giờ</b>; có đủ dữ liệu thì thêm <b>cùng ngày tháng trước</b></span>
   </div>
 
   <div class="fbar" id="fbar">
@@ -607,7 +607,7 @@ html.mcap{background:var(--paper)}
       <li><b>Thu chi</b>: tab Vốn &amp; Thu và các tab Chi T10-2026… Tiền quỹ = tiền đầu kỳ + vốn góp + doanh thu bot − chi đã trả tiền trong sổ tháng (dòng tick cột Công nợ là chưa trả, chưa trừ).</li>
       <li>Trang tự đọc lại sheet <b>mỗi phút</b> khi đang mở (đơn mới trên bot hiện sau tối đa ~1 phút). Bấm nút <b>⟳ Tải lại dữ liệu</b> (hoặc phím <b>R</b>) để đọc ngay, ví dụ vừa chốt đơn xong muốn xem liền. Bot ghi đơn vào sheet tức thì nên bấm là thấy ngay.</li>
       <li><b>Bố cục điện thoại / máy tính</b>: bấm nút <b>📱🖥</b> (menu <b>⋯</b> trên điện thoại, cuối thanh bên trên máy tính) hoặc phím <b>M</b> để đổi <b>Tự động → Điện thoại → Máy tính</b>; máy nhớ lựa chọn. Máy mới thấy sai bố cục thì chọn thẳng: mở link dashboard thêm <code>?giaodien=mobile</code> (hoặc <code>desktop</code>, <code>auto</code>).</li>
-      <li><b>Tab Hôm nay</b>: so sánh với cùng thứ tuần trước và hôm qua <i>tính tới cùng giờ hiện tại</i>, để so sánh công bằng giữa ca. Hai biểu đồ nhịp bán và ly theo giờ có thêm <b>đường mờ = hôm qua</b> (cả ngày); biểu đồ ly theo khung giờ ở tab Bán hàng có đường mờ = kỳ liền trước cùng số ngày. Khi đã có dữ liệu cách đây một tháng, các biểu đồ và thẻ tự thêm <b>cùng ngày tháng trước</b> (đường chấm màu hổ phách; bảng theo ngày thêm cột MoM), chưa có thì không hiện.</li>
+      <li><b>Tab Hôm nay</b>: so sánh với cùng thứ tuần trước, hôm qua và <b>trung bình 30 ngày bán liền trước</b> <i>tính tới cùng giờ hiện tại</i>, để so sánh công bằng giữa ca (ngày không có đơn không tính; chưa đủ 30 ngày thì ghi số ngày đang có, vd "TB 6 ngày"; dưới 3 ngày bán thì chưa hiện). Hai biểu đồ nhịp bán và ly theo giờ có thêm <b>đường mờ = hôm qua</b> (cả ngày); biểu đồ ly theo khung giờ ở tab Bán hàng có đường mờ = kỳ liền trước cùng số ngày. Khi đã có dữ liệu cách đây một tháng, các biểu đồ và thẻ tự thêm <b>cùng ngày tháng trước</b> (đường chấm màu hổ phách; bảng theo ngày thêm cột MoM), chưa có thì không hiện.</li>
     </ul>
     <h4>Thẻ chỉ số</h4>
     <ul>
@@ -1190,6 +1190,14 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 const mauMo = (c, a = .38) => { const m = /^#([0-9a-f]{6})$/i.exec(String(c).trim()); if (!m) return c; const v = parseInt(m[1], 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
 /** Số ly mỗi giờ của một danh sách đơn (đơn không có giờ không tính) */
 const lyTheoGio = (list, hrs) => hrs.map(h => list.filter(o => o.h === h).reduce((s, o) => s + o.sl, 0));
+/** v1.7.30 — trung bình các NGÀY BÁN trong `soNgay` ngày liền trước ngày k (k-1 … k-soNgay), mỗi ngày chỉ cộng đơn tới cùng giờ nowMin (đơn không có giờ vẫn tính) để so công bằng với hôm nay đang bán dở.
+ *  Ngày không có đơn nào (nghỉ bán, chưa mở bot) không tính vào mẫu số; ngày có đơn nhưng chưa có đơn nào tới giờ đó tính là 0. Trả {n, dt, ly, don}; n = số ngày bán đã tính (0 = chưa có dữ liệu). */
+const tbNgayTruoc = (orders, k, nowMin, soNgay = 30) => {
+  const lo = addDays(k, -soNgay), hi = addDays(k, -1), byK = groupBy(orders.filter(o => o.k >= lo && o.k <= hi), o => o.k);
+  let n = 0, dt = 0, ly = 0, don = 0;
+  byK.forEach(list => { const a = agg(list.filter(o => o.min == null || o.min <= nowMin)); n++; dt += a.dt; ly += a.ly; don += a.don; });
+  return n ? {n, dt: dt / n, ly: ly / n, don: don / n} : {n: 0, dt: 0, ly: 0, don: 0};
+};
 /** v1.7.23 — cùng ngày tháng trước (ngày không có ở tháng trước dồn về cuối tháng: 31/03 → 28/02) */
 const ngayThangTruoc = k => { const y = +k.slice(0, 4), m = +k.slice(5, 7), d = +k.slice(8, 10), py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return `${py}-${p2(pm)}-${p2(Math.min(d, new Date(py, pm, 0).getDate()))}`; };
 /** Ngày so sánh có dữ liệu thật: từ ngày bán đầu tiên trở đi và hôm đó có ít nhất 1 đơn (chưa đủ thì không vẽ, không hiện cột) */
@@ -1829,12 +1837,13 @@ function renderToday(){
   const lastWkFull = agg(D.orders.filter(o => o.k === addDays(k, -7)));
   const hasW = addDays(k, -7) >= D.first, hasY = addDays(k, -1) >= D.first;
   const mk0 = ngayThangTruoc(k), hasM = coDuLieuNgay(mk0), M = hasM ? agg(upTo(mk0, nowMin)) : null;   // v1.7.23: cùng ngày tháng trước, tự hiện khi đã có dữ liệu
-  const cmpTxt = (cur, w, y, m) => `${hasW ? dlt(cur, w) + ' vs ' + thu(addDays(k, -7)) + ' tuần trước' : '<span class="dl">—</span> chưa có tuần trước'}${hasY ? ' · ' + dlt(cur, y) + ' vs hôm qua' : ''}${hasM ? ' · ' + dlt(cur, m) + ' vs ' + dShort(mk0) + ' tháng trước' : ''}`;
+  const T30 = tbNgayTruoc(D.orders, k, nowMin, 30), hasT = T30.n >= 3;   // v1.7.31: trung bình 30 ngày bán liền trước, tới cùng giờ; dưới 3 ngày bán thì chưa đáng so (trùng với "hôm qua")
+  const cmpTxt = (cur, w, y, m, t) => `${hasW ? dlt(cur, w) + ' vs ' + thu(addDays(k, -7)) + ' tuần trước' : '<span class="dl">—</span> chưa có tuần trước'}${hasY ? ' · ' + dlt(cur, y) + ' vs hôm qua' : ''}${hasM ? ' · ' + dlt(cur, m) + ' vs ' + dShort(mk0) + ' tháng trước' : ''}${hasT ? ' · ' + dlt(cur, t) + ' vs TB ' + (T30.n >= 30 ? '30' : T30.n) + ' ngày' : ''}`;
   const cancel = D.cancel.filter(c => c.k === k);
   $('tdKpis').innerHTML = `
-    <div class="kpi main"><span class="lb">Doanh thu</span><span class="v">${fmt(A.dt)}</span><span class="s">${cmpTxt(A.dt, W.dt, Y.dt, M && M.dt)}</span></div>
-    <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${cmpTxt(A.ly, W.ly, Y.ly, M && M.ly)}</span></div>
-    <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${cmpTxt(A.don, W.don, Y.don, M && M.don)}</span></div>
+    <div class="kpi main"><span class="lb">Doanh thu</span><span class="v">${fmt(A.dt)}</span><span class="s">${cmpTxt(A.dt, W.dt, Y.dt, M && M.dt, T30.dt)}</span></div>
+    <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${cmpTxt(A.ly, W.ly, Y.ly, M && M.ly, T30.ly)}</span></div>
+    <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${cmpTxt(A.don, W.don, Y.don, M && M.don, T30.don)}</span></div>
     <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV ${fmtK(A.aov)} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN',{maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu ngày</span><span class="v ${A.ly >= S.tgt ? 'up' : ''}">${pct(A.ly / S.tgt)}</span>
       <div class="meter"><i style="width:${Math.min(100, A.ly / S.tgt * 100)}%"></i></div><span class="s">${fmt(A.ly)} / ${S.tgt} ly${A.ly < S.tgt ? ` · còn ${S.tgt - A.ly} ly` : ' · đã đạt'}</span></div>
@@ -2477,7 +2486,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.30';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.31';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2534,6 +2543,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.31', ngay:'16/10/2026', nd:['Thẻ Doanh thu / Số ly / Số đơn ở tab Hôm nay thêm so sánh với TRUNG BÌNH 30 ngày bán liền trước (chủ quán yêu cầu 16/10), tính tới cùng giờ như cùng thứ tuần trước và hôm qua: chỉ ngày có đơn mới vào mẫu số, ngày có đơn nhưng chưa đơn nào tới giờ đó tính 0; chưa đủ 30 ngày thì ghi số ngày đang có (vd "vs TB 6 ngày"), dưới 3 ngày bán thì chưa hiện (tránh trùng "hôm qua"). Xem ngày cũ thì lấy 30 ngày trước ngày đó. Hàm tbNgayTruoc. Tự kiểm: bất biến 40.']},
   {v:'v1.7.30', ngay:'16/10/2026', nd:['Bấm "Xem →" ở cảnh báo "Lịch ca: Thiếu người" (Tổng quan, Cần chú ý) trên điện thoại chuyển sang Nhân sự nhưng thẻ Lịch làm chỉ còn dòng tiêu đề, trông như trống (chủ quán báo 16/10). Nguyên nhân: nút ▾ thu gọn thẻ được nhớ trong trình duyệt nên thẻ từng gập vẫn gập khi chuyển tới. Giờ nút đó mở thẻ Lịch làm (nếu đang gập) rồi cuộn tới ngay; bấm tên thẻ ở mục lục chip của tab cũng mở thẻ gập. Nút "Xem →" trên điện thoại có vùng bấm lớn hơn (trước đây cao 16 px, khó bấm). Tự kiểm: bất biến 39.']},
   {v:'v1.7.29', ngay:'16/10/2026', nd:['Điện thoại vẫn hiện bản máy tính / chữ nhỏ dù đã đổi sang Điện thoại (chủ quán báo 16/10): trang tự zoom bù khi thiết bị cảm ứng bị dựng khung RỘNG hơn màn hình (Chrome "Trang web cho máy tính", Safari "Yêu cầu trang web máy tính" trên iPad / iPhone…) — html{zoom} = bề ngang khung ÷ bề ngang màn hình (vd 1280 / 390 = ×3,28) nên chữ và nút về cỡ thật, bố cục chọn theo bề ngang MÀN HÌNH thật; biểu đồ vẽ cố định theo khung chưa nhân zoom (Chart.js responsive đo sai khi zoom). Không cần tắt Trang web cho máy tính nữa, nhưng thanh thông báo vẫn nhắc cách tắt để chuẩn nhất. Menu ⋯ ghi thêm zoom bù. Tự kiểm: bất biến 38 viết lại.']},
   {v:'v1.7.28', ngay:'16/10/2026', nd:['Chế độ Điện thoại trên máy mới vẫn như bản máy tính thu nhỏ (chủ quán báo 16/10): nghi điện thoại bị Chrome dựng khung RỘNG hơn màn hình (thường do bật "Trang web cho máy tính"; Chrome bỏ qua viewport của trang nên mọi bố cục bị thu nhỏ). Trang không tự sửa được (thử zoom CSS bù thì Chart.js vẽ biểu đồ sai cỡ nên bỏ) → hiện thanh cảnh báo ở đầu trang khi thiết bị cảm ứng, màn hình ≤ 500 px mà khung rộng hơn màn hình quá 20%, kèm cách tắt (⋮ → bỏ tick Trang web cho máy tính → tải lại). Menu ⋯ thêm dòng ghi số đo thật (khung · màn hình · cảm ứng) để biết máy đang dựng khung nào. Cửa sổ máy tính ép bố cục Điện thoại thì thu về khung 480 px giữa màn hình, thanh dưới và bảng "Thêm" theo khung đó. Tự kiểm: bất biến 38.']},
@@ -2902,6 +2912,11 @@ function tuKiem(){
     if (cLich){ cLich.classList.toggle('collapsed', lichGap); if (lichTrongGop) GOP.add('sec-hr-lich'); }   // trả đúng trạng thái người dùng đang có, không ghi đè kai_gop
     ok('Cảnh báo Lịch ca: "Xem →" dẫn tới thẻ Lịch làm (sec-hr-lich) và mở lại thẻ đang thu gọn; cảnh báo khác chỉ chuyển tab; id không có thì trả false',
       theCuaCanhBao('Lịch ca') === 'sec-hr-lich' && theCuaCanhBao('Kho') === '' && theCuaCanhBao('Sổ sheet') === '' && tabCuaCanhBao('Lịch ca') === 'hr' && !!cLich && lichMo === true && lichHetGap && khongThe === false, `thẻ ${cLich ? 'có' : 'không có'} · mở lại ${lichHetGap ? 'được' : 'không'}`);
+    // 40. Trung bình 30 ngày bán liền trước, tới cùng giờ: chỉ ngày có đơn, trong cửa sổ k-30…k-1, ngày có đơn nhưng chưa đơn nào tới giờ đó tính 0
+    const tbO = [{k:'2026-10-14', id:'a', sl:2, tt:20000, pt:'TM', min:400}, {k:'2026-10-14', id:'b', sl:3, tt:30000, pt:'TM', min:700}, {k:'2026-10-13', id:'c', sl:4, tt:40000, pt:'TM', min:500}, {k:'2026-10-12', id:'d', sl:6, tt:60000, pt:'TM', min:900}, {k:'2026-09-15', id:'e', sl:10, tt:100000, pt:'TM', min:300}, {k:'2026-09-14', id:'f', sl:50, tt:500000, pt:'TM', min:300}, {k:'2026-10-15', id:'g', sl:99, tt:990000, pt:'TM', min:300}],
+      tbA = tbNgayTruoc(tbO, '2026-10-15', 600), tbB = tbNgayTruoc(tbO, '2026-10-15', 24 * 60), tbC = tbNgayTruoc([], '2026-10-15', 600), tbD = tbNgayTruoc(tbO, '2026-10-15', 600, 3);
+    ok('TB ngày bán tới 10:00 (600 phút), ngày 15/10: các ngày 14/10 (2 ly), 13/10 (4 ly), 12/10 (có đơn nhưng toàn đơn sau 10:00 → 0 ly), 15/09 (10 ly, đúng mốc 30 ngày) → 4 ngày, TB 4 ly · 14/09 (31 ngày trước) và chính 15/10 không tính · cả ngày: 6,25 ly · không đơn nào → n = 0 · cửa sổ 3 ngày → 3 ngày, TB 2 ly',
+      tbA.n === 4 && tbA.ly === 4 && tbA.dt === 40000 && tbA.don === 0.75 && tbB.n === 4 && tbB.ly === 6.25 && tbC.n === 0 && tbD.n === 3 && Math.abs(tbD.ly - 2) < 1e-9, `${tbA.n} ngày · ${tbA.ly} ly · ${tbB.ly} ly cả ngày · ${tbD.n} ngày`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
