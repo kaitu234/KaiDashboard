@@ -1331,6 +1331,7 @@ function parseWorkbook(wb){
   rowsOf(wb, 'Tổng hợp').some(r => { const i = r.findIndex(c => /Tiền mặt đầu kỳ/i.test(txt(c))); if (i < 0) return false;
     const v = r.slice(i+1).find(c => c !== null && c !== '' && !isNaN(num(c))); D.opening = num(v); return true; });
   // Doanh thu nhập tay (dự phòng khi bot chưa có đơn)
+  D.goTatHoc = docGoTatHoc(rowsOf(wb, 'GoTatHoc'));   // v1.7.38: cụm gõ bot đã tự học (bot ghi, dòng 1 tiêu đề)
   D.dtSheet = docDtSheet(rowsOf(wb, 'Doanh thu'));   // v1.7.35: ghi chú, chênh MoMo, mục tiêu tháng cho tab Doanh thu thuần
   const rv = rowsOf(wb, 'Doanh thu'); const hdr = rv.findIndex(r => r.some(c => /TIỀN MẶT/i.test(txt(c))) && r.some(c => /CHUYỂN KHOẢN/i.test(txt(c))));
   const hRow = hdr >= 0 ? rv[hdr].slice(0, 14) : [], iChot = hRow.findIndex(c => /^CHỐT CA$/i.test(txt(c))), iLech = hRow.findIndex(c => /^(Lệch|KHÁC)/i.test(txt(c)));   // tìm cột theo tên tiêu đề (chỉ khối ngày, bỏ khối THEO THÁNG bên phải)
@@ -2510,14 +2511,14 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.37';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.38';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
   sd:{nguon:'Kai chốt 25ml cào bằng; hộp 1,284kg ≈ 988–1.000ml (chưa đo)', tin:2, cach:'Rót hết 1 hộp bằng ly đong 25ml, đếm số ly; /kiemkho sd'},
   st:{nguon:'Bịch 220ml ghi trên bao bì; 40ml / 60ml theo thẻ HCN; 9.000 đ/bịch (sổ chi)', tin:3, cach:'Đã rõ; /kiemkho st định kỳ'},
   mt:{nguon:'Kai chốt 3g/ly; 435.000 đ / 500g (sổ chi)', tin:3, cach:'Cân 3 lần múc thực tế'},
-  cc:{nguon:'Kai chốt: hũ 500 g; 7 g/ly từ 13/10/2026 (loại mới), trước đó 10 g (ly bán tới hết 12/10 tính 10 g, lịch DINH_LUONG_CU); 140.000 đ / hũ (hoá đơn HCN 4773)', tin:3, cach:'Cân 3 lần múc thực tế; /kiemxe cc so với số ước tính'},
+  cc:{nguon:'Kai chốt: hũ 500 g; 4,9 g/ly từ 16/10/2026 (hũ mới 160.000 đ, giảm 30%), 7 g 13–15/10, 10 g tới hết 12/10 (lịch DINH_LUONG_CU); giá chỉ tính hũ mới 160.000 đ = 320 đ/g (Kho cột G: cacao|-cacao hu cu, bỏ hũ cũ 140.000)', tin:3, cach:'Cân 3 lần múc thực tế; /kiemxe cc so với số ước tính'},
   kb:{nguon:'Kai chốt 12/10: 1 hộp kem béo làm kem muối bán tầm 21 ly (trước đó chia thử 4 hộp / 39 ly = 9,75); 33.000 đ / hộp (hoá đơn HCN 4773)', tin:2, cach:'Đánh 1 hộp, đếm số ly (2 muỗng) làm được; cân 1 muỗng kem'},
   km:{nguon:'Không có trong công thức – dòng sổ chi "Kem muối 30.000 đ" chưa rõ là kem làm sẵn hay muối hồng', tin:1, cach:'Xác nhận dòng sổ chi đó là gì'},
   dg:{nguon:'Đường chai (HCN 15.000 đ/chai, chia thử 1 chai ≈ 42 ly) — từ 12/10 công thức dùng đường cát (mã dgc), không còn món nào dùng đường chai', tin:1, cach:'Bỏ nếu quán không mua đường chai nữa'},
@@ -2567,6 +2568,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.38', ngay:'16/10/2026', nd:['Tab Mã món thêm cột "Bot đã học": các cụm gõ bot tự học (nhân viên bấm cùng món 3 lần liền) đọc từ tab GoTatHoc do bot ghi (bot gotathoc-tab-v1, Apps Script @123), viền đứt để phân biệt với cột Gõ tắt của tab Menu.', 'Cacao từ 16/10 còn 4,9 g/ly (hũ mới 160.000 đ, phiên Thu/Chi đổi CongThuc + Kho cột G "cacao|-cacao hu cu"): thêm mốc lịch sử định lượng — ly bán 13–15/10 vẫn tính 7 g, tới 12/10 tính 10 g, nên PNL theo ngày không bị đổi ngược về trước. Giá cacao dashboard = 320 đ/g, khớp tab Giá vốn ly. Tự kiểm: bất biến 43.']},
   {v:'v1.7.37', ngay:'16/10/2026', nd:['Tối ưu tab Món và Mã món (chủ quán chốt 16/10): bảng Bán theo món thêm giá vốn/ly, lãi/ly, lãi gộp (cùng tinhPnl của tab PNL) và các món trong Menu chưa bán ly nào trong kỳ (ở cuối, ghi "chưa bán", lãi/ly tính ở giá menu; không hiện khi đang lọc nhân viên / thanh toán / giờ / món), kèm ghi chú món chưa bán và món bán dưới giá vốn; bỏ biểu đồ "Món bán chạy" (lặp bảng), bảng và cơ cấu nhóm món đứng cạnh nhau; thẻ "Khuyến mãi 10K theo món" chuyển từ Hiệu suất sang tab Món cạnh "Khai trương 10K vs giá thường" (hết trùng); mở tab Món không còn tính lại cả tab Bán hàng phía sau. Mã món: thêm cột Ly 7 ngày và xếp theo món bán nhiều.']},
   {v:'v1.7.36', ngay:'16/10/2026', nd:['Tách vai Bán hàng / Doanh thu thuần cho khỏi trùng (chủ quán chốt 16/10): Bán hàng chỉ còn số theo ĐƠN BOT (ly, món, giờ, nhân viên, nút 💵 / 🏦 nhân viên bấm) — thẻ "Cơ cấu thanh toán" đổi thành "Thanh toán theo đơn bot", biểu đồ TM / CK theo ngày ghi rõ "theo đơn bot", bảng Chi tiết theo ngày bỏ các cột Thực thu / TM / CK thật, Chi két, Chênh két (cột %CK tính theo đơn bot). Tiền thật sau chốt ca, chi két, chênh két chỉ ở tab Doanh thu thuần (có liên kết từ thẻ thanh toán). Thu chi giữ quỹ, chi, công nợ.']},
   {v:'v1.7.35', ngay:'16/10/2026', nd:['Tab mới "Doanh thu thuần" (nhóm Bán hàng, chủ quán yêu cầu 16/10): theo dõi doanh thu THỰC THU như tab Doanh thu của Sheet, theo kỳ đang lọc. 6 thẻ (thực thu · tiền mặt · chuyển khoản · lệch tiền thực vs đơn bot · số ly và giá TB/ly thực thu · số ngày đã chốt ca), biểu đồ cột chồng tiền mặt + CK theo ngày kèm nét đứt doanh thu bot ghi, bảng hằng ngày (TM · CK · thực thu · bot ghi · lệch · ly · giá TB/ly · chốt ca · chênh MoMo nếu có · ghi chú của Sheet) và bảng theo tháng (thực thu · ngày bán · mục tiêu · %đạt · dự phóng tháng này). Số mỗi ngày dùng chung nguonTien() với Tổng quan / Thu chi (ngày đã chốt = đơn bot + chênh két, tiền mặt = cột C tab Doanh thu; chưa chốt = theo đơn bot); ghi chú, chênh MoMo, mục tiêu tháng đọc từ tab Doanh thu theo tên cột (docDtSheet). Tự kiểm: bất biến 42.']},
@@ -2965,6 +2967,10 @@ function tuKiem(){
     ok('Doanh thu thuần: đọc tab Doanh thu theo tên cột — ghi chú 12/10 "Thiếu két", chênh MoMo 13/10 = 15.000 (ô "-" và ô trống bỏ qua), mục tiêu T10 23.760.000 · T11 38.400.000 (dòng TỔNG bỏ qua); không có dòng tiêu đề → rỗng',
       dsO.note['2026-10-12'] === 'Thiếu két' && dsO.momo['2026-10-13'] === 15000 && !('2026-10-12' in dsO.momo) && !('2026-10-14' in dsO.momo) && dsO.mucTieu['2026-10'] === 23760000 && dsO.mucTieu['2026-11'] === 38400000 && Object.keys(dsO.mucTieu).length === 2 && !Object.keys(dsN.note).length,
       `${Object.keys(dsO.note).length} ghi chú · ${Object.keys(dsO.momo).length} MoMo · ${Object.keys(dsO.mucTieu).join(', ')}`);
+    // 43. Lịch định lượng cacao theo ngày (mốc mới đứng trước) + đọc tab GoTatHoc theo tên cột
+    const dlC = {cc:4.9, ly:1}, dlA = ['2026-10-12', '2026-10-13', '2026-10-15', '2026-10-16'].map(k => ctTheoNgay(dlC, DINH_LUONG_CU, k).cc), gtH = docGoTatHoc([['Cụm gõ', 'Mã món', 'Tên món', 'Học lúc', 'Số lần'], ['den da', 'CDM', 'Cà phê đen máy', '', 3], ['den nong', 'cdm', 'Cà phê đen máy', '', 3], ['', 'bx', '', '', '']]);
+    ok('Cacao: ly bán 12/10 tính 10 g · 13/10 và 15/10 tính 7 g · 16/10 tính 4,9 g (CongThuc); tab GoTatHoc: 2 cụm của cdm (mã viết hoa vẫn nhận), dòng thiếu cụm bỏ qua, không có tab → rỗng',
+      dlA.join() === '10,7,7,4.9' && dlC.cc === 4.9 && (gtH.cdm || []).join() === 'den da,den nong' && !gtH.bx && !Object.keys(docGoTatHoc([])).length, dlA.join(' / ') + ' g · ' + (gtH.cdm || []).join(', '));
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -3321,15 +3327,23 @@ const giaDangBan = (ma, giaMenu, k) => !isPromo(k) ? giaMenu : (ma in KM_RIENG ?
 /** Cột F tab Menu → danh sách cách gõ tắt (cách nhau dấu phẩy hoặc chấm phẩy) */
 const tatMon = v => txt(v).split(/[,;]/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
 const QO_VI_DU = [['2 muối ck', '2 cà phê muối, chuyển khoản'], ['bx muối 2', '2 bạc xỉu muối'], ['mt muối', '1 matcha latte muối'], ['sm2 dm', '2 cà phê sữa máy + 1 cà phê đen máy'], ['muối hết rồi', 'không thành đơn (bot không hiểu đây là đơn)']];
+/** v1.7.38 — tab GoTatHoc (bot gotathoc-tab-v1): dòng 1 tiêu đề "Cụm gõ" · "Mã món" · "Tên món" · "Học lúc" · "Số lần" → {mã món (viết thường): [cụm…]}. Đọc theo tên cột; không có tab → {} */
+function docGoTatHoc(rows){
+  const out = {}; if (!rows || !rows.length) return out;
+  const H = rows[0].map(c => boDau(txt(c))), iC = H.findIndex(h => /^cum/.test(h)), iM = H.findIndex(h => /^ma mon/.test(h));
+  if (iC < 0 || iM < 0) return out;
+  rows.slice(1).forEach(r => { const c = txt(r[iC]), m = txt(r[iM]).toLowerCase(); if (c && m) (out[m] = out[m] || []).push(c); });
+  return out;
+}
 function renderQo(){
   const tk = today(), tu7 = addDays(tk, -6), ly7 = {}; D.orders.forEach(o => { if (o.k >= tu7 && o.k <= tk) ly7[o.mon] = (ly7[o.mon] || 0) + o.sl; });   // v1.7.37: ly 7 ngày gần nhất (gồm hôm nay)
-  const rows = Object.entries(D.menu).map(([ten, m], i) => ({i, ma:m.ma, ten, nhom:m.nhom, ban:m.ban, gia:m.gia, nay:giaDangBan(m.ma.toLowerCase(), m.gia, tk), tat:(m.tat || []).join(', '), ly7:ly7[ten] || 0}));
+  const rows = Object.entries(D.menu).map(([ten, m], i) => ({i, ma:m.ma, ten, nhom:m.nhom, ban:m.ban, gia:m.gia, nay:giaDangBan(m.ma.toLowerCase(), m.gia, tk), tat:(m.tat || []).join(', '), hoc:((D.goTatHoc || {})[m.ma.toLowerCase()] || []).join(', '), ly7:ly7[ten] || 0}));
   table({id:'tQoMa', rows, sortDefault:{k:'ly7', d:-1}, cols:[
     {k:'ma', l:'Mã', f:v => `<code>${esc(v)}</code>`}, {k:'ten', l:'Tên món', f:(v, r) => esc(v) + (r && !r.ban ? ' <span class="pill neu">ngừng bán</span>' : '')},
     {k:'gia', l:'Giá menu', r:1, f:fmt}, {k:'nay', l:'Giá hôm nay', r:1, f:(v, r) => fmt(v) + (r && v !== r.gia ? ' <span class="pill warn">KM</span>' : '')},
-    {k:'tat', l:'Gõ tắt', f:v => v ? v.split(', ').map(t => `<code>${esc(t)}</code>`).join(' ') : '<span class="muted">—</span>'}, {k:'ly7', l:'Ly 7 ngày', r:1, heat:1, f:fmt}, {k:'nhom', l:'Nhóm'}]});
-  const bat = rows.filter(r => r.ban).length, coTat = rows.filter(r => r.tat).length;
-  $('qoMaNote').innerHTML = `${bat} món đang bán, ${coTat} món có cột Gõ tắt. Chủ điền hoặc sửa cách gõ tắt ở tab Menu (cột F, cách nhau dấu phẩy); bảng này tự cập nhật theo Sheet sau khi tải lại dữ liệu. Món không có gõ tắt vẫn gõ được bằng mã hoặc tên.`;
+    {k:'tat', l:'Gõ tắt', f:v => v ? v.split(', ').map(t => `<code>${esc(t)}</code>`).join(' ') : '<span class="muted">—</span>'}, {k:'hoc', l:'Bot đã học', f:v => v ? v.split(', ').map(t => `<code style="border-style:dashed">${esc(t)}</code>`).join(' ') : '<span class="muted">—</span>'}, {k:'ly7', l:'Ly 7 ngày', r:1, heat:1, f:fmt}, {k:'nhom', l:'Nhóm'}]});
+  const bat = rows.filter(r => r.ban).length, coTat = rows.filter(r => r.tat).length, nHoc = rows.reduce((t, r) => t + (r.hoc ? r.hoc.split(', ').length : 0), 0);
+  $('qoMaNote').innerHTML = `${bat} món đang bán, ${coTat} món có cột Gõ tắt, bot đã tự học ${nHoc} cụm (cột "Bot đã học", viền đứt: nhân viên bấm cùng món 3 lần liền khi bot hỏi; tab GoTatHoc do bot ghi, chủ xoá bằng <code>/gotat xoa &lt;cụm&gt;</code>). Chủ điền hoặc sửa cách gõ tắt ở tab Menu (cột F, cách nhau dấu phẩy); bảng này tự cập nhật theo Sheet sau khi tải lại dữ liệu. Món không có gõ tắt vẫn gõ được bằng mã hoặc tên.`;
   table({id:'tQoVd', rows:QO_VI_DU.map(([go, kq], i) => ({i, go, kq})), sortDefault:{k:'i', d:1}, cols:[{k:'go', l:'Gõ', f:v => `<code>${esc(v)}</code>`}, {k:'kq', l:'Bot hiểu'}]});
   $('qoGia').innerHTML = `<b>Đợt khai trương (tới hết ${dShort(PROMO.to)}):</b> đồng giá ${fmt(PROMO_GIA)}, riêng matcha latte ${fmt(KM_RIENG.mt)}, matcha latte muối ${fmt(KM_RIENG.mtm)}, Phindi 4 vị ${fmt(KM_RIENG.pdh)}. <b>Từ ${dShort(addDays(PROMO.to, 1))}:</b> bán đúng giá tab Menu. Bot tự áp giá theo ngày, nhân viên chỉ cần gõ món; muốn bật đồng giá bằng tay thì chủ dùng <code>/dongia</code> (tắt bằng <code>/dongia 0</code>).`;
 }
@@ -3574,7 +3588,7 @@ function giaNL(){
 const heSoHaoHut = dvTinh => /^ly/i.test(String(dvTinh || '').trim()) ? 1 : 1 + HAO_HUT;
 /** v1.7.2 — Lịch sử định lượng (chủ quán chốt 13/10/2026): tab CongThuc luôn là số HIỆN HÀNH; ly bán tới hết ngày `den` dùng lượng cũ `luong` cho nguyên liệu `nl` ở mọi món có nguyên liệu đó.
  *  Cacao: 10 g/ly tới hết 12/10/2026, từ 13/10/2026 là 7 g. Thêm dòng mới ở đây khi định lượng đổi tiếp. */
-const DINH_LUONG_CU = [{den:'2026-10-12', nl:'cc', luong:10}];
+const DINH_LUONG_CU = [{den:'2026-10-15', nl:'cc', luong:7}, {den:'2026-10-12', nl:'cc', luong:10}];   // v1.7.38: cacao 4,9 g từ 16/10 (CongThuc, chủ chốt 16/10: hũ mới 160.000, giảm 30%); 13–15/10 = 7 g; tới 12/10 = 10 g. Mốc mới đứng trước vì mốc sau ghi đè
 /** Công thức của 1 món (ct = {nl: lượng/ly}) tại ngày k theo lịch sử hist; không đổi ct gốc */
 function ctTheoNgay(ct, hist, k){
   if (!ct || !k) return ct;
