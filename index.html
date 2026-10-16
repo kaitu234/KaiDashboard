@@ -1562,7 +1562,12 @@ function mk(id, cfg){
     cfg.options.scales = Object.assign({x:{grid:{display:false}, ticks:{maxRotation:0, autoSkipPadding:8}},
       y:{beginAtZero:true, grid:{color:g}, border:{display:false}, ticks:{maxTicksLimit:5}}}, cfg.options.scales || {});
   }
-  charts[id] = new Chart($(id), cfg);
+  const cvEl = $(id);
+  if (document.documentElement.style.zoom){   // v1.7.29: trang đang zoom bù (điện thoại bị dựng khung rộng): Chart.js responsive đo khung theo toạ độ đã nhân zoom nên vẽ to gấp zoom lần → vẽ cố định theo clientWidth / clientHeight (chưa nhân zoom)
+    const pc = cvEl.parentElement, w = pc ? pc.clientWidth : 0, h = pc ? pc.clientHeight : 0, r = window.devicePixelRatio || 1;
+    if (w > 0 && h > 0){ cvEl.style.width = w + 'px'; cvEl.style.height = h + 'px'; cvEl.width = Math.round(w * r); cvEl.height = Math.round(h * r); cfg.options.responsive = false; cfg.options.devicePixelRatio = r; }
+  }
+  charts[id] = new Chart(cvEl, cfg);
 }
 /** Màu nhiều nhóm theo thứ tự cố định (đã chạy validate_palette cho nền sáng/tối) – màu đi theo nhóm, không theo hạng */
 const catMau = () => ['--c1', '--c2', '--c3', '--c4', '--c5'].map(css);
@@ -2470,7 +2475,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.28';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.29';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2527,6 +2532,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.29', ngay:'16/10/2026', nd:['Điện thoại vẫn hiện bản máy tính / chữ nhỏ dù đã đổi sang Điện thoại (chủ quán báo 16/10): trang tự zoom bù khi thiết bị cảm ứng bị dựng khung RỘNG hơn màn hình (Chrome "Trang web cho máy tính", Safari "Yêu cầu trang web máy tính" trên iPad / iPhone…) — html{zoom} = bề ngang khung ÷ bề ngang màn hình (vd 1280 / 390 = ×3,28) nên chữ và nút về cỡ thật, bố cục chọn theo bề ngang MÀN HÌNH thật; biểu đồ vẽ cố định theo khung chưa nhân zoom (Chart.js responsive đo sai khi zoom). Không cần tắt Trang web cho máy tính nữa, nhưng thanh thông báo vẫn nhắc cách tắt để chuẩn nhất. Menu ⋯ ghi thêm zoom bù. Tự kiểm: bất biến 38 viết lại.']},
   {v:'v1.7.28', ngay:'16/10/2026', nd:['Chế độ Điện thoại trên máy mới vẫn như bản máy tính thu nhỏ (chủ quán báo 16/10): nghi điện thoại bị Chrome dựng khung RỘNG hơn màn hình (thường do bật "Trang web cho máy tính"; Chrome bỏ qua viewport của trang nên mọi bố cục bị thu nhỏ). Trang không tự sửa được (thử zoom CSS bù thì Chart.js vẽ biểu đồ sai cỡ nên bỏ) → hiện thanh cảnh báo ở đầu trang khi thiết bị cảm ứng, màn hình ≤ 500 px mà khung rộng hơn màn hình quá 20%, kèm cách tắt (⋮ → bỏ tick Trang web cho máy tính → tải lại). Menu ⋯ thêm dòng ghi số đo thật (khung · màn hình · cảm ứng) để biết máy đang dựng khung nào. Cửa sổ máy tính ép bố cục Điện thoại thì thu về khung 480 px giữa màn hình, thanh dưới và bảng "Thêm" theo khung đó. Tự kiểm: bất biến 38.']},
   {v:'v1.7.27', ngay:'16/10/2026', nd:['Nút đổi bố cục Điện thoại / Máy tính (chủ quán yêu cầu 16/10, máy mới cài app vẫn chưa ra giao diện điện thoại): nút 📱🖥 trong menu ⋯ (điện thoại) và cuối thanh bên (máy tính), hoặc phím M, đổi vòng Tự động → Điện thoại → Máy tính; máy nhớ lựa chọn (kai_layout). Link dashboard thêm ?giaodien=mobile (hoặc desktop, auto) đặt sẵn cho máy mới. Cách làm: mọi điều kiện @media bề ngang được tính như màn hình 390 px / 1280 px; chế độ Máy tính còn đặt viewport 1280 cho điện thoại. Tự động: điện thoại thật (cảm ứng, cạnh ngắn ≤ 500 px) mà Chrome dựng khung ≥ 900 px (vd "Trang web cho máy tính") thì tự dùng bố cục điện thoại. Tự kiểm: bất biến 37.']},
   {v:'v1.7.26', ngay:'16/10/2026', nd:['Sửa lỗi người mới cài app từ Chrome không thấy giao diện điện thoại: trang đầu (Tổng quan) có dòng "Cần chú ý" với chữ 1 dòng quá dài trên điện thoại, làm trang rộng hơn màn hình nên Chrome nới khung nhìn và thu nhỏ cả trang (nhìn như bản máy tính, chữ bé). Sửa gốc: dòng cảnh báo co theo bề ngang màn hình (chữ dài hiện dấu … khi thu gọn, bấm để mở xuống dòng); thêm lớp bảo vệ cắt phần tràn ngang ở html / body để sau này không tái phát. Đã thử bằng giả lập điện thoại 375 px: khung nhìn từ 559 px về đúng 375 px, 13 tab đều vừa màn hình.']},
@@ -2881,10 +2887,11 @@ function tuKiem(){
     const gdA = [mqVoiRong('(max-width: 899px)', 390), mqVoiRong('(min-width: 900px)', 390), mqVoiRong('(max-width: 899px)', 1280), mqVoiRong('(min-width: 900px)', 1280), mqVoiRong('(max-width:560px) and (prefers-reduced-motion: reduce)', 1280), mqVoiRong('(prefers-color-scheme: dark)', 390), mqVoiRong('(max-width: 899px)', null), mqVoiRong('(max-width: 380px)', 390)];
     ok('Bố cục: 390 px → max-width 899 đúng, min-width 900 sai; 1280 px → ngược lại; "(max-width:560px) and (prefers-reduced-motion…)" ở 1280 chỉ đổi phần bề ngang; màu tối và bề ngang thật (null) giữ nguyên; max-width 380 ở 390 px sai',
       gdA.join('|') === '(min-width: 0px)|(min-width: 99999px)|(min-width: 99999px)|(min-width: 0px)|(min-width: 99999px) and (prefers-reduced-motion: reduce)|(prefers-color-scheme: dark)|(max-width: 899px)|(min-width: 99999px)' && LAYOUT_NHAN[LAYOUT] != null, gdA.slice(0, 4).join(' · '));
-    // 38. Cảnh báo khung rộng hơn màn hình trên điện thoại: chỉ khi thiết bị cảm ứng, màn hình ≤ 500 px và khung rộng hơn màn hình quá 20%
-    const gzA = [khungRongHon(1280, 390, true), khungRongHon(390, 390, true), khungRongHon(459, 412, true), khungRongHon(500, 412, true), khungRongHon(1280, 390, false), khungRongHon(1280, 800, true), khungRongHon(980, 0, true)];
-    ok('Cảnh báo khung rộng: 1280 px trên màn 390 px (cảm ứng) có · 390/390 không · 459/412 không (lệch ≤ 20%) · 500/412 có · máy tính (không cảm ứng) không · máy tính bảng 800 px không · màn hình 0 px không',
-      gzA.join() === 'true,false,false,true,false,false,false', gzA.join('/'));
+    // 38. Khung rộng hơn màn hình trên thiết bị cảm ứng nhỏ: chỉ khi cảm ứng, màn hình ≤ 1100 px và khung rộng hơn màn hình quá 20%; zoom bù = khung ÷ màn hình
+    const gzA = [khungRongHon(1280, 390, true), khungRongHon(390, 390, true), khungRongHon(459, 412, true), khungRongHon(500, 412, true), khungRongHon(1280, 390, false), khungRongHon(1280, 800, true), khungRongHon(1400, 1200, true), khungRongHon(980, 0, true)],
+      gzH = [heSoZoom(980, 412), heSoZoom(412, 412), heSoZoom(1280, 390), heSoZoom(459, 412), heSoZoom(1280, 800), heSoZoom(980, 0)];
+    ok('Zoom bù: 1280 px trên màn 390 (cảm ứng) có · 390/390 không · 459/412 không · 500/412 có · máy tính (không cảm ứng) không · tablet 800 có · màn 1200 không · màn 0 không; hệ số 980/412 → 2,38 · 412/412 → 1 · 1280/390 → 3,28 · 459/412 → 1 · 1280/800 → 1,6 · màn 0 → 1',
+      gzA.join() === 'true,false,false,true,false,true,false,false' && gzH.join() === '2.38,1,3.28,1,1.6,1', gzA.join('/') + ' · ' + gzH.join('/'));
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -3787,23 +3794,29 @@ try { const g = new URLSearchParams(location.search).get('giaodien'), l = localS
     const u = new URL(location.href); u.searchParams.delete('giaodien'); history.replaceState(null, '', u.pathname + u.search + u.hash); }
   else if (l === 'mobile' || l === 'desktop') LAYOUT = l; } catch(e){}
 const laDienThoaiThat = () => { try { return matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) <= 500; } catch(e){ return false; } };
-const rongLayout = () => LAYOUT === 'auto' ? (laDienThoaiThat() && innerWidth >= 900 ? LAYOUT_RONG.mobile : null) : LAYOUT_RONG[LAYOUT];
+const coCamUng = () => { try { return matchMedia('(pointer:coarse)').matches; } catch(e){ return false; } };
+/** Thiết bị cảm ứng nhỏ (điện thoại / máy tính bảng nhỏ) bị dựng khung RỘNG hơn màn hình → cần zoom bù (trừ khi chủ chọn thẳng Máy tính) */
+const canZoomBu = () => LAYOUT !== 'desktop' && khungRongHon(innerWidth, screen.width, coCamUng());
+const rongLayout = () => LAYOUT === 'auto' ? (canZoomBu() ? screen.width : null) : LAYOUT_RONG[LAYOUT];
 const laManHep = () => { const w = rongLayout(); return w != null ? w <= 899 : window.matchMedia('(max-width:899px)').matches; };
 const MQ_GOC = new Map();
-/** v1.7.28 — điện thoại bị dựng khung RỘNG hơn màn hình (thường do Chrome bật "Trang web cho máy tính"): Chrome bỏ qua viewport của trang nên cả bố cục bị thu nhỏ như bản máy tính dù đã chọn bố cục điện thoại.
- *  Trang không tự sửa được (zoom CSS làm Chart.js vẽ sai cỡ) → hiện thanh cảnh báo kèm cách tắt. Điều kiện: thiết bị cảm ứng, màn hình ≤ 500 px, khung rộng hơn màn hình quá 20%. */
-const khungRongHon = (iw, sw, coarse) => !!coarse && sw > 0 && sw <= 500 && iw > sw * 1.2;
+/** v1.7.28 / v1.7.29 — điện thoại bị dựng khung RỘNG hơn màn hình (thường do Chrome bật "Trang web cho máy tính"): Chrome bỏ qua viewport của trang nên cả bố cục bị thu nhỏ như bản máy tính dù đã chọn bố cục điện thoại.
+ *  v1.7.29: trang tự zoom bù = bề ngang khung ÷ bề ngang màn hình (html{zoom}) để chữ về cỡ thật, biểu đồ vẽ cố định theo khung chưa nhân zoom (xem mk); vẫn hiện thanh thông báo kèm cách tắt "Trang web cho máy tính". Điều kiện: thiết bị cảm ứng, màn hình ≤ 1100 px, khung rộng hơn màn hình quá 20%. */
+const khungRongHon = (iw, sw, coarse) => !!coarse && sw > 0 && sw <= 1100 && iw > sw * 1.2;
+/** Hệ số zoom bù = bề ngang khung ÷ bề ngang màn hình (chữ, nút về cỡ thật); khung chỉ rộng hơn màn hình ≤ 20% thì không bù */
+const heSoZoom = (iw, sw) => sw > 0 && iw > sw * 1.2 ? Math.round(iw / sw * 100) / 100 : 1;
 function fitMobile(){
   let coarse = false; try { coarse = matchMedia('(pointer:coarse)').matches; } catch(e){}
-  const rong = khungRongHon(innerWidth, screen.width, coarse);
+  const rong = khungRongHon(innerWidth, screen.width, coarse), z = canZoomBu() ? heSoZoom(innerWidth, screen.width) : 1, zs = z > 1 ? String(z) : '';
+  if (document.documentElement.style.zoom !== zs){ document.documentElement.style.zoom = zs; if (D) render(); }   // đổi zoom thì vẽ lại biểu đồ
   document.documentElement.classList.toggle('mcap', LAYOUT === 'mobile' && !coarse && innerWidth > 600);   // cửa sổ máy tính ép bố cục điện thoại: thu về khung 480 px
-  const li = $('layoutInfo'); if (li) li.textContent = 'Bố cục: ' + LAYOUT_NHAN[LAYOUT].replace(/^\S+\s/, '') + ' · khung ' + innerWidth + ' px · màn hình ' + screen.width + '×' + screen.height + (coarse ? ' · cảm ứng' : '') + (rong ? ' · ⚠ khung rộng hơn màn hình' : '');
+  const li = $('layoutInfo'); if (li) li.textContent = 'Bố cục: ' + LAYOUT_NHAN[LAYOUT].replace(/^\S+\s/, '') + ' · khung ' + innerWidth + ' px · màn hình ' + screen.width + '×' + screen.height + (coarse ? ' · cảm ứng' : '') + (zs ? ' · zoom bù ' + zs : '') + (rong ? ' · ⚠ khung rộng hơn màn hình' : '');
   let daDong = false; try { daDong = sessionStorage.getItem('kai_khung') === '1'; } catch(e){}
   let bn = $('khungBanner');
   if (rong && !daDong){
     if (!bn){ document.body.insertAdjacentHTML('afterbegin', '<div id="khungBanner" role="alert" style="position:sticky;top:0;z-index:60;background:var(--warn-bg);color:var(--ink);border-bottom:2px solid var(--warn);padding:10px 14px;font-size:14px;line-height:1.45"><span id="khungTxt"></span> <button type="button" class="lnk" id="khungOk">Đã hiểu</button></div>'); bn = $('khungBanner');
       $('khungOk').onclick = () => { try { sessionStorage.setItem('kai_khung', '1'); } catch(e){} bn.hidden = true; }; }
-    $('khungTxt').innerHTML = '⚠ Máy đang dựng trang rộng <b>' + innerWidth + ' px</b> trên màn hình <b>' + screen.width + ' px</b> nên chữ bị thu nhỏ như bản máy tính. Thường do Chrome đang bật <b>Trang web cho máy tính</b>: bấm <b>⋮</b> (góc phải Chrome) → <b>bỏ tick</b> “Trang web cho máy tính” → tải lại trang. Mở bằng app đã cài vẫn vậy thì gỡ app, mở link bằng Chrome, tắt mục đó rồi cài lại.';
+    $('khungTxt').innerHTML = (zs ? 'ℹ Máy đang dựng trang rộng <b>' + innerWidth + ' px</b> trên màn hình <b>' + screen.width + ' px</b> (thường do Chrome bật <b>Trang web cho máy tính</b>); trang đã tự phóng to ×' + zs + ' cho vừa. ' : '⚠ Máy đang dựng trang rộng <b>' + innerWidth + ' px</b> trên màn hình <b>' + screen.width + ' px</b> nên chữ bị thu nhỏ. ') + 'Chuẩn nhất: bấm <b>⋮</b> (góc phải Chrome) → <b>bỏ tick</b> “Trang web cho máy tính” → tải lại trang.';
     bn.hidden = false;
   } else if (bn) bn.hidden = true;
 }
