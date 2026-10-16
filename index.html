@@ -308,7 +308,7 @@ body.focus-on{overflow:hidden}
 @media (max-width:899px){.qt-tips{grid-template-columns:1fr}}
 .km.warn{border-left-color:var(--warn);background:var(--warn-bg)}.km.warn .t{color:var(--warn)}
 .km.bad{border-left-color:var(--bad);background:var(--bad-bg)}.km.bad .t{color:var(--bad)}
-@media (max-width:560px){.km{flex-direction:column;align-items:stretch;gap:2px}.km .t{flex:none}}
+@media (max-width:560px){.km{flex-direction:column;align-items:stretch;gap:2px}.km .t{flex:none}.km a[data-go]{display:inline-block;padding:8px 10px;margin:-8px -6px}}   /* v1.7.30: nút "Xem →" cao 16 px khó bấm bằng ngón tay → vùng bấm ~32 px, chữ không đổi chỗ */
 
 /* ---------- hệ chữ chính Kai Café: Barlow Condensed (tiêu đề, số lớn, nhãn – in hoa) + Be Vietnam Pro (nội dung, bảng) ---------- */
 body{font-size:13px;letter-spacing:0}
@@ -1489,6 +1489,8 @@ function khoCanhBao(){
 }
 /** v1.7.4 — tab chứa chi tiết của 1 cảnh báo (nhãn tag): kho / xe / kiểm → Kho · két thiếu → Nhân sự · còn lại (quỹ, sổ chi, chốt ca…) → Thu chi. Tổng quan dẫn "Xem →" theo hàm này. */
 const tabCuaCanhBao = tag => /^(Kho|Xe|Kiểm xe|Kiểm kho|Vật tư|Nguyên liệu)$/.test(tag) ? 'kho' : /^(Két thiếu|Lịch ca)$/.test(tag) ? 'hr' : 'fin';
+/** v1.7.30 — thẻ (id) mà "Xem →" của cảnh báo phải mở và cuộn tới trong tab đó; '' = chỉ chuyển tab. Cảnh báo Lịch ca → thẻ Lịch làm. */
+const theCuaCanhBao = tag => tag === 'Lịch ca' ? 'sec-hr-lich' : '';
 /** v1.7.5 — Lịch làm. Trạng thái các ca của ngày k theo lịch L (tab Ca · DangKyCa · NghiBan do bot ghi) đối chiếu chấm công cong; tk = hôm nay, nowMin = phút từ 0h.
  *  thieu = số người còn thiếu so với "Số người cần" của ca, CHỈ tính ca chưa kết thúc và không nghỉ bán (cùng luật /lichca của bot). v1.7.25: chủ gốc (L.gocId, theo Telegram ID) không đếm vào dem / thieu nhưng vẫn nằm trong ai (goc:true).
  *  Mỗi người: tt = xong (đã chấm công, ca đã hết) · dang (đã vào ca, ca chưa hết) · vang (ca đã hết mà không có chấm công) · chua (ca đã bắt đầu, chưa check-in) · '' (chưa tới giờ). ngoai = có chấm công nhưng không nằm trong lịch. */
@@ -2475,7 +2477,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.29';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.30';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2532,6 +2534,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.30', ngay:'16/10/2026', nd:['Bấm "Xem →" ở cảnh báo "Lịch ca: Thiếu người" (Tổng quan, Cần chú ý) trên điện thoại chuyển sang Nhân sự nhưng thẻ Lịch làm chỉ còn dòng tiêu đề, trông như trống (chủ quán báo 16/10). Nguyên nhân: nút ▾ thu gọn thẻ được nhớ trong trình duyệt nên thẻ từng gập vẫn gập khi chuyển tới. Giờ nút đó mở thẻ Lịch làm (nếu đang gập) rồi cuộn tới ngay; bấm tên thẻ ở mục lục chip của tab cũng mở thẻ gập. Nút "Xem →" trên điện thoại có vùng bấm lớn hơn (trước đây cao 16 px, khó bấm). Tự kiểm: bất biến 39.']},
   {v:'v1.7.29', ngay:'16/10/2026', nd:['Điện thoại vẫn hiện bản máy tính / chữ nhỏ dù đã đổi sang Điện thoại (chủ quán báo 16/10): trang tự zoom bù khi thiết bị cảm ứng bị dựng khung RỘNG hơn màn hình (Chrome "Trang web cho máy tính", Safari "Yêu cầu trang web máy tính" trên iPad / iPhone…) — html{zoom} = bề ngang khung ÷ bề ngang màn hình (vd 1280 / 390 = ×3,28) nên chữ và nút về cỡ thật, bố cục chọn theo bề ngang MÀN HÌNH thật; biểu đồ vẽ cố định theo khung chưa nhân zoom (Chart.js responsive đo sai khi zoom). Không cần tắt Trang web cho máy tính nữa, nhưng thanh thông báo vẫn nhắc cách tắt để chuẩn nhất. Menu ⋯ ghi thêm zoom bù. Tự kiểm: bất biến 38 viết lại.']},
   {v:'v1.7.28', ngay:'16/10/2026', nd:['Chế độ Điện thoại trên máy mới vẫn như bản máy tính thu nhỏ (chủ quán báo 16/10): nghi điện thoại bị Chrome dựng khung RỘNG hơn màn hình (thường do bật "Trang web cho máy tính"; Chrome bỏ qua viewport của trang nên mọi bố cục bị thu nhỏ). Trang không tự sửa được (thử zoom CSS bù thì Chart.js vẽ biểu đồ sai cỡ nên bỏ) → hiện thanh cảnh báo ở đầu trang khi thiết bị cảm ứng, màn hình ≤ 500 px mà khung rộng hơn màn hình quá 20%, kèm cách tắt (⋮ → bỏ tick Trang web cho máy tính → tải lại). Menu ⋯ thêm dòng ghi số đo thật (khung · màn hình · cảm ứng) để biết máy đang dựng khung nào. Cửa sổ máy tính ép bố cục Điện thoại thì thu về khung 480 px giữa màn hình, thanh dưới và bảng "Thêm" theo khung đó. Tự kiểm: bất biến 38.']},
   {v:'v1.7.27', ngay:'16/10/2026', nd:['Nút đổi bố cục Điện thoại / Máy tính (chủ quán yêu cầu 16/10, máy mới cài app vẫn chưa ra giao diện điện thoại): nút 📱🖥 trong menu ⋯ (điện thoại) và cuối thanh bên (máy tính), hoặc phím M, đổi vòng Tự động → Điện thoại → Máy tính; máy nhớ lựa chọn (kai_layout). Link dashboard thêm ?giaodien=mobile (hoặc desktop, auto) đặt sẵn cho máy mới. Cách làm: mọi điều kiện @media bề ngang được tính như màn hình 390 px / 1280 px; chế độ Máy tính còn đặt viewport 1280 cho điện thoại. Tự động: điện thoại thật (cảm ứng, cạnh ngắn ≤ 500 px) mà Chrome dựng khung ≥ 900 px (vd "Trang web cho máy tính") thì tự dùng bố cục điện thoại. Tự kiểm: bất biến 37.']},
@@ -2892,6 +2895,13 @@ function tuKiem(){
       gzH = [heSoZoom(980, 412), heSoZoom(412, 412), heSoZoom(1280, 390), heSoZoom(459, 412), heSoZoom(1280, 800), heSoZoom(980, 0)];
     ok('Zoom bù: 1280 px trên màn 390 (cảm ứng) có · 390/390 không · 459/412 không · 500/412 có · máy tính (không cảm ứng) không · tablet 800 có · màn 1200 không · màn 0 không; hệ số 980/412 → 2,38 · 412/412 → 1 · 1280/390 → 3,28 · 459/412 → 1 · 1280/800 → 1,6 · màn 0 → 1',
       gzA.join() === 'true,false,false,true,false,true,false,false' && gzH.join() === '2.38,1,3.28,1,1.6,1', gzA.join('/') + ' · ' + gzH.join('/'));
+    // 39. "Xem →" của cảnh báo Lịch ca dẫn tới đúng thẻ Lịch làm và mở lại thẻ nếu đang thu gọn ▾ (trạng thái thu gọn nhớ trong trình duyệt → thẻ gập chỉ còn dòng tiêu đề, trông như trống); cảnh báo khác chỉ chuyển tab; không có thẻ → false
+    const cLich = $('sec-hr-lich'), lichGap = !!cLich && cLich.classList.contains('collapsed'), lichTrongGop = GOP.has('sec-hr-lich');
+    if (cLich){ GOP.delete('sec-hr-lich'); cLich.classList.add('collapsed'); }
+    const lichMo = cLich ? hienThe('sec-hr-lich', false) : false, lichHetGap = !!cLich && !cLich.classList.contains('collapsed'), khongThe = hienThe('khong-co-the-nay', false);
+    if (cLich){ cLich.classList.toggle('collapsed', lichGap); if (lichTrongGop) GOP.add('sec-hr-lich'); }   // trả đúng trạng thái người dùng đang có, không ghi đè kai_gop
+    ok('Cảnh báo Lịch ca: "Xem →" dẫn tới thẻ Lịch làm (sec-hr-lich) và mở lại thẻ đang thu gọn; cảnh báo khác chỉ chuyển tab; id không có thì trả false',
+      theCuaCanhBao('Lịch ca') === 'sec-hr-lich' && theCuaCanhBao('Kho') === '' && theCuaCanhBao('Sổ sheet') === '' && tabCuaCanhBao('Lịch ca') === 'hr' && !!cLich && lichMo === true && lichHetGap && khongThe === false, `thẻ ${cLich ? 'có' : 'không có'} · mở lại ${lichHetGap ? 'được' : 'không'}`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -3293,9 +3303,9 @@ function renderOv(){
   const alLich = lichCanhBao(), alGoc = FIN.alerts.filter(a => a[0] !== 'good' || !alLich.length), alAll = alGoc.concat(alLich);   // dòng "Ổn" chỉ giữ khi không có cảnh báo nào khác
   const al = alAll.slice().sort((a, b) => thuTu[a[0]] - thuTu[b[0]] || (uuTien[a[1]] ?? 9) - (uuTien[b[1]] ?? 9)), NHIEU = 4;
   $('ovMsgs').innerHTML = al.map(([lv, tag, t, d], i) =>
-    `<div class="km ${lop[lv] || ''}${i >= NHIEU ? ' km-more' : ''}" tabindex="0" role="group"><span class="t">${tag}</span><p><b>${t}.</b> <span class="d">${d}</span> ${lv === 'good' ? '' : `<a href="#" data-go="${tabCuaCanhBao(tag)}">Xem →</a>`}</p></div>`).join('')
+    `<div class="km ${lop[lv] || ''}${i >= NHIEU ? ' km-more' : ''}" tabindex="0" role="group"><span class="t">${tag}</span><p><b>${t}.</b> <span class="d">${d}</span> ${lv === 'good' ? '' : `<a href="#" data-go="${tabCuaCanhBao(tag)}"${theCuaCanhBao(tag) ? ` data-the="${theCuaCanhBao(tag)}"` : ''}>Xem →</a>`}</p></div>`).join('')
     + (al.length > NHIEU ? `<button type="button" class="lnk km-toggle" aria-expanded="false">Còn ${al.length - NHIEU} cảnh báo nữa ▾</button>` : '');
-  $('ovMsgs').querySelectorAll('[data-go]').forEach(a => a.onclick = e => { e.preventDefault(); e.stopPropagation(); setView(a.dataset.go); scrollTo(0, 0); });
+  $('ovMsgs').querySelectorAll('[data-go]').forEach(a => a.onclick = e => { e.preventDefault(); e.stopPropagation(); setView(a.dataset.go); if (!(a.dataset.the && hienThe(a.dataset.the))) scrollTo(0, 0); });   // v1.7.30: cảnh báo trỏ tới 1 thẻ thì mở thẻ đó (nếu đang thu gọn) và cuộn tới
   $('ovMsgs').querySelectorAll('.km').forEach(r => { const mo = () => r.classList.toggle('open'); r.onclick = mo; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); mo(); } }; });
   const tg = $('ovMsgs').querySelector('.km-toggle');
   if (tg) tg.onclick = () => { const mo = $('ovMsgs').classList.toggle('show-all'); tg.setAttribute('aria-expanded', mo); tg.textContent = mo ? 'Thu gọn ▴' : `Còn ${al.length - NHIEU} cảnh báo nữa ▾`; };
@@ -3598,6 +3608,15 @@ document.addEventListener('click', e => {
     c.style.setProperty('--zh', nz); c.querySelector('.zpct').textContent = Math.round(nz * 100) + '%'; veLai(c); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && FOCUS) dongThe(); });
+/** v1.7.30 — mở thẻ đang thu gọn rồi cuộn tới nó (cuon:false = chỉ mở). Thu gọn ▾ được nhớ trong trình duyệt (kai_gop) nên thẻ từng gập chỉ còn dòng tiêu đề, trông như thẻ trống:
+ *  đi tới thẻ từ cảnh báo Tổng quan hoặc từ mục lục thì phải mở lại thẻ. Trả true nếu có thẻ đó. */
+function hienThe(id, cuon = true){
+  const c = $(id); if (!c) return false;
+  if (c.classList.contains('collapsed')){ c.classList.remove('collapsed'); if (GOP.delete(c.id)){ try { localStorage.setItem('kai_gop', JSON.stringify([...GOP])); } catch(e){} } veLai(c); }
+  if (cuon) c.scrollIntoView({block:'start'});
+  return true;
+}
+document.addEventListener('click', e => { const a = e.target.closest('.jnav a'); if (a) hienThe((a.getAttribute('href') || '').slice(1), false); });   // mục lục chip của tab: bấm tên thẻ thì thẻ gập cũng được mở
 
 /* ============ glue ============ */
 function syncFilters(){
