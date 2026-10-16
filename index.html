@@ -158,6 +158,7 @@ details.guide p{margin:4px 0;max-width:110ch}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .legend i.dash{height:0;border-top:2px dashed var(--ghost);border-radius:0;width:14px;vertical-align:3px}
+.legend i.mo{height:0;border-top:2px solid var(--s1);opacity:.35;border-radius:0;width:14px;vertical-align:3px}
 .empty-note{font-size:12.5px;color:var(--muted);padding:18px 6px;text-align:center}
 
 /* ---------- tables ---------- */
@@ -569,7 +570,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     <span class="ago" data-ago></span>
     <div class="fi"><label for="tdPick">Xem ngày khác</label><input type="date" id="tdPick"></div>
     <div class="presets"><button id="tdPrev">◀ Hôm trước</button><button id="tdNow">Hôm nay</button><button id="tdNext">Hôm sau ▶</button></div>
-    <span class="muted tdnote" style="margin-left:auto;font-size:12px">Số liệu từ bot Telegram (tab DonHang) · đơn huỷ không tính · so sánh = <b>cùng thứ tuần trước, tới cùng giờ</b></span>
+    <span class="muted tdnote" style="margin-left:auto;font-size:12px">Số liệu từ bot Telegram (tab DonHang) · đơn huỷ không tính · so sánh = <b>cùng thứ tuần trước và hôm qua (đường mờ), tới cùng giờ</b></span>
   </div>
 
   <div class="fbar" id="fbar">
@@ -599,7 +600,7 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
       <li><b>Chi từ két, chốt ca, chấm công</b>: tab ChiPhi, ChotCa, ChamCong của bot.</li>
       <li><b>Thu chi</b>: tab Vốn &amp; Thu và các tab Chi T10-2026… Tiền quỹ = tiền đầu kỳ + vốn góp + doanh thu bot − chi đã trả tiền trong sổ tháng (dòng tick cột Công nợ là chưa trả, chưa trừ).</li>
       <li>Trang tự đọc lại sheet <b>mỗi phút</b> khi đang mở (đơn mới trên bot hiện sau tối đa ~1 phút). Bấm nút <b>⟳ Tải lại dữ liệu</b> (hoặc phím <b>R</b>) để đọc ngay, ví dụ vừa chốt đơn xong muốn xem liền. Bot ghi đơn vào sheet tức thì nên bấm là thấy ngay.</li>
-      <li><b>Tab Hôm nay</b>: so sánh với cùng thứ tuần trước và hôm qua <i>tính tới cùng giờ hiện tại</i>, để so sánh công bằng giữa ca.</li>
+      <li><b>Tab Hôm nay</b>: so sánh với cùng thứ tuần trước và hôm qua <i>tính tới cùng giờ hiện tại</i>, để so sánh công bằng giữa ca. Hai biểu đồ nhịp bán và ly theo giờ có thêm <b>đường mờ = hôm qua</b> (cả ngày); biểu đồ ly theo khung giờ ở tab Bán hàng có đường mờ = kỳ liền trước cùng số ngày.</li>
     </ul>
     <h4>Thẻ chỉ số</h4>
     <ul>
@@ -663,13 +664,14 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
     </div>
     <div class="g311">
       <div class="card">
-        <div class="ct">Nhịp bán cộng dồn <span class="nt">· số ly lũy kế theo 15 phút · nét đứt = cùng thứ tuần trước · chấm = nhịp cần để đạt mục tiêu</span></div>
+        <div class="ct">Nhịp bán cộng dồn <span class="nt">· số ly lũy kế theo 15 phút · nét đứt = cùng thứ tuần trước · đường mờ = hôm qua · chấm = nhịp cần để đạt mục tiêu</span></div>
         <div class="cw tall"><canvas id="cPace" aria-label="Số ly cộng dồn trong ngày"></canvas></div>
         <div class="legend" id="lgPace"></div>
       </div>
       <div class="card">
-        <div class="ct">Ly theo giờ</div>
-        <div class="cw tall"><canvas id="cTdHour" aria-label="Số ly theo giờ trong ngày"></canvas></div>
+        <div class="ct">Ly theo giờ <span class="nt">· cột = hôm nay · đường mờ = hôm qua</span></div>
+        <div class="cw tall"><canvas id="cTdHour" aria-label="Số ly theo giờ trong ngày, so với hôm qua"></canvas></div>
+        <div class="legend" id="lgTdHour"></div>
       </div>
       <div class="card">
         <div class="ct">Món hôm nay</div>
@@ -715,8 +717,9 @@ button,a,.presets button,.jnav a{touch-action:manipulation;-webkit-tap-highlight
 
     <div class="g3">
       <div class="card">
-        <div class="ct">Ly theo khung giờ <span class="nt">· click cột để lọc</span></div>
-        <div class="cw"><canvas id="cHour" aria-label="Số ly theo giờ"></canvas></div>
+        <div class="ct">Ly theo khung giờ <span class="nt">· click cột để lọc · đường mờ = kỳ liền trước cùng số ngày</span></div>
+        <div class="cw"><canvas id="cHour" aria-label="Số ly theo giờ, so với kỳ liền trước"></canvas></div>
+        <div class="legend" id="lgHour"></div>
       </div>
       <div class="card">
         <div class="ct">Doanh thu TM vs CK theo ngày <span class="nt">· cột chồng = tổng doanh thu</span></div>
@@ -1176,6 +1179,10 @@ const pct = (n, d=0) => (n == null || !isFinite(n)) ? '—' : (n*100).toLocaleSt
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const txt = v => v == null ? '' : String(v).trim();
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+/** v1.7.22 — đường "mờ" của ngày / kỳ so sánh trên biểu đồ ly theo giờ: cùng màu đường chính nhưng nhạt (hex #rrggbb → rgba) */
+const mauMo = (c, a = .38) => { const m = /^#([0-9a-f]{6})$/i.exec(String(c).trim()); if (!m) return c; const v = parseInt(m[1], 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
+/** Số ly mỗi giờ của một danh sách đơn (đơn không có giờ không tính) */
+const lyTheoGio = (list, hrs) => hrs.map(h => list.filter(o => o.h === h).reduce((s, o) => s + o.sl, 0));
 /** v1.3: ô "Giá vốn / ly" (tab Thu chi): số ≥ 0 hoặc null khi trống/không hợp lệ (trước đây trống = 0, âm thầm) */
 /** Giá vốn/ly bình quân theo công thức × số ly từng món đã bán, làm tròn đồng; chưa có số thật → null (v1.4: bỏ ô nhập tay ở Thu chi) */
 const cogsO = () => { const v = cogsTheoCT(); return v == null ? null : Math.round(v); };
@@ -1670,13 +1677,17 @@ function renderSales(){
 
   /* --- hour --- */
   const hours = []; for (let h = 5; h <= 12; h++) hours.push(h);
-  L.forEach(o => { if (o.h != null && !hours.includes(o.h)) hours.push(o.h); }); hours.sort((a,b) => a-b);
+  const Lp = sel(new Set(['hour']), pFrom, pTo);   // v1.7.22: kỳ liền trước cùng số ngày (cùng bộ lọc, trừ giờ)
+  L.concat(Lp).forEach(o => { if (o.h != null && !hours.includes(o.h)) hours.push(o.h); }); hours.sort((a,b) => a-b);
   const Lh = sel(new Set(['hour'])), byH = groupBy(Lh, o => o.h);
   const hLy = hours.map(h => (byH.get(h) || []).reduce((s, o) => s + o.sl, 0));
-  mk('cHour', {type:'bar', data:{labels:hours.map(h => `${p2(h)}h`), datasets:[Object.assign({label:'Ly', data:hLy,
-      backgroundColor:hours.map(h => S.hour == null || S.hour === h ? s1 : ghost)}, barStyle(s1), {backgroundColor:hours.map(h => S.hour == null || S.hour === h ? s1 : ghost)})]},
-    options:{onClick:(e, els) => { if (!els.length) return; const h = hours[els[0].index]; S.hour = S.hour === h ? null : h; render(); },
-      onHover:(e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; }}});
+  const hpLy = lyTheoGio(Lp, hours), pTot = hpLy.reduce((a, b) => a + b, 0), pLb = n === 1 ? (S.to === today() ? 'Hôm qua' : `${thu(pFrom)} ${dShort(pFrom)}`) : `Kỳ trước (${n} ngày)`;
+  mk('cHour', {type:'bar', data:{labels:hours.map(h => `${p2(h)}h`), datasets:[Object.assign({label:'Ly', data:hLy, order:2,
+      backgroundColor:hours.map(h => S.hour == null || S.hour === h ? s1 : ghost)}, barStyle(s1), {backgroundColor:hours.map(h => S.hour == null || S.hour === h ? s1 : ghost)}),
+      {type:'line', label:pLb, data:pTot ? hpLy : hours.map(() => null), borderColor:mauMo(s1), backgroundColor:mauMo(s1), borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25, spanGaps:true, order:1}]},
+    options:{onClick:(e, els) => { const b = els.find(x => x.datasetIndex === 0); if (!b) return; const h = hours[b.index]; S.hour = S.hour === h ? null : h; render(); },
+      onHover:(e, els) => { e.native.target.style.cursor = els.some(x => x.datasetIndex === 0) ? 'pointer' : 'default'; }}});
+  $('lgHour').innerHTML = `<span><i style="background:${s1}"></i>Ly trong kỳ</span><span><i class="mo"></i>${pLb}${pTot ? ` · ${fmt(pTot)} ly` : ' · chưa có dữ liệu'}</span>`;
 
   /* --- mix --- */
   const tmD = days.map(k => (byDay.get(k) || []).filter(o => o.pt === 'TM').reduce((s, o) => s + o.tt, 0));
@@ -1820,27 +1831,32 @@ function renderToday(){
           : `Lời ${fmt(P.laiLy)} đ/ly (giá TB − giá vốn) → cần <b>${fmt(P.canLy)} ly</b> để đủ trả lương hôm nay${P.ly >= P.canLy ? ', <span class="up">đã qua mốc</span>' : `, còn thiếu ${fmt(P.canLy - P.ly)} ly`}. Chưa tính thuê chỗ, điện nước, phí nhượng quyền.`}</span>`; })()}`;
 
   /* pace: cumulative per 15' */
-  const mins = L.concat(D.orders.filter(o => o.k === addDays(k, -7))).map(o => o.min).filter(m => m != null);
+  const ydL = hasY ? D.orders.filter(o => o.k === addDays(k, -1)) : [], ydFull = agg(ydL), ydLb = isToday ? 'Hôm qua' : `${thu(addDays(k, -1))} ${dShort(addDays(k, -1))}`;   // v1.7.22: đường mờ hôm qua
+  const mins = L.concat(D.orders.filter(o => o.k === addDays(k, -7)), ydL).map(o => o.min).filter(m => m != null);
   const start = Math.min(6 * 60, ...mins.map(m => Math.floor(m / 15) * 15)), end = Math.max(11 * 60, ...mins.map(m => Math.ceil((m + 1) / 15) * 15));
   const slots = []; for (let m = start; m <= end; m += 15) slots.push(m);
   const cum = (list, cap) => slots.map(m => m > cap + 14 ? null : list.filter(o => o.min != null && o.min < m + 15).reduce((s, o) => s + o.sl, 0));
   const todayCum = cum(L, isToday ? nowMin : 24 * 60);
-  const wkCum = hasW ? cum(D.orders.filter(o => o.k === addDays(k, -7)), 24 * 60) : slots.map(() => null);
+  const wkCum = hasW ? cum(D.orders.filter(o => o.k === addDays(k, -7)), 24 * 60) : slots.map(() => null), ydCum = hasY ? cum(ydL, 24 * 60) : slots.map(() => null);
   const shiftS = 6 * 60, shiftE = 11 * 60;
   const tgtLine = slots.map(m => Math.round(S.tgt * Math.max(0, Math.min(1, (m + 15 - shiftS) / (shiftE - shiftS)))));
   const s1 = css('--s1'), ghost = css('--ghost'), bad = css('--bad');
   mk('cPace', {type:'line', data:{labels:slots.map(m => `${p2(Math.floor(m / 60))}:${p2(m % 60)}`), datasets:[
       {label:'Hôm nay', data:todayCum, borderColor:s1, backgroundColor:s1, borderWidth:2.5, pointRadius:0, pointHoverRadius:4, tension:.2, spanGaps:false},
       {label:`${thu(addDays(k, -7))} tuần trước`, data:wkCum, borderColor:ghost, borderDash:[5,4], borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.2},
+      {label:ydLb, data:ydCum, borderColor:mauMo(s1), backgroundColor:mauMo(s1), borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.2, order:2},
       {label:'Nhịp mục tiêu', data:tgtLine, borderColor:bad, borderDash:[2,3], borderWidth:1.2, pointRadius:0, pointHoverRadius:0}]},
     options:{scales:{x:{grid:{display:false}, ticks:{maxRotation:0, autoSkip:true, maxTicksLimit:8}}}, plugins:{tooltip:{callbacks:{label:c => c.raw == null ? null : ` ${c.dataset.label}: ${fmt(c.raw)} ly`}}}}});
-  $('lgPace').innerHTML = `<span><i style="background:${s1}"></i>Hôm nay${isToday ? ` (tới ${p2(now.getHours())}:${p2(now.getMinutes())})` : ''}</span><span><i class="dash"></i>${thu(addDays(k, -7))} tuần trước${hasW ? ` · cả ngày ${fmt(lastWkFull.ly)} ly` : ' · chưa có dữ liệu'}</span><span><i class="dash" style="border-top-color:${bad};border-top-style:dotted"></i>Nhịp để đạt ${S.tgt} ly lúc 11:00</span>`;
+  $('lgPace').innerHTML = `<span><i style="background:${s1}"></i>Hôm nay${isToday ? ` (tới ${p2(now.getHours())}:${p2(now.getMinutes())})` : ''}</span><span><i class="dash"></i>${thu(addDays(k, -7))} tuần trước${hasW ? ` · cả ngày ${fmt(lastWkFull.ly)} ly` : ' · chưa có dữ liệu'}</span><span><i class="mo"></i>${ydLb}${hasY ? ` · cả ngày ${fmt(ydFull.ly)} ly` : ' · chưa có dữ liệu'}</span><span><i class="dash" style="border-top-color:${bad};border-top-style:dotted"></i>Nhịp để đạt ${S.tgt} ly lúc 11:00</span>`;
 
   /* hour */
   const hrs = []; for (let h = Math.floor(start / 60); h <= Math.floor((end - 1) / 60); h++) hrs.push(h);
   const hv = hrs.map(h => L.filter(o => o.h === h).reduce((s, o) => s + o.sl, 0));
-  mk('cTdHour', {type:'bar', data:{labels:hrs.map(h => `${p2(h)}h`), datasets:[Object.assign({label:'Ly', data:hv}, barStyle(s1))]},
-    options:{plugins:{tooltip:{callbacks:{label:c => ` ${c.raw} ly`}}}}});
+  const hvY = hasY ? lyTheoGio(ydL, hrs) : hrs.map(() => null);
+  mk('cTdHour', {type:'bar', data:{labels:hrs.map(h => `${p2(h)}h`), datasets:[Object.assign({label:isToday ? 'Hôm nay' : 'Ngày xem', data:hv, order:2}, barStyle(s1)),
+      {type:'line', label:ydLb, data:hvY, borderColor:mauMo(s1), backgroundColor:mauMo(s1), borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25, spanGaps:true, order:1}]},
+    options:{plugins:{tooltip:{callbacks:{label:c => c.raw == null ? null : ` ${c.dataset.label}: ${c.raw} ly`}}}}});
+  $('lgTdHour').innerHTML = `<span><i style="background:${s1}"></i>${isToday ? 'Hôm nay' : 'Ngày xem'}</span><span><i class="mo"></i>${ydLb}${hasY ? ` · cả ngày ${fmt(ydFull.ly)} ly` : ' · chưa có dữ liệu'}</span>`;
 
   /* món */
   const rows = [...groupBy(L, o => o.mon)].map(([m, l]) => { const a = agg(l); return {mon:m, ly:a.ly, dt:a.dt, share: A.ly ? a.ly / A.ly : 0}; });
@@ -2431,7 +2447,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.21';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.22';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2488,6 +2504,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.22', ngay:'16/10/2026', nd:['Các biểu đồ ly theo giờ thêm đường MỜ so sánh (chủ quán yêu cầu 16/10): tab Hôm nay — nhịp bán cộng dồn thêm đường mờ hôm qua (cả ngày, bên cạnh nét đứt cùng thứ tuần trước) và biểu đồ ly theo giờ thêm đường mờ hôm qua đè lên cột hôm nay, chú giải ghi tổng ly cả ngày hôm qua; xem ngày cũ thì so với ngày liền trước đó. Tab Bán hàng — ly theo khung giờ thêm đường mờ kỳ liền trước cùng số ngày (kỳ 1 ngày hôm nay = hôm qua), cùng bộ lọc món / nhân viên / thanh toán; click vào cột vẫn lọc giờ như cũ. Tự kiểm: bất biến 34.']},
   {v:'v1.7.21', ngay:'16/10/2026', nd:['Sửa lại v1.7.20 theo chủ quán: nắp đỏ lẻ là nắp của ly BÁN, mỗi ly bán 1 nắp (ly và nắp tính số lượng như nhau) nên trở lại là nguyên liệu trong công thức (cột Nắp đỏ của tab CongThuc = 1 cho cả 17 món, +126 đ giá vốn / ly) và không còn tính là hàng cho kèm; nắp + ly trà cho kèm vẫn chưa tính vào giá vốn. Đường chai "Không còn dùng" giữ nguyên. Tự kiểm: bất biến 33 sửa ca nắp đỏ.']},
   {v:'v1.7.20', ngay:'16/10/2026', nd:['Chủ quán trả lời 4 ý còn mở của v1.7.19: nắp đỏ lẻ là combo ly trà (cùng hóa đơn ly hồng + túi xốp trà) nên tính là hàng cho kèm, KHÔNG phải nắp ly cà phê → bỏ giả định 1 nắp / ly khỏi công thức (giá vốn / ly bình quân về lại như trước); đường chai đã đổi sang đường cát nên dòng sổ chi ghi "Không còn dùng" và được loại khỏi cảnh báo không vào PNL; kem béo + kem muối cùng nguyên liệu (giữ gộp mã kb); chênh két 12/10 và 15/10 chủ theo dõi thêm. Tự kiểm: bất biến 33 thêm ca nắp đỏ và "Không còn dùng".']},
   {v:'v1.7.19', ngay:'15/10/2026', nd:['Xử lý 3 cảnh báo Kiểm chứng: (1) dòng 0 đ có chữ "tặng" trong nội dung hoặc Chú thích (cà phê Platinum "Tặng 5 ký") là hàng tặng đã xác nhận, hết nhắc; sổ chi đọc thêm cột K Chú thích. (2) "Chi mua khối Giá vốn không vào PNL": hóa đơn cũ ("HĐ cũ", không cộng kho) được loại; ly hồng TKH + túi xốp trà tắc tính là hàng cho kèm cùng ly trà đá (T10 bỏ qua, từ T11 tính theo kho thực); trong Sheet: ấm siêu tốc + hộp 1,5L / 0,7L chuyển sang Trang thiết bị (Đầu tư), kem béo + kem muối gộp một mã kb (giá bình quân 16 hộp), nắp đỏ thêm 1 cái / ly vào công thức. (3) Chênh két 12/10 và 15/10 là chênh tiền thật, chủ đối soát.', 'Hạng mục "Marketing khai trương (không tính vào lãi)" đổi tên thành "Vận hành hệ thống" (khối vẫn Đầu tư, T10 vẫn bỏ qua) ở Sheet và dashboard. Tự kiểm: bất biến 33.']},
@@ -2811,6 +2828,10 @@ function tuKiem(){
       qxK = ['Ly hồng tkh bao', 'Xốp túi trà tắc (1 kg)', 'Ly cà phê', 'Ly trà đá 300ml', 'Nắp đỏ lẻ'].map(d => laChoKem({desc:d})), qxB = [laBoQua({m:'2026-10', cat:'Vận hành hệ thống', desc:'Build system tracking'}), laBoQua({m:'2026-11', cat:'Vận hành hệ thống', desc:'Build system tracking'}), laBoQua({m:'2026-10', cat:'Trang thiết bị', desc:'Ấm siêu tốc'})];
     ok('Phân loại sổ chi: "Tặng 5 ký" là hàng tặng, thiếu ghi chú thì không; "(HĐ cũ)" / "HÓA ĐƠN CŨ" nhận ra, "Cacao mới" thì không; "Không còn dùng" nhận ra, đường cát thì không; ly hồng + túi xốp trà tắc + ly trà đá là hàng cho kèm, ly cà phê và nắp đỏ lẻ (nắp ly bán) thì không; "Vận hành hệ thống" T10 bỏ qua, T11 không, thiết bị không',
       qxT.join() === 'true,false,true,true,false,true,false' && qxK.join() === 'true,true,false,true,false' && qxB.join() === 'true,false,false', `${qxT.join('/')} · ${qxK.join('/')} · ${qxB.join('/')}`);
+    // 34. Đường mờ hôm qua / kỳ trước ở biểu đồ ly theo giờ: cộng ly đúng giờ, đơn không có giờ bỏ qua, màu mờ dựng từ hex
+    const gqO = [{h:6, sl:2}, {h:6, sl:1}, {h:7, sl:4}, {h:9, sl:5}, {h:null, sl:3}], gqH = lyTheoGio(gqO, [6, 7, 8, 9]);
+    ok('Ly theo giờ: 2+1 ly lúc 6h, 4 ly lúc 7h, 0 lúc 8h, 5 ly lúc 9h, đơn không có giờ không tính; đường mờ #5E3B25 → rgba(94,59,37,0.38), màu không phải hex giữ nguyên',
+      gqH.join() === '3,4,0,5' && mauMo('#5E3B25') === 'rgba(94,59,37,0.38)' && mauMo('rgb(1,2,3)') === 'rgb(1,2,3)', `${gqH.join('/')} · ${mauMo('#5E3B25')}`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
