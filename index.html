@@ -782,19 +782,15 @@ html.mcap{background:var(--paper)}
     <nav class="jnav" aria-label="Mục lục tab Món"></nav>
     <div class="g2">
       <div class="card" id="sec-mon-tbl">
-        <div class="ct">Bán theo món <span class="nt">· click dòng để lọc cả dashboard · ＋ xem theo ngày</span></div>
-        <div class="tblwrap" style="max-height:380px"><table id="tMon"></table></div>
+        <div class="ct">Bán theo món <span class="nt">· click dòng để lọc cả dashboard · ＋ xem theo ngày · giá vốn / lãi theo công thức (như tab PNL) · món chưa bán trong kỳ ở cuối</span></div>
+        <div class="tblwrap" style="max-height:420px"><table id="tMon"></table></div>
+        <div class="cmt" id="monCmt"></div>
       </div>
-      <div class="card" id="sec-mon-top">
-        <div class="ct">Món bán chạy <span class="nt">· số ly trong kỳ · màu theo nhóm món</span></div>
-        <div class="cw tall"><canvas id="cMonTop" aria-label="Số ly theo món"></canvas></div>
-        <div class="legend" id="lgMonTop"></div>
+      <div class="card" id="sec-mon-pie">
+        <div class="ct">Cơ cấu theo nhóm món <span class="nt">· tỉ trọng số ly trong kỳ</span></div>
+        <div class="cw"><canvas id="cMonPie" aria-label="Tỉ trọng số ly theo nhóm món"></canvas></div>
+        <div class="legend" id="lgMonPie"></div>
       </div>
-    </div>
-    <div class="card" id="sec-mon-pie">
-      <div class="ct">Cơ cấu theo nhóm món <span class="nt">· tỉ trọng số ly trong kỳ</span></div>
-      <div class="cw"><canvas id="cMonPie" aria-label="Tỉ trọng số ly theo nhóm món"></canvas></div>
-      <div class="legend" id="lgMonPie"></div>
     </div>
     <div class="card" id="sec-mon-hour">
       <div class="ct">Món × khung giờ <span class="nt">· số ly, nền đậm = bán nhiều · thấy món nào chạy giờ nào</span></div>
@@ -804,6 +800,12 @@ html.mcap{background:var(--paper)}
       <div class="ct">Khai trương 10K vs giá thường <span class="nt">· cả quán, không theo bộ lọc · TB mỗi ngày có bán</span></div>
       <div class="tblwrap" style="border:0"><table id="tPromo"></table></div>
       <div class="cmt" id="promoCmt"></div>
+    </div>
+    <div class="card" id="sec-perf-km">
+      <div class="ct">Khuyến mãi 10K theo món <span class="nt">· cả quán, không theo bộ lọc · ly/ngày trong đợt vs sau đợt (trước ở tab Hiệu suất)</span></div>
+      <div class="cw"><canvas id="cPerfKM" aria-label="Ly mỗi ngày theo món trong và sau đợt khuyến mãi"></canvas></div>
+      <div class="legend" id="lgPerfKM"></div>
+      <div class="tblwrap" style="max-height:360px"><table id="tPerfKM"></table></div>
     </div>
   </div>
 
@@ -913,13 +915,7 @@ html.mcap{background:var(--paper)}
       <div class="cmt" id="perfSlotCmt"></div>
     </div>
     <div class="g2">
-      <div class="card" id="sec-perf-km">
-        <div class="ct">Khuyến mãi 10K theo món <span class="nt">· ly/ngày trong đợt vs sau đợt</span></div>
-        <div class="cw"><canvas id="cPerfKM" aria-label="Ly mỗi ngày theo món trong và sau đợt khuyến mãi"></canvas></div>
-        <div class="legend" id="lgPerfKM"></div>
-        <div class="tblwrap" style="max-height:360px"><table id="tPerfKM"></table></div>
-      </div>
-      <div class="card" id="sec-perf-combo">
+      <div class="card" id="sec-perf-combo" style="grid-column:1/-1">
         <div class="ct">Giỏ hàng &amp; combo <span class="nt">· món hay mua cùng đơn · ly/đơn theo giờ</span></div>
         <div class="kv" id="perfGio"></div>
         <div class="cw sm"><canvas id="cPerfCombo" aria-label="Các cặp món hay mua cùng đơn"></canvas></div>
@@ -1050,7 +1046,7 @@ html.mcap{background:var(--paper)}
   <div class="view qo" id="v-qo" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục tab Mã món"></nav>
     <div class="card" id="sec-qo-ma">
-      <div class="ct">Mã món <span class="nt">· tự lấy từ tab Menu · cột Gõ tắt là các cách gõ quen của quán (cột F tab Menu)</span></div>
+      <div class="ct">Mã món <span class="nt">· tự lấy từ tab Menu · xếp theo món bán nhiều 7 ngày gần nhất (bấm tiêu đề cột để xếp khác) · cột Gõ tắt là các cách gõ quen của quán (cột F tab Menu)</span></div>
       <div class="tblwrap" style="max-height:none"><table id="tQoMa"></table></div>
       <div class="cmt" id="qoMaNote"></div>
     </div>
@@ -1384,7 +1380,7 @@ const VIEW_INFO = {
   hr:['Nhân sự', 'Ai làm bao nhiêu giờ, bán được bao nhiêu ly trong ca, lương tạm tính và đối soát két.'],
   sales:['Bán hàng', 'Doanh thu, số ly theo ngày và khung giờ trong kỳ đang lọc, so với kỳ trước.'],
   dtt:['Doanh thu thuần', 'Doanh thu THỰC THU theo ngày như tab Doanh thu của Sheet: tiền mặt, chuyển khoản, lệch so với đơn bot, chốt ca, mục tiêu tháng. Theo kỳ đang lọc (lọc nhân viên / món / thanh toán không áp dụng).'],
-  mon:['Món', 'Món nào chạy, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
+  mon:['Món', 'Món nào chạy, lời bao nhiêu mỗi ly, món nào chưa bán, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
   qo:['Mã món & order nhanh', 'Mã từng món, cách gõ tắt và cách order nhanh trên bot; bảng tự lấy từ tab Menu.'],
   fin:['Thu chi', 'Quỹ còn bao nhiêu, lãi vận hành, các khoản chi theo khối và người chi.'],
   kho:['Kho', 'Nguyên liệu và vật tư còn đủ dùng bao nhiêu ngày theo nhịp bán hiện tại.'],
@@ -1392,7 +1388,7 @@ const VIEW_INFO = {
   new:['Có gì mới', 'Phiên bản dashboard, những gì đã đổi ở từng bản và các việc còn treo (chờ chủ quán, chờ đủ dữ liệu, kỹ thuật, ngoài dashboard).'],
   kc:['Kiểm chứng', 'Định lượng và công thức nào còn là ước tính, phân tích nào cần thêm ngày bán / số ly mới đáng tin, và tự kiểm số học.'],
   pnl:['PNL', 'Lãi lỗ chi tiết: từ doanh thu tới lãi ròng, theo món, theo ngày, theo nguyên liệu. Dự phóng và độ nhạy xem tab Kế hoạch.'],
-  perf:['Hiệu suất', 'Dự báo ngày mai, khung giờ cần mấy người, khuyến mãi theo món, giỏ hàng, nhịp cao điểm. Mục chưa đủ dữ liệu để trống. (Lãi theo món xem tab PNL; két theo người ở tab Nhân sự; hao hụt và mua hàng ở tab Kho.)'],
+  perf:['Hiệu suất', 'Dự báo ngày mai, khung giờ cần mấy người, giỏ hàng, nhịp cao điểm. Mục chưa đủ dữ liệu để trống. (Lãi theo món xem tab PNL; két theo người ở tab Nhân sự; hao hụt và mua hàng ở tab Kho.)'],
 };
 /** Đường mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn): TẠM TẮT 16/10/2026 theo chủ quán — chỉ vẽ số liệu thật. Bật lại = true (và trả chữ "vạch / chấm = mục tiêu" vào tiêu đề 2 biểu đồ). */
 const HIEN_LINE_MUC_TIEU = false;
@@ -1692,21 +1688,6 @@ function renderSales(){
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu</span><span class="v ${achv == null ? '' : achv >= 1 ? 'up' : achv >= .9 ? '' : 'dn'}">${pct(achv)}</span>
       <span class="s">${fmt(A.ly)} / ${fmt(tgtLy)} ly · ${S.tgt} ly × ${A.nd} ngày bán</span></div>`;
 
-  /* --- món --- */
-  const byMon = groupBy(L, o => o.mon);
-  const monRows = [...byMon].map(([m, l]) => { const a = agg(l); return {mon:m, ly:a.ly, dt:a.dt, share: A.dt ? a.dt / A.dt : 0, asp:a.asp, ck: a.dt ? a.ck / a.dt : null}; });
-  const monCols = [
-    {k:'mon', l:'Món', f:v => esc(v)},
-    {k:'ly', l:'Ly', r:1, heat:1, f:fmt},
-    {k:'dt', l:'Doanh thu', r:1, heat:1, f:fmt},
-    {k:'share', l:'%DT', r:1, f:v => pct(v)},
-    {k:'asp', l:'Giá TB', r:1, f:fmt},
-    {k:'ck', l:'%CK', r:1, f:v => pct(v)},
-  ];
-  table({id:'tMon', cols:monCols, rows:monRows, sortDefault:{k:'ly', d:-1}, rowKey:r => r.mon, selKey:S.mon,
-    onRow:k => { S.mon = S.mon === k ? '' : k; syncFilters(); render(); },
-    child:r => [...groupBy(byMon.get(r.mon), o => o.k)].sort((a,b) => b[0].localeCompare(a[0])).map(([k, l]) => { const a = agg(l); return {mon:`${thu(k)} ${dShort(k)}`, ly:a.ly, dt:a.dt, share: r.dt ? a.dt / r.dt : 0, asp:a.asp, ck: a.dt ? a.ck / a.dt : null}; }),
-    total:{ly:A.ly, dt:A.dt, share: A.dt ? 1 : null, asp:A.asp, ck: A.dt ? A.ck / A.dt : null}});
 
   /* --- payment donut --- */
   const s1 = css('--s1'), s2 = css('--s2'), s3 = css('--s3'), ghost = css('--ghost'), surf = css('--surface');
@@ -1767,7 +1748,7 @@ function renderSales(){
       plugins:{tooltip:{callbacks:{label:c => ` ${fmt(c.raw)} đ/ly`}}}}});
 
   /* --- auto comment --- */
-  const bestH = hours[hLy.indexOf(Math.max(...hLy))], topMon = monRows.slice().sort((a,b) => b.ly - a.ly)[0];
+  const bestH = hours[hLy.indexOf(Math.max(...hLy))], topMon = [...groupBy(L, o => o.mon)].map(([mon, l]) => ({mon, ly:l.reduce((t, o) => t + o.sl, 0)})).sort((a,b) => b.ly - a.ly)[0];   // v1.7.37: bảng món đã chuyển sang renderMon
   const cmt = [];
   if (A.ly){
     cmt.push(`<b>📌 Kỳ ${dShort(S.from)}–${dShort(S.to)}</b>: ${fmt(A.ly)} ly, ${fmt(A.dt)} đ, ${A.nd} ngày có bán.`);
@@ -1822,7 +1803,6 @@ function renderSales(){
     th += `<tr><td>${THU[w]}</td>` + hh.map(h => { const v = cellMap[w + '|' + h] || 0; sum += v;
       return `<td class="r num"${v ? ` style="background:rgba(${css('--heat')},${(0.1 + 0.6 * v / hmax).toFixed(2)})"` : ''}>${v || ''}</td>`; }).join('') + `<td class="r num"><b>${sum || ''}</b></td></tr>`; });
   $('tHeat').innerHTML = th + '</tbody>';
-  renderPromo();
 }
 
 /* --- Khai trương 10K vs giá thường (cả quán, bỏ qua bộ lọc) --- */
@@ -2530,7 +2510,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.36';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.37';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2587,6 +2567,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.37', ngay:'16/10/2026', nd:['Tối ưu tab Món và Mã món (chủ quán chốt 16/10): bảng Bán theo món thêm giá vốn/ly, lãi/ly, lãi gộp (cùng tinhPnl của tab PNL) và các món trong Menu chưa bán ly nào trong kỳ (ở cuối, ghi "chưa bán", lãi/ly tính ở giá menu; không hiện khi đang lọc nhân viên / thanh toán / giờ / món), kèm ghi chú món chưa bán và món bán dưới giá vốn; bỏ biểu đồ "Món bán chạy" (lặp bảng), bảng và cơ cấu nhóm món đứng cạnh nhau; thẻ "Khuyến mãi 10K theo món" chuyển từ Hiệu suất sang tab Món cạnh "Khai trương 10K vs giá thường" (hết trùng); mở tab Món không còn tính lại cả tab Bán hàng phía sau. Mã món: thêm cột Ly 7 ngày và xếp theo món bán nhiều.']},
   {v:'v1.7.36', ngay:'16/10/2026', nd:['Tách vai Bán hàng / Doanh thu thuần cho khỏi trùng (chủ quán chốt 16/10): Bán hàng chỉ còn số theo ĐƠN BOT (ly, món, giờ, nhân viên, nút 💵 / 🏦 nhân viên bấm) — thẻ "Cơ cấu thanh toán" đổi thành "Thanh toán theo đơn bot", biểu đồ TM / CK theo ngày ghi rõ "theo đơn bot", bảng Chi tiết theo ngày bỏ các cột Thực thu / TM / CK thật, Chi két, Chênh két (cột %CK tính theo đơn bot). Tiền thật sau chốt ca, chi két, chênh két chỉ ở tab Doanh thu thuần (có liên kết từ thẻ thanh toán). Thu chi giữ quỹ, chi, công nợ.']},
   {v:'v1.7.35', ngay:'16/10/2026', nd:['Tab mới "Doanh thu thuần" (nhóm Bán hàng, chủ quán yêu cầu 16/10): theo dõi doanh thu THỰC THU như tab Doanh thu của Sheet, theo kỳ đang lọc. 6 thẻ (thực thu · tiền mặt · chuyển khoản · lệch tiền thực vs đơn bot · số ly và giá TB/ly thực thu · số ngày đã chốt ca), biểu đồ cột chồng tiền mặt + CK theo ngày kèm nét đứt doanh thu bot ghi, bảng hằng ngày (TM · CK · thực thu · bot ghi · lệch · ly · giá TB/ly · chốt ca · chênh MoMo nếu có · ghi chú của Sheet) và bảng theo tháng (thực thu · ngày bán · mục tiêu · %đạt · dự phóng tháng này). Số mỗi ngày dùng chung nguonTien() với Tổng quan / Thu chi (ngày đã chốt = đơn bot + chênh két, tiền mặt = cột C tab Doanh thu; chưa chốt = theo đơn bot); ghi chú, chênh MoMo, mục tiêu tháng đọc từ tab Doanh thu theo tên cột (docDtSheet). Tự kiểm: bất biến 42.']},
   {v:'v1.7.34', ngay:'16/10/2026', nd:['Sửa lỗi tiền mặt / CK (chủ quán báo 16/10/2026: chốt ca tm 780 ck 250 mà Sheet ghi cả 1.030.000 vào CK). Sheet tab Doanh thu cột C Tiền mặt = Trích tiền mặt nếu chủ nhập, chưa nhập thì lấy số tm lúc chốt ca (khi chốt đủ tm + ck); Quỹ tiền và ô mặt/CK 12 tab Chi tháng đọc cột C. Dashboard đọc tiền mặt từ cột C (một nguồn với Quỹ tiền), tổng dự phòng từ cột H. Tab Bán hàng: bảng theo ngày thêm cột Thực thu, cột TM / CK và biểu đồ cách trả theo tiền thật sau chốt ca (đang lọc nhân viên / món / giờ thì theo đơn bot). Hôm nay: 2 dòng đầu khối tiền ghi rõ theo đơn bot.']},
@@ -3341,11 +3322,12 @@ const giaDangBan = (ma, giaMenu, k) => !isPromo(k) ? giaMenu : (ma in KM_RIENG ?
 const tatMon = v => txt(v).split(/[,;]/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
 const QO_VI_DU = [['2 muối ck', '2 cà phê muối, chuyển khoản'], ['bx muối 2', '2 bạc xỉu muối'], ['mt muối', '1 matcha latte muối'], ['sm2 dm', '2 cà phê sữa máy + 1 cà phê đen máy'], ['muối hết rồi', 'không thành đơn (bot không hiểu đây là đơn)']];
 function renderQo(){
-  const tk = today(), rows = Object.entries(D.menu).map(([ten, m], i) => ({i, ma:m.ma, ten, nhom:m.nhom, ban:m.ban, gia:m.gia, nay:giaDangBan(m.ma.toLowerCase(), m.gia, tk), tat:(m.tat || []).join(', ')}));
-  table({id:'tQoMa', rows, sortDefault:{k:'i', d:1}, cols:[
+  const tk = today(), tu7 = addDays(tk, -6), ly7 = {}; D.orders.forEach(o => { if (o.k >= tu7 && o.k <= tk) ly7[o.mon] = (ly7[o.mon] || 0) + o.sl; });   // v1.7.37: ly 7 ngày gần nhất (gồm hôm nay)
+  const rows = Object.entries(D.menu).map(([ten, m], i) => ({i, ma:m.ma, ten, nhom:m.nhom, ban:m.ban, gia:m.gia, nay:giaDangBan(m.ma.toLowerCase(), m.gia, tk), tat:(m.tat || []).join(', '), ly7:ly7[ten] || 0}));
+  table({id:'tQoMa', rows, sortDefault:{k:'ly7', d:-1}, cols:[
     {k:'ma', l:'Mã', f:v => `<code>${esc(v)}</code>`}, {k:'ten', l:'Tên món', f:(v, r) => esc(v) + (r && !r.ban ? ' <span class="pill neu">ngừng bán</span>' : '')},
     {k:'gia', l:'Giá menu', r:1, f:fmt}, {k:'nay', l:'Giá hôm nay', r:1, f:(v, r) => fmt(v) + (r && v !== r.gia ? ' <span class="pill warn">KM</span>' : '')},
-    {k:'tat', l:'Gõ tắt', f:v => v ? v.split(', ').map(t => `<code>${esc(t)}</code>`).join(' ') : '<span class="muted">—</span>'}, {k:'nhom', l:'Nhóm'}]});
+    {k:'tat', l:'Gõ tắt', f:v => v ? v.split(', ').map(t => `<code>${esc(t)}</code>`).join(' ') : '<span class="muted">—</span>'}, {k:'ly7', l:'Ly 7 ngày', r:1, heat:1, f:fmt}, {k:'nhom', l:'Nhóm'}]});
   const bat = rows.filter(r => r.ban).length, coTat = rows.filter(r => r.tat).length;
   $('qoMaNote').innerHTML = `${bat} món đang bán, ${coTat} món có cột Gõ tắt. Chủ điền hoặc sửa cách gõ tắt ở tab Menu (cột F, cách nhau dấu phẩy); bảng này tự cập nhật theo Sheet sau khi tải lại dữ liệu. Món không có gõ tắt vẫn gõ được bằng mã hoặc tên.`;
   table({id:'tQoVd', rows:QO_VI_DU.map(([go, kq], i) => ({i, go, kq})), sortDefault:{k:'i', d:1}, cols:[{k:'go', l:'Gõ', f:v => `<code>${esc(v)}</code>`}, {k:'kq', l:'Bot hiểu'}]});
@@ -3471,6 +3453,23 @@ function renderOv(){
 }
 
 /* ============ render: món ============ */
+/** Khuyến mãi 10K theo món (cả quán, bỏ qua bộ lọc) — v1.7.37 chuyển từ tab Hiệu suất sang tab Món */
+function renderKmMon(){
+    const P = D.orders.filter(o => isPromo(o.k)), N = D.orders.filter(o => o.k > PROMO.to), nP = new Set(P.map(o => o.k)).size, nN = new Set(N.map(o => o.k)).size;
+    const mons = [...new Set(P.concat(N).map(o => o.mon))];
+    const rows = mons.map(m => { const p = P.filter(o => o.mon === m).reduce((s, o) => s + o.sl, 0), n = N.filter(o => o.mon === m).reduce((s, o) => s + o.sl, 0);
+      const a = nP ? p / nP : null, b = nN ? n / nN : null; return {mon:m, km:a, sau:b, giu: a && b != null ? b / a : null}; });
+    table({id:'tPerfKM', rows, sortDefault:{k:'km', d:-1}, cols:[{k:'mon', l:'Món'}, {k:'km', l:`Ly/ngày đợt 10K (${nP} ngày)`, r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
+      {k:'sau', l:`Ly/ngày sau đợt (${nN} ngày)`, r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
+      {k:'giu', l:'Giữ lại', r:1, f:v => v == null ? '—' : pct(v)}]});   // v1.3: bỏ ngưỡng tô màu 60% (giả định)
+    const r8 = rows.slice().sort((a, b) => (b.km || 0) - (a.km || 0)).slice(0, 8), c1 = css('--c1'), c2 = css('--c2'), r1 = v => v == null ? null : +v.toFixed(1);
+    // cột ngang nhóm 2 dãy (tên món dài đọc được), khe 2px màu nền giữa 2 cột
+    const kmBar = c => ({backgroundColor:c, borderColor:css('--surface'), borderWidth:1, borderRadius:4, maxBarThickness:14, categoryPercentage:.8, barPercentage:.95});
+    mk('cPerfKM', {type:'bar', data:{labels:r8.map(r => r.mon), datasets:[Object.assign({label:'Đợt 10K', data:r8.map(r => r1(r.km))}, kmBar(c1)), Object.assign({label:'Sau đợt', data:r8.map(r => r1(r.sau))}, kmBar(c2))]},
+      options:{indexAxis:'y', scales:{x:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5}}, y:{grid:{display:false}, ticks:{autoSkip:false}}},
+        plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${c.raw == null ? '—' : c.raw.toLocaleString('vi-VN')} ly/ngày`}}}}});
+    $('lgPerfKM').innerHTML = `<span><i style="background:${c1}"></i>Ly/ngày đợt 10K (${nP} ngày)</span><span><i style="background:${c2}"></i>Ly/ngày sau đợt (${nN ? nN + ' ngày' : 'chưa có'})</span>`;
+}
 function renderMon(){
   const L = sel(new Set(['mon'])), byMon = groupBy(L, o => o.mon);
   const rows = [...byMon].map(([m, l]) => [m, l.reduce((s, o) => s + o.sl, 0)]).sort((a, b) => b[1] - a[1]);
@@ -3479,13 +3478,39 @@ function renderMon(){
   const pal = catMau(), mau = n => NH.indexOf(n) < 5 ? pal[NH.indexOf(n)] : css('--c-khac');
   const lyNhom = {}; rows.forEach(([m, n]) => lyNhom[nhom(m)] = (lyNhom[nhom(m)] || 0) + n);
   veTron('cMonPie', 'lgMonPie', Object.entries(lyNhom).map(([label, v]) => ({label, v})), v => fmt(v) + ' ly');
-  mk('cMonTop', {type:'bar', data:{labels:rows.map(r => r[0]), datasets:[{label:'Ly', data:rows.map(r => r[1]),
+  // v1.7.37: bảng Bán theo món (trước nằm trong renderSales) + giá vốn/ly, lãi/ly, lãi gộp theo công thức (cùng tinhPnl của tab PNL) + món trong Menu chưa bán trong kỳ
+  const LT = sel(), AT = agg(LT), byMonT = groupBy(LT, o => o.mon), PN = tinhPnl(S.from, S.to), locKhac = !!(S.nv || S.pt || S.mon || S.hour != null);
+  const gvLyOf = m => { const x = PN.mon[m]; return x && x.ly ? x.gv / x.ly : null; };
+  const monRows = [...byMonT].map(([m, l]) => { const a = agg(l), gv = gvLyOf(m); return {mon:m, nhom:nhom(m), ly:a.ly, dt:a.dt, share: AT.dt ? a.dt / AT.dt : 0, asp:a.asp, gvLy:gv, laiLy: gv != null && a.asp != null ? a.asp - gv : null, laiGop: gv != null ? a.dt - gv * a.ly : null, ck: a.dt ? a.ck / a.dt : null}; });
+  const daBan = new Set(monRows.map(r => r.mon));
+  const chuaBan = locKhac ? [] : Object.entries(D.menu).filter(([m, x]) => x.ban && !daBan.has(m)).map(([m, x]) => { const c = PN.gvM(x.ma), gv = c.coCT ? c.gv : null;
+    return {mon:m, nhom:x.nhom || '', ly:0, dt:null, share:null, asp:null, gvLy:gv, laiLy: gv != null && x.gia ? x.gia - gv : null, laiGop:null, ck:null, chuaBan:true}; });
+  const tongGop = monRows.reduce((t, r) => t + (r.laiGop || 0), 0);
+  table({id:'tMon', rows:monRows.concat(chuaBan), sortDefault:{k:'ly', d:-1}, rowKey:r => r.mon, selKey:S.mon,
+    onRow:k => { if (chuaBan.some(r => r.mon === k)) return; S.mon = S.mon === k ? '' : k; syncFilters(); render(); },
+    child:r => r.chuaBan ? [] : [...groupBy(byMonT.get(r.mon), o => o.k)].sort((a, b) => b[0].localeCompare(a[0])).map(([k, l]) => { const a = agg(l); return {mon:`${thu(k)} ${dShort(k)}`, ly:a.ly, dt:a.dt, share: r.dt ? a.dt / r.dt : 0, asp:a.asp, ck: a.dt ? a.ck / a.dt : null}; }),
+    total:{ly:AT.ly, dt:AT.dt, share: AT.dt ? 1 : null, asp:AT.asp, gvLy: AT.ly && monRows.every(r => r.gvLy != null) ? (AT.dt - tongGop) / AT.ly : null, laiGop: tongGop || null, ck: AT.dt ? AT.ck / AT.dt : null}, cols:[
+      {k:'mon', l:'Món', f:(v, r) => r && r.chuaBan ? `<span class="muted">${esc(v)}</span> <span class="pill neu">chưa bán</span>` : esc(v)},
+      {k:'ly', l:'Ly', r:1, heat:1, f:(v, r) => r && r.chuaBan ? '0' : fmt(v)},
+      {k:'dt', l:'Doanh thu', r:1, heat:1, f:v => v == null ? '—' : fmt(v)},
+      {k:'share', l:'%DT', r:1, f:v => v == null ? '—' : pct(v)},
+      {k:'asp', l:'Giá TB', r:1, f:v => v == null ? '—' : fmt(v)},
+      {k:'gvLy', l:'Giá vốn/ly', r:1, f:v => v == null ? '—' : fmt(Math.round(v))},
+      {k:'laiLy', l:'Lãi/ly', r:1, f:(v, r) => v == null ? '—' : fmt(Math.round(v)) + (r && r.chuaBan ? ' <span class="muted">(giá menu)</span>' : ''), cls:v => v != null && v < 0 ? 'dn' : ''},
+      {k:'laiGop', l:'Lãi gộp', r:1, f:v => v == null ? '—' : fmt(Math.round(v)), cls:v => v != null && v < 0 ? 'dn' : ''},
+      {k:'ck', l:'%CK (bot)', r:1, f:v => v == null ? '—' : pct(v)}]});
+  const lo = monRows.filter(r => r.laiLy != null && r.laiLy < 0);
+  $('monCmt').innerHTML = [chuaBan.length ? `<b>${chuaBan.length} món chưa bán ly nào trong kỳ:</b> ${chuaBan.map(r => esc(r.mon)).join(', ')}.` : '',
+    lo.length ? `<span class="dn">Đang bán dưới giá vốn:</span> ${lo.map(r => esc(r.mon)).join(', ')} (thường do đồng giá khai trương).` : '',
+    'Giá vốn/ly theo công thức × giá mua (cộng hao hụt), cùng cách tính với tab PNL; lãi/ly = giá bán TB − giá vốn/ly, chưa trừ lương và chi vận hành. Chi tiết lãi lỗ, chi phí chung: tab PNL.'].filter(Boolean).join(' ');
+  renderPromo(); renderKmMon();
+  /* v1.7.37: bỏ biểu đồ "Món bán chạy" (lặp bảng Bán theo món) */
+  if (false) mk('cMonTop', {type:'bar', data:{labels:rows.map(r => r[0]), datasets:[{label:'Ly', data:rows.map(r => r[1]),
       backgroundColor:rows.map(r => !S.mon || S.mon === r[0] ? mau(nhom(r[0])) : css('--line')), borderRadius:4, maxBarThickness:18}]},
     options:{indexAxis:'y', interaction:{mode:'nearest', intersect:true}, scales:{x:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5}}, y:{grid:{display:false}}},
       onClick:(e, els) => { if (!els.length) return; const m = rows[els[0].index][0]; S.mon = S.mon === m ? '' : m; syncFilters(); render(); },
       onHover:(e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
       plugins:{tooltip:{callbacks:{label:c => ` ${c.raw} ly · ${nhom(c.label)}`}}}}});
-  $('lgMonTop').innerHTML = NH.filter(n => rows.some(r => nhom(r[0]) === n)).map(n =>`<span><i style="background:${mau(n)}"></i>${esc(n)}</span>`).join('');
   // món × khung giờ
   const hrs = [...new Set(L.filter(o => o.h != null).map(o => o.h))].sort((a, b) => a - b), cell = {}; let max = 0;
   L.forEach(o => { if (o.h == null) return; const k = o.mon + '|' + o.h; cell[k] = (cell[k] || 0) + o.sl; max = Math.max(max, cell[k]); });
@@ -3650,23 +3675,6 @@ function renderPerf(){
       thua.length ? `<b>Có thể thừa người:</b> ${thua.map(r => r.khung).join(', ')} (≥ 2 người mà dưới ${NL30().toLocaleString('vi-VN', {maximumFractionDigits:1})} ly).` : ''].filter(Boolean).join(' ');
   })();
 
-  /* 4 · Khuyến mãi theo món (cả quán) */
-  (() => {
-    const P = D.orders.filter(o => isPromo(o.k)), N = D.orders.filter(o => o.k > PROMO.to), nP = new Set(P.map(o => o.k)).size, nN = new Set(N.map(o => o.k)).size;
-    const mons = [...new Set(P.concat(N).map(o => o.mon))];
-    const rows = mons.map(m => { const p = P.filter(o => o.mon === m).reduce((s, o) => s + o.sl, 0), n = N.filter(o => o.mon === m).reduce((s, o) => s + o.sl, 0);
-      const a = nP ? p / nP : null, b = nN ? n / nN : null; return {mon:m, km:a, sau:b, giu: a && b != null ? b / a : null}; });
-    table({id:'tPerfKM', rows, sortDefault:{k:'km', d:-1}, cols:[{k:'mon', l:'Món'}, {k:'km', l:`Ly/ngày đợt 10K (${nP} ngày)`, r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
-      {k:'sau', l:`Ly/ngày sau đợt (${nN} ngày)`, r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
-      {k:'giu', l:'Giữ lại', r:1, f:v => v == null ? '—' : pct(v)}]});   // v1.3: bỏ ngưỡng tô màu 60% (giả định)
-    const r8 = rows.slice().sort((a, b) => (b.km || 0) - (a.km || 0)).slice(0, 8), c1 = css('--c1'), c2 = css('--c2'), r1 = v => v == null ? null : +v.toFixed(1);
-    // cột ngang nhóm 2 dãy (tên món dài đọc được), khe 2px màu nền giữa 2 cột
-    const kmBar = c => ({backgroundColor:c, borderColor:css('--surface'), borderWidth:1, borderRadius:4, maxBarThickness:14, categoryPercentage:.8, barPercentage:.95});
-    mk('cPerfKM', {type:'bar', data:{labels:r8.map(r => r.mon), datasets:[Object.assign({label:'Đợt 10K', data:r8.map(r => r1(r.km))}, kmBar(c1)), Object.assign({label:'Sau đợt', data:r8.map(r => r1(r.sau))}, kmBar(c2))]},
-      options:{indexAxis:'y', scales:{x:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5}}, y:{grid:{display:false}, ticks:{autoSkip:false}}},
-        plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${c.raw == null ? '—' : c.raw.toLocaleString('vi-VN')} ly/ngày`}}}}});
-    $('lgPerfKM').innerHTML = `<span><i style="background:${c1}"></i>Ly/ngày đợt 10K (${nP} ngày)</span><span><i style="background:${c2}"></i>Ly/ngày sau đợt (${nN ? nN + ' ngày' : 'chưa có'})</span>`;
-  })();
 
   /* 5 · Giỏ hàng & combo */
   (() => {
@@ -3805,7 +3813,7 @@ function render(){
   $('hdrRange').textContent = S.view === 'today' ? `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`
     : ['ov', 'fin', 'kho', 'plan', 'kc', 'new', 'qo'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips(); demLoc();
-  ({ov:renderOv, today:renderToday, sales:renderSales, dtt:renderDtt, mon:() => { renderSales(); renderMon(); }, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
+  ({ov:renderOv, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hr:renderHr})[S.view]();
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
