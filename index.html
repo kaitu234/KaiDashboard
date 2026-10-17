@@ -2708,14 +2708,14 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.46';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.47';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
   sd:{nguon:'Kai chốt 25ml cào bằng; hộp 1,284kg ≈ 988–1.000ml (chưa đo)', tin:2, cach:'Rót hết 1 hộp bằng ly đong 25ml, đếm số ly; /kiemkho sd'},
   st:{nguon:'Bịch 220ml ghi trên bao bì; 40ml / 60ml theo thẻ HCN; 9.000 đ/bịch (sổ chi)', tin:3, cach:'Đã rõ; /kiemkho st định kỳ'},
   mt:{nguon:'Kai chốt 3g/ly; 435.000 đ / 500g (sổ chi)', tin:3, cach:'Cân 3 lần múc thực tế'},
-  cc:{nguon:'Kai chốt: hũ 500 g; 4,9 g/ly từ 16/10/2026 (hũ mới 160.000 đ, giảm 30%), 7 g 13–15/10, 10 g tới hết 12/10 (lịch DINH_LUONG_CU); giá chỉ tính hũ mới 160.000 đ = 320 đ/g (Kho cột G: cacao|-cacao hu cu, bỏ hũ cũ 140.000)', tin:3, cach:'Cân 3 lần múc thực tế; /kiemxe cc so với số ước tính'},
+  cc:{nguon:'Kai chốt: hũ 500 g; 7 g/ly từ 13/10/2026 (17/10 chủ chốt: từ 16/10 vẫn 7 g, không giảm xuống 4,9 g), 10 g tới hết 12/10 (lịch DINH_LUONG_CU); giá chỉ tính hũ mới 160.000 đ = 320 đ/g (Kho cột G: cacao|-cacao hu cu, bỏ hũ cũ 140.000)', tin:3, cach:'Cân 3 lần múc thực tế; /kiemxe cc so với số ước tính'},
   kb:{nguon:'Kai chốt 12/10: 1 hộp kem béo làm kem muối bán tầm 21 ly (trước đó chia thử 4 hộp / 39 ly = 9,75); 33.000 đ / hộp (hoá đơn HCN 4773)', tin:2, cach:'Đánh 1 hộp, đếm số ly (2 muỗng) làm được; cân 1 muỗng kem'},
   km:{nguon:'Không có trong công thức – dòng sổ chi "Kem muối 30.000 đ" chưa rõ là kem làm sẵn hay muối hồng', tin:1, cach:'Xác nhận dòng sổ chi đó là gì'},
   dg:{nguon:'Đường chai (HCN 15.000 đ/chai, chia thử 1 chai ≈ 42 ly) — từ 12/10 công thức dùng đường cát (mã dgc), không còn món nào dùng đường chai', tin:1, cach:'Bỏ nếu quán không mua đường chai nữa'},
@@ -2765,6 +2765,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.47', ngay:'17/10/2026', nd:['Cacao: chủ quán chốt 17/10 từ 16/10 vẫn 7 g/ly (không giảm xuống 4,9 g) — CongThuc đã đổi về 7, dashboard tự theo; sửa chữ ghi chú nguồn định lượng ở Kiểm chứng.', 'Đối chiếu với Sheet trên dữ liệu thật 17/10: Thu chi T10 giá vốn theo ngày bán 4.839.279 đ, lãi vận hành theo thực thu −461.280 đ, giá vốn/ly bình quân 7.286 đ — khớp Sheet (dashboard · Sheet · bot cùng logic).']},
   {v:'v1.7.46', ngay:'17/10/2026', nd:['Mọi biểu đồ ghi số ngay trên cột: số ở đầu mỗi cột, cột chồng ghi tổng ở đỉnh; khi quá nhiều cột không đủ chỗ thì chỉ ghi cột cao nhất · thấp nhất · cuối.', 'Biểu đồ đường ghi số ở điểm cao nhất · thấp nhất · điểm cuối của đường chính; nét so sánh (mờ / đứt) không ghi để khỏi rối.', 'Rê chuột (máy tính) hoặc chạm (điện thoại) vào cột / điểm vẫn hiện bảng số đầy đủ như trước. Số in đủ, không viết tắt.']},
   {v:'v1.7.45', ngay:'17/10/2026', nd:['Các mục còn treo của kiểm định Fable 5 (chủ quán duyệt 17/10): V-01 thẻ Thu chi đổi tên "Lãi vận hành theo thực thu" và giá vốn tính theo định lượng đúng ngày bán như tab PNL (giữ doanh thu thực thu); T-15 hoà vốn cộng chi vận hành khác TB / tháng (sổ chi) cho cùng cơ sở với "Lãi vận hành"; T-16 năng lực 1 người / 30 phút = trung vị 5 khung đông nhất; T-04 thẻ quỹ ghi rõ số ngày chưa chốt đang tạm tính vào CK; T-05 "Việc còn treo" tự XONG (cà phê 8 / 8 / 12 g, chốt ca đủ, tách tiền mặt đủ); T-06 nhãn tổng chi nhiều sổ tháng; T-11 "N khoản có tiền (+ dòng tặng 0 đ)"; T-17 cảnh báo quỹ ghi rõ là so với tiền nhập hàng; V-08 thẻ Quy trình phân biệt mức nên có đầu ca với ngưỡng bot báo lấy thêm; V-10 đọc số cột CongThuc (API nâng CongThuc lên 40 cột). Tự kiểm: bất biến 57.']},
   {v:'v1.7.44', ngay:'17/10/2026', nd:['Tab Báo cáo: giờ công và ly / giờ công tính CẢ giờ chủ quán đứng ca (chủ quán chốt 17/10 khi kiểm lại bản của Fable 5), cùng định nghĩa /tuan của bot — trước đó (v1.7.43) chỉ tính nhân viên. Luật đề xuất "dưới 6 ly/giờ công" dùng cùng số này. Kiểm lại độc lập bản v1.7.42 – v1.7.43 của Fable 5 trước khi triển khai.']},
@@ -3187,7 +3188,7 @@ function tuKiem(){
       `${Object.keys(dsO.note).length} ghi chú · ${Object.keys(dsO.momo).length} MoMo · ${Object.keys(dsO.mucTieu).join(', ')}`);
     // 43. Lịch định lượng cacao theo ngày (mốc mới đứng trước) + đọc tab GoTatHoc theo tên cột
     const dlC = {cc:4.9, ly:1}, dlA = ['2026-10-12', '2026-10-13', '2026-10-15', '2026-10-16'].map(k => ctTheoNgay(dlC, DINH_LUONG_CU, k).cc), gtH = docGoTatHoc([['Cụm gõ', 'Mã món', 'Tên món', 'Học lúc', 'Số lần'], ['den da', 'CDM', 'Cà phê đen máy', '', 3], ['den nong', 'cdm', 'Cà phê đen máy', '', 3], ['', 'bx', '', '', '']]);
-    ok('Cacao: ly bán 12/10 tính 10 g · 13/10 và 15/10 tính 7 g · 16/10 tính 4,9 g (CongThuc); tab GoTatHoc: 2 cụm của cdm (mã viết hoa vẫn nhận), dòng thiếu cụm bỏ qua, không có tab → rỗng',
+    ok('Cacao: ly bán 12/10 tính 10 g · 13/10 và 15/10 tính 7 g · 16/10 tính theo CongThuc (thử với số giả 4,9 g); tab GoTatHoc: 2 cụm của cdm (mã viết hoa vẫn nhận), dòng thiếu cụm bỏ qua, không có tab → rỗng',
       dlA.join() === '10,7,7,4.9' && dlC.cc === 4.9 && (gtH.cdm || []).join() === 'den da,den nong' && !gtH.bx && !Object.keys(docGoTatHoc([])).length, dlA.join(' / ') + ' g · ' + (gtH.cdm || []).join(', '));
     // 44. Câu trả hết nợ: quỹ sau trả nợ âm → "còn thiếu" (số dương), không âm → "trả hết còn"
     ok('Công nợ: quỹ 2.651.410 − nợ 6.132.664 → "trả hết thì còn thiếu 3.481.254"; quỹ 1.000 − nợ 300 → "trả hết còn 700"',
@@ -3995,7 +3996,7 @@ function giaNL(){
 const heSoHaoHut = dvTinh => /^ly/i.test(String(dvTinh || '').trim()) ? 1 : 1 + HAO_HUT;
 /** v1.7.2 — Lịch sử định lượng (chủ quán chốt 13/10/2026): tab CongThuc luôn là số HIỆN HÀNH; ly bán tới hết ngày `den` dùng lượng cũ `luong` cho nguyên liệu `nl` ở mọi món có nguyên liệu đó.
  *  Cacao: 10 g/ly tới hết 12/10/2026, từ 13/10/2026 là 7 g. Thêm dòng mới ở đây khi định lượng đổi tiếp. */
-const DINH_LUONG_CU = [{den:'2026-10-15', nl:'cc', luong:7}, {den:'2026-10-12', nl:'cc', luong:10}];   // v1.7.38: cacao 4,9 g từ 16/10 (CongThuc, chủ chốt 16/10: hũ mới 160.000, giảm 30%); 13–15/10 = 7 g; tới 12/10 = 10 g. Mốc mới đứng trước vì mốc sau ghi đè
+const DINH_LUONG_CU = [{den:'2026-10-15', nl:'cc', luong:7}, {den:'2026-10-12', nl:'cc', luong:10}];   // v1.7.47: cacao 7 g từ 13/10 tới nay (CongThuc; 17/10 chủ chốt bỏ mức 4,9 g đã định cho 16/10 → mốc 15/10 = 7 g trùng CongThuc, giữ cũng không sai); tới 12/10 = 10 g. Cùng lịch với Sheet 'Giá vốn ly' mục 5 (I54:K60) — thêm mốc ở đây thì báo phiên Thu/Chi / thêm 1 dòng ở đó. Mốc mới đứng trước vì mốc sau ghi đè
 /** Công thức của 1 món (ct = {nl: lượng/ly}) tại ngày k theo lịch sử hist; không đổi ct gốc */
 function ctTheoNgay(ct, hist, k){
   if (!ct || !k) return ct;
@@ -4009,7 +4010,7 @@ function giaVonMon(ma, G, k){
   const ct = ctTheoNgay(D.congThuc[String(ma).toLowerCase()], DINH_LUONG_CU, k);
   if (!ct || !Object.keys(ct).length) return {gv:null, thieu:[], coCT:false, nl:{}};
   let gv = 0; const thieu = [], tung = {};   // tung: tiền từng nguyên liệu cho 1 ly (tab PNL)
-  // nguyên liệu có đơn vị tính bắt đầu bằng "ly" (kem muối, đường, đá: Kai chia từ số ly đã bán thực tế; cacao từ 16/10 tính theo g) đã gồm hao hụt → không cộng thêm 5% (v1.3: "ly muối" cũng được miễn)
+  // nguyên liệu có đơn vị tính bắt đầu bằng "ly" (kem muối, đường, đá: Kai chia từ số ly đã bán thực tế; cacao tính theo g) đã gồm hao hụt → không cộng thêm 5% (v1.3: "ly muối" cũng được miễn)
   Object.entries(ct).forEach(([nl, l]) => { const g = G[nl]; if (g && g.gia != null){ const x = l * g.gia * heSoHaoHut(g.k.dvTinh); gv += x; tung[nl] = x; } else thieu.push(g ? g.k.ten : nl); });
   return {gv, thieu, coCT:true, nl:tung};
 }
