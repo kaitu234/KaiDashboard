@@ -124,7 +124,10 @@ details.guide p{margin:4px 0;max-width:110ch}
 /* ---------- KPI ---------- */
 .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
 #tdKpis{grid-template-columns:repeat(4,minmax(0,1fr))}   /* v1.7.49: 2 hàng × 4 — tiền & lãi / bán hàng */
-#tdMoney{max-width:620px}   /* v1.7.49: chủ quán 17/10 — số nằm gần chữ, màn rộng không bị kéo ra xa */
+.tdmg{display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:14px 26px;align-items:start}   /* v1.7.50: trái = số (sát chữ), phải = phân tích nhanh */
+.tdside{border-left:1px solid var(--line);padding-left:22px;font-size:13px;line-height:1.5}
+.tdside ul{margin:4px 0 12px;padding-left:18px}.tdside li{margin:3px 0}.tdside .lbl{margin-top:0}
+@media (max-width:899px){.tdmg{grid-template-columns:minmax(0,1fr)}.tdside{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:10px}}
 .kvnote{grid-column:1/-1;font-size:11.5px;line-height:1.55;color:var(--muted)}
 @media (max-width:560px){#tdKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -682,7 +685,7 @@ html.mcap{background:var(--paper)}
     <div>
       <div class="card">
         <div class="ct">Tiền &amp; lãi hôm nay <span class="nt">· két phải có = bán tiền mặt − chi từ két · lãi = doanh thu − giá vốn − lương ca</span></div>
-        <div class="kv" id="tdMoney"></div>
+        <div class="tdmg"><div class="kv" id="tdMoney"></div><div class="tdside" id="tdSide"></div></div>
       </div>
     </div>
     <div class="g311">
@@ -2075,13 +2078,44 @@ function tdPnlHtml(P, days, mot){
     <span><b style="text-align:left">Lãi vận hành</b></span>${dau(P.laiVH)}
     <span>Khấu hao phí nhượng quyền</span><b>${tru(P.khauHao)}</b>
     <span><b style="text-align:left">Lãi ròng sau khấu hao</b></span>${dau(P.laiRong)}
-    <span class="kvnote"><b>Cách tính</b> (giống tab PNL):
-      <br>• Doanh thu: theo đơn bot, chưa phải thực thu.
-      <br>• Giá vốn: định lượng đúng ngày bán × giá mua, +5% hao hụt, gồm ly, nắp, ống hút, túi, đá.
-      <br>• Lương: tiền công các ca (cả chủ quán) + thưởng − phạt.
-      <br>• Cho kèm, chi khác: trừ vào ngày ghi sổ chi${mot ? ' (1 ngày có thể nhảy, xem Tuần / Tháng cho sát)' : ''}.
-      <br>• Khấu hao: 27.000.000 đ ÷ 12 tháng, chia theo ngày.
-      <br>• Không trừ: trang thiết bị, vận hành hệ thống (vốn đầu tư).</span>`;
+`;
+}
+/** v1.7.50 — cột phải khối Tiền & lãi: phân tích nhanh (số thật của kỳ) + gợi ý theo luật + cách tính. P = tinhPnl của kỳ; o = {mot, nd, chuaChot:[ngày], huy, don, lech} */
+function tdSideHtml(P, o){
+  const pt = (a, b) => b ? pct(a / b, 0) : '—', nx = [], gy = [];
+  if (P && P.A.ly){
+    const ly = P.A.ly, gia = P.dt / ly, gvLy = P.gv / ly, lgLy = gia - gvLy, chiKhac = P.vhTong - P.coDinhUoc + P.choKem;
+    nx.push(`Mỗi ly: giá TB <b>${fmt(gia)}</b> − giá vốn <b>${fmt(gvLy)}</b> = lời gộp <b>${fmt(lgLy)} đ</b>.`);
+    nx.push(`Tỉ lệ trên doanh thu: giá vốn <b>${pt(P.gv, P.dt)}</b> · lương <b>${pt(P.luong, P.dt)}</b> · chi khác + cho kèm <b>${pt(chiKhac, P.dt)}</b> · khấu hao <b>${pt(P.khauHao, P.dt)}</b>.`);
+    if (lgLy > 0){
+      const canL = P.luong / lgLy, canR = (P.luong + chiKhac + P.coDinhUoc + P.khauHao) / lgLy;
+      nx.push(!P.luong ? `Chưa có lương ca (chưa ai chấm công hoặc ca chưa tính); hoà vốn ròng cần <b>${fmt(Math.ceil(canR / (o.mot ? 1 : o.nd)))} ly${o.mot ? "" : "/ngày"}</b>.` : o.mot ? `Đủ trả lương cần <b>${fmt(Math.ceil(canL))} ly</b> (${ly >= canL ? '<span class="up">đã qua</span>' : `còn thiếu ${fmt(Math.ceil(canL - ly))}`}); hoà vốn ròng cần <b>${fmt(Math.ceil(canR))} ly</b> (${ly >= canR ? '<span class="up">đã qua</span>' : `còn thiếu ${fmt(Math.ceil(canR - ly))}`}).`
+        : `Đang bán TB <b>${fmt(ly / o.nd)} ly/ngày</b>; đủ trả lương cần TB <b>${fmt(Math.ceil(canL / o.nd))}</b>, hoà vốn ròng cần TB <b>${fmt(Math.ceil(canR / o.nd))} ly/ngày</b>.`);
+      if (P.laiRong < 0) gy.push(`Còn lỗ ròng ${fmt(-P.laiRong)} đ: cần thêm khoảng <b>${fmt(Math.ceil((canR - ly) / (o.mot ? 1 : o.nd)))} ly${o.mot ? '' : '/ngày'}</b> ở giá hiện tại, hoặc giảm giờ công ở khung vắng (tab Hiệu suất).`);
+    } else gy.push('Giá bán TB đang thấp hơn giá vốn: bán thêm ly nào lỗ thêm ly đó — xem lại giá bán / khuyến mãi.');
+    const mons = Object.values(P.mon).filter(m => m.ly > 0).map(m => ({mon:m.mon, ly:m.ly, lg:m.dt - m.gv, bien:m.dt ? (m.dt - m.gv) / m.dt : null}));
+    const top = mons.slice().sort((a, b) => b.lg - a.lg)[0];
+    if (top && P.laiGop > 0) nx.push(`Món góp lãi gộp nhiều nhất: <b>${esc(top.mon)}</b> ${fmt(top.lg)} đ (${pt(top.lg, P.laiGop)} lãi gộp, ${fmt(top.ly)} ly).`);
+    const thap = mons.filter(m => m.ly >= 5 && m.bien != null).sort((a, b) => a.bien - b.bien)[0];
+    if (thap && thap.bien < 0.3) gy.push(`<b>${esc(thap.mon)}</b> biên gộp chỉ ${pct(thap.bien, 0)} (${fmt(thap.ly)} ly) — xem lại giá bán hoặc định lượng (tab Món).`);
+    if (P.khongGiaVon) gy.push(`${fmt(P.khongGiaVon)} ly chưa có giá vốn — bổ sung CongThuc / giá mua để lãi đúng.`);
+    if (P.thieu.size) gy.push(`Thiếu giá mua: ${[...P.thieu].slice(0, 3).map(esc).join(', ')} — giá vốn đang thấp hơn thật.`);
+  } else nx.push(o.mot ? 'Chưa có đơn trong ngày này.' : 'Kỳ này chưa có đơn.');
+  if (o.chuaChot.length) gy.push(`Chốt ca ${o.chuaChot.map(dShort).join(', ')} (/chotca) để thực thu thành số thật — đang tạm theo đơn bot.`);
+  if (o.lech < 0) gy.push(`Két thiếu ${fmt(-o.lech)} đ so với đơn bot trong ${o.mot ? 'ngày' : 'kỳ'} — đối chiếu với nhân viên đứng ca.`);
+  if (o.huy && o.huy / (o.don + o.huy) >= 0.05) gy.push(`Đơn huỷ ${o.huy}/${o.don + o.huy} (${pct(o.huy / (o.don + o.huy), 0)}) — hỏi lý do, tránh bấm nhầm rồi huỷ.`);
+  const li = a => '<ul>' + a.map(x => `<li>${x}</li>`).join('') + '</ul>';
+  return `<div class="lbl">Phân tích nhanh</div>${li(nx)}
+    <div class="lbl">Gợi ý</div>${gy.length ? li(gy.slice(0, 4)) : '<ul><li class="muted">Chưa có gợi ý — số liệu đang ổn.</li></ul>'}
+    <div class="lbl">Cách tính <span class="muted" style="text-transform:none;font-weight:400">(giống tab PNL)</span></div>
+    <ul class="muted" style="font-size:12px">
+      <li>Doanh thu: theo đơn bot, chưa phải thực thu.</li>
+      <li>Giá vốn: định lượng đúng ngày bán × giá mua, +5% hao hụt, gồm ly, nắp, ống hút, túi, đá.</li>
+      <li>Lương: tiền công các ca (cả chủ quán) + thưởng − phạt.</li>
+      <li>Cho kèm, chi khác: trừ vào ngày ghi sổ chi${o.mot ? ' (1 ngày có thể nhảy, xem Tuần / Tháng cho sát)' : ''}.</li>
+      <li>Khấu hao: 27.000.000 đ ÷ 12 tháng, chia theo ngày.</li>
+      <li>Không trừ: trang thiết bị, vận hành hệ thống (vốn đầu tư).</li>
+    </ul>`;
 }
 /** Tab Hôm nay xem theo kỳ (tuần / tháng / khoảng) */
 function renderTdKy(){
@@ -2116,6 +2150,7 @@ function renderTdKy(){
     <span>Chi từ két trong kỳ</span><b>${chiKet ? '−' + fmt(chiKet) + ' đ' : '0 đ'}</b>
     <span class="sep"></span>
     ${tdPnlHtml(P, days, false)}`;
+  $('tdSide').innerHTML = tdSideHtml(P, {mot:false, nd:K.nd, chuaChot:K.ket.filter(x => !x.chot && x.bot && !(x.k === tk && now.getHours() < 12)).map(x => x.k), huy:new Set(K.cancel.map(c => c.id)).size, don:A.don, lech:K.ket.filter(x => x.chot).reduce((a, x) => a + (x.chenh || 0), 0)});
 
   /* ly theo ngày (thay nhịp bán cộng dồn) */
   const s1 = css('--s1'), lyAll = lyTheoNgay(), dT = rangeDays(Q.tuT, Q.denT), dAll = rangeDays(Q.tu, Q.den);
@@ -2224,11 +2259,8 @@ function renderToday(){
     <span>Chi từ két</span><b>${chiKet ? '−' + fmt(chiKet) + ' đ' : '0 đ'}</b>
     <span><b style="text-align:left">Két phải có theo nút 💵 bot (chưa tính tiền đầu ca)</b></span><b>${fmt(A.tm - chiKet)} đ</b>
     <span class="sep"></span>
-    ${tdPnlHtml(PN, [k], true)}
-    ${(() => { const P = laiNgay(k); if (P.cogs == null) return '';   // câu hoà vốn lương trong ngày (giá vốn/ly của chính ngày đó)
-      return `<span class="muted" style="grid-column:1/-1;font-size:11.5px">${!P.ly && !P.luong ? 'Chưa có đơn và chưa có ca chấm công hôm nay.'
-        : P.canLy == null ? 'Giá bán đang thấp hơn giá vốn: bán thêm ly nào lỗ thêm ly đó.'
-        : `Lời ${fmt(P.laiLy)} đ/ly (giá TB − giá vốn) → cần <b>${fmt(P.canLy)} ly</b> để đủ trả lương ngày này${P.ly >= P.canLy ? ', <span class="up">đã qua mốc</span>' : `, còn thiếu ${fmt(P.canLy - P.ly)} ly`}.`}</span>`; })()}`;
+    ${tdPnlHtml(PN, [k], true)}`;
+  $('tdSide').innerHTML = tdSideHtml(PN, {mot:true, nd:1, chuaChot:nt && !nt.chot && A.ly && !(isToday && now.getHours() < 12) ? [k] : [], huy:nHuy, don:A.don, lech:nt && nt.chot ? nt.chenh : 0});
 
   /* pace: cumulative per 15' */
   const ydL = hasY ? D.orders.filter(o => o.k === addDays(k, -1)) : [], ydFull = agg(ydL), ydLb = isToday ? 'Hôm qua' : `${thu(addDays(k, -1))} ${dShort(addDays(k, -1))}`;   // v1.7.22: đường mờ hôm qua
@@ -2871,7 +2903,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.49';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.50';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2928,6 +2960,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.50', ngay:'17/10/2026', nd:['Tab Hôm nay, khối Tiền & lãi chia 2 cột: trái là số, phải là Phân tích nhanh (lời gộp mỗi ly, cơ cấu chi phí trên 100 đ doanh thu, cần bao nhiêu ly để đủ lương / hoà vốn ròng, món góp lãi nhiều nhất), Gợi ý theo luật (lỗ ròng cần thêm bao nhiêu ly, món biên gộp dưới 30%, thiếu giá vốn, ngày chưa chốt ca, két thiếu, đơn huỷ ≥ 5%) và Cách tính. Điện thoại: cột phải xuống dưới.']},
   {v:'v1.7.49', ngay:'17/10/2026', nd:['Tab Hôm nay có lọc kỳ: Ngày · Tuần · Tháng · Khoảng (chọn từ ngày → đến ngày). Nút ◀ ▶ lùi / tới theo kỳ; máy nhớ lựa chọn. Kỳ tuần / tháng / khoảng: thẻ so với kỳ liền trước (kỳ đang chạy so trung bình mỗi ngày bán), biểu đồ Ly theo ngày, Ly theo giờ (TB mỗi ngày bán), Món, Đơn và Ca & két của cả kỳ.', 'Thêm thẻ Thực thu (sau chốt ca), Lãi gộp, Lãi sau lương; Đơn huỷ gộp vào thẻ Số đơn. Khối Tiền & lãi đi đủ bậc như tab PNL: doanh thu → giá vốn → lãi gộp → lương → lãi sau lương → hàng cho kèm, chi vận hành khác, thuê chỗ + điện nước → lãi vận hành → khấu hao → lãi ròng, kèm ghi chú cách tính. Cùng hàm tinhPnl nên trùng số tab PNL khi chọn cùng kỳ.']},
   {v:'v1.7.48', ngay:'17/10/2026', nd:['Tab Hôm nay, khối tiền: "Lãi / lỗ ước tính" đổi tên thành "Lãi sau lương (ước tính)" (cùng tên tab PNL) — đây không phải lãi gộp. Thêm dòng Doanh thu theo đơn bot và Lãi gộp (doanh thu − giá vốn) để thấy từng bước trừ; dòng lương ghi riêng thưởng / phạt nếu có.', 'Ghi chú đủ cách tính: đã trừ giá vốn món (gồm ly, nắp, ống hút, túi, đá, hao hụt 5%) và lương; chưa trừ chi vận hành khác, hàng cho kèm, khấu hao phí nhượng quyền, thuê chỗ + điện nước — lãi đủ khoản xem tab Thu chi / PNL. Số không đổi.']},
   {v:'v1.7.47', ngay:'17/10/2026', nd:['Cacao: chủ quán chốt 17/10 từ 16/10 vẫn 7 g/ly (không giảm xuống 4,9 g) — CongThuc đã đổi về 7, dashboard tự theo; sửa chữ ghi chú nguồn định lượng ở Kiểm chứng.', 'Đối chiếu với Sheet trên dữ liệu thật 17/10: Thu chi T10 giá vốn theo ngày bán 4.839.279 đ, lãi vận hành theo thực thu −461.280 đ, giá vốn/ly bình quân 7.286 đ — khớp Sheet (dashboard · Sheet · bot cùng logic).']},
