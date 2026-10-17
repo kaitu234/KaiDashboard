@@ -1709,6 +1709,65 @@ function rangeDays(from, to){ const out = []; for (let k = from; k <= to && out.
 
 /* ============ charts ============ */
 const charts = {};
+/** v1.7.46 (chủ quán 17/10: "ghi rõ số liệu trên các cột, đường"): ghi số ngay trên biểu đồ, rê chuột / chạm vẫn hiện bảng số đầy đủ.
+ *  Cột: số ở đầu mỗi cột (cột chồng: tổng ở đỉnh); không đủ chỗ cho mọi cột thì chỉ ghi cột cao nhất · thấp nhất · cuối.
+ *  Đường: điểm cao nhất · thấp nhất · cuối của đường chính (biểu đồ chỉ có đường: đường đầu tiên, nét liền); nét so sánh (mờ / đứt) và đường vẽ kèm cột không ghi — xem bằng rê chuột.
+ *  Tắt cả biểu đồ: options.plugins.nhanSo = false · 1 dãy: dataset.nhan = false (true = ghi điểm cuối của đường đó) · đổi cách in: options.plugins.nhanSo = {fmt:(v, i, dsIndex) => chuỗi} */
+const soNhan = v => v == null || !isFinite(v) ? '' : (v % 1 && Math.abs(v) < 1000 ? v.toLocaleString('vi-VN', {maximumFractionDigits:1}) : Math.round(v).toLocaleString('vi-VN'));
+const nhanSoPlugin = {id:'nhanSo', afterDatasetsDraw(ch, _a, op){
+  const ca = ch.chartArea, n = (ch.data.labels || []).length;
+  if (!ca || !n) return;
+  const f = (op && op.fmt) || soNhan, cx = ch.ctx, ngang = ch.options.indexAxis === 'y', sc = ch.options.scales || {}, chong = !!((sc.x && sc.x.stacked) || (sc.y && sc.y.stacked));
+  const ds = ch.data.datasets.map((d, i) => ({d, i, m:ch.getDatasetMeta(i)})).filter(o => o.d.nhan !== false && ch.isDatasetVisible(o.i));
+  const giaTri = (o, j) => { const r = o.d.data[j]; if (r == null) return null; if (Array.isArray(r)) return r[1] - r[0]; const v = typeof r === 'object' ? (ngang ? r.x : r.y) : r; return v == null || !isFinite(+v) ? null : +v; };
+  const muc = css('--ink'), nen = css('--surface');
+  cx.save(); cx.font = `600 10px ${css('--f-body')}`; cx.lineJoin = 'round';
+  const ve = (t, x, y, canh, day, trong) => { if (!t) return; cx.textAlign = canh; cx.textBaseline = day;
+    if (trong){ cx.fillStyle = nen; cx.fillText(t, x, y); return; }
+    cx.strokeStyle = nen; cx.lineWidth = 3; cx.strokeText(t, x, y); cx.fillStyle = muc; cx.fillText(t, x, y); };
+  const chon = (it, rong) => {   // quá chật: giữ cao nhất · thấp nhất · cuối, bỏ số đè lên nhau (ưu tiên số cuối)
+    if (it.length <= 1) return it;
+    const lon = it.reduce((a, b) => b.v > a.v ? b : a), nho = it.reduce((a, b) => b.v < a.v ? b : a), cuoi = it[it.length - 1];
+    const ds2 = [cuoi, lon, nho].filter((x, k, a) => a.indexOf(x) === k), giu = [];
+    ds2.forEach(x => { if (!giu.some(y => Math.abs(y.pos - x.pos) < (rong(x) + rong(y)) / 2 + 4)) giu.push(x); });
+    return giu;
+  };
+  /* cột */
+  const bars = ds.filter(o => o.m.type === 'bar'), nhom = chong ? (bars.length ? [bars] : []) : bars.map(b => [b]), soDay = chong ? 1 : Math.max(1, bars.length);
+  nhom.forEach(g => {
+    let it = [];
+    for (let j = 0; j < n; j++){
+      let v = null, el = null, mang = false, di = g[0].i;
+      g.forEach(o => { const x = giaTri(o, j), e = o.m.data[j]; if (x == null || !e) return; v = (v || 0) + x; mang = mang || Array.isArray(o.d.data[j]); di = o.i;
+        const dau = ngang ? Math.max(e.x, e.base) : Math.min(e.y, e.base); if (!el || (ngang ? dau > el.dau : dau < el.dau)) el = {e, dau}; });
+      if (v == null || !el || (v === 0 && !mang)) continue;
+      const t = f(v, j, chong ? -1 : di); if (!t) continue;
+      it.push({j, v, e:el.e, mang, t, w:cx.measureText(t).width, pos:ngang ? el.e.y : el.e.x});
+    }
+    const cho = (ngang ? ca.height : ca.width) / n / soDay, can = ngang ? 12 : Math.max(0, ...it.map(x => x.w)) + 4;
+    if (cho < can) it = chon(it, x => ngang ? 12 : x.w);
+    it.forEach(x => { const e = x.e, am = x.v < 0 && !x.mang;
+      if (ngang){ const dau = am ? Math.min(e.x, e.base) : Math.max(e.x, e.base);
+        if (!am && dau + 4 + x.w > ch.width - 2) ve(x.t, dau - 4, e.y, 'right', 'middle', Math.abs(e.x - e.base) > x.w + 8);
+        else ve(x.t, am ? dau - 4 : dau + 4, e.y, am ? 'right' : 'left', 'middle'); }
+      else { const canh = e.x - x.w / 2 < 2 ? 'left' : e.x + x.w / 2 > ch.width - 2 ? 'right' : 'center', xx = canh === 'left' ? e.x - (e.width || 0) / 2 : canh === 'right' ? e.x + (e.width || 0) / 2 : e.x;
+        if (am) ve(x.t, xx, Math.max(e.y, e.base) + 3, canh, 'top'); else ve(x.t, xx, Math.min(e.y, e.base) - 3, canh, 'bottom'); } });
+  });
+  /* đường */
+  const lines = ds.filter(o => o.m.type === 'line');
+  lines.forEach((o, k) => {
+    const ep = o.d.nhan === true, chinh = !bars.length && k === 0 && !(o.d.borderDash && o.d.borderDash.length);
+    if (!ep && !chinh) return;
+    let it = [];
+    for (let j = 0; j < n; j++){ const v = giaTri(o, j), e = o.m.data[j]; if (v == null || !e || e.skip) continue; const t = f(v, j, o.i); if (t) it.push({j, v, e, t, w:cx.measureText(t).width, pos:e.x}); }
+    if (!it.length) return;
+    it = ep ? [it[it.length - 1]] : chon(it, x => x.w);
+    const nho = it.length > 1 ? it.reduce((a, b) => b.v < a.v ? b : a) : null;
+    it.forEach(x => { const e = x.e, canh = e.x - x.w / 2 < ca.left ? 'left' : e.x + x.w / 2 > ch.width - 2 ? 'right' : 'center', duoi = x === nho && x.v < it.reduce((a, b) => Math.max(a, b.v), -Infinity);
+      ve(x.t, e.x, duoi ? e.y + 6 : e.y - 6, canh, duoi ? 'top' : 'bottom'); });
+  });
+  cx.restore();
+}};
 function chartBase(){
   Chart.defaults.font.family = css('--f-body'); Chart.defaults.font.size = 11; Chart.defaults.color = css('--muted');
   Chart.defaults.borderColor = css('--line');
@@ -1725,7 +1784,11 @@ function mk(id, cfg){
   if (cfg.type !== 'doughnut'){
     cfg.options.scales = Object.assign({x:{grid:{display:false}, ticks:{maxRotation:0, autoSkipPadding:8}},
       y:{beginAtZero:true, grid:{color:g}, border:{display:false}, ticks:{maxTicksLimit:5}}}, cfg.options.scales || {});
+    const tr = cfg.options.scales[cfg.options.indexAxis === 'y' ? 'x' : 'y'];   // v1.7.46: chừa 10% đầu trục số cho số ghi trên cột / đường
+    if (tr && tr.max == null && tr.grace == null) tr.grace = '10%';
+    if (!cfg.options.layout) cfg.options.layout = {padding:{top:6, right:cfg.options.indexAxis === 'y' ? 4 : 8}};
   }
+  cfg.plugins = (cfg.plugins || []).concat(nhanSoPlugin);
   const cvEl = $(id);
   if (document.documentElement.style.zoom){   // v1.7.29: trang đang zoom bù (điện thoại bị dựng khung rộng): Chart.js responsive đo khung theo toạ độ đã nhân zoom nên vẽ to gấp zoom lần → vẽ cố định theo clientWidth / clientHeight (chưa nhân zoom)
     const pc = cvEl.parentElement, w = pc ? pc.clientWidth : 0, h = pc ? pc.clientHeight : 0, r = window.devicePixelRatio || 1;
@@ -2415,7 +2478,7 @@ function renderPnl(){
   chiPhi('Khấu hao', P.khauHao); tong('Lãi ròng', P.laiRong, P.laiRong < 0 ? bad : good);
   mk('cPnlWf', {type:'bar', data:{labels:wf.map(x => x.l), datasets:[{data:wf.map(x => [x.lo, x.hi]), backgroundColor:wf.map(x => x.col), borderRadius:4, maxBarThickness:44}]},
     options:{interaction:{mode:'nearest', intersect:true}, scales:{x:{grid:{display:false}, ticks:{autoSkip:false, maxRotation:60}}, y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:6, callback:v => fmtK(v)}}},
-      plugins:{tooltip:{callbacks:{label:c => ` ${so(wf[c.dataIndex].v)} đ`}}}}});
+      plugins:{nhanSo:{fmt:(v, i) => so(wf[i].v)}, tooltip:{callbacks:{label:c => ` ${so(wf[c.dataIndex].v)} đ`}}}}});
 
   /* 2 · Giá vốn theo nguyên liệu */
   const nlRows = Object.entries(P.nl).map(([k, v]) => ({nl:P.G[k] ? P.G[k].k.ten : k, v, nhom:BAO_BI.has(k) ? 'Bao bì' : 'Pha chế'}));
@@ -2645,7 +2708,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.45';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.46';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2702,6 +2765,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.46', ngay:'17/10/2026', nd:['Mọi biểu đồ ghi số ngay trên cột: số ở đầu mỗi cột, cột chồng ghi tổng ở đỉnh; khi quá nhiều cột không đủ chỗ thì chỉ ghi cột cao nhất · thấp nhất · cuối.', 'Biểu đồ đường ghi số ở điểm cao nhất · thấp nhất · điểm cuối của đường chính; nét so sánh (mờ / đứt) không ghi để khỏi rối.', 'Rê chuột (máy tính) hoặc chạm (điện thoại) vào cột / điểm vẫn hiện bảng số đầy đủ như trước. Số in đủ, không viết tắt.']},
   {v:'v1.7.45', ngay:'17/10/2026', nd:['Các mục còn treo của kiểm định Fable 5 (chủ quán duyệt 17/10): V-01 thẻ Thu chi đổi tên "Lãi vận hành theo thực thu" và giá vốn tính theo định lượng đúng ngày bán như tab PNL (giữ doanh thu thực thu); T-15 hoà vốn cộng chi vận hành khác TB / tháng (sổ chi) cho cùng cơ sở với "Lãi vận hành"; T-16 năng lực 1 người / 30 phút = trung vị 5 khung đông nhất; T-04 thẻ quỹ ghi rõ số ngày chưa chốt đang tạm tính vào CK; T-05 "Việc còn treo" tự XONG (cà phê 8 / 8 / 12 g, chốt ca đủ, tách tiền mặt đủ); T-06 nhãn tổng chi nhiều sổ tháng; T-11 "N khoản có tiền (+ dòng tặng 0 đ)"; T-17 cảnh báo quỹ ghi rõ là so với tiền nhập hàng; V-08 thẻ Quy trình phân biệt mức nên có đầu ca với ngưỡng bot báo lấy thêm; V-10 đọc số cột CongThuc (API nâng CongThuc lên 40 cột). Tự kiểm: bất biến 57.']},
   {v:'v1.7.44', ngay:'17/10/2026', nd:['Tab Báo cáo: giờ công và ly / giờ công tính CẢ giờ chủ quán đứng ca (chủ quán chốt 17/10 khi kiểm lại bản của Fable 5), cùng định nghĩa /tuan của bot — trước đó (v1.7.43) chỉ tính nhân viên. Luật đề xuất "dưới 6 ly/giờ công" dùng cùng số này. Kiểm lại độc lập bản v1.7.42 – v1.7.43 của Fable 5 trước khi triển khai.']},
   {v:'v1.7.43', ngay:'17/10/2026', nd:['Tab mới "Báo cáo" (chủ quán duyệt 17/10/2026, đề xuất từ phiên Business Analysis): xem lại cả kỳ để quyết định thay đổi — nằm ngay dưới Tổng quan (thanh bên và bảng "Thêm" trên điện thoại), không nhét vào Tổng quan.',
@@ -3195,6 +3259,10 @@ function tuKiem(){
     const h57a = hoaVonLyNgay(20000, {luong:300000, cd:0, vh:0, kh:2250000, cogs:8000, ngay:30}), h57b = hoaVonLyNgay(20000, {luong:300000, cd:0, vh:360000, kh:2250000, cogs:8000, ngay:30});
     ok('v1.7.45: năng lực 30 phút = trung vị các khung đông nhất (10 · 30 · 12 ly → 12, không lấy 30); hoà vốn cộng chi vận hành khác 360.000 đ/tháng → thêm 1 ly/ngày; giá vốn theo ngày bán của dữ liệu ≥ 0',
       n57 === 12 && h57b.vanHanh - h57a.vanHanh === 1 && (giaVonTheoNgayBan(D.orders) == null || giaVonTheoNgayBan(D.orders) >= 0), `${n57} ly · ${h57a.vanHanh} → ${h57b.vanHanh} ly/ngày`);
+    // 58. v1.7.46: mọi biểu đồ có lớp ghi số; định dạng số in đủ (không tr / k)
+    const c58 = Object.values(charts), t58 = c58.filter(c => !(c.config.plugins || []).includes(nhanSoPlugin));
+    ok('v1.7.46: mọi biểu đồ ghi số trên cột / đường (1.234.567 · 12,3 · trống khi không có số)', !t58.length && soNhan(1234567) === '1.234.567' && soNhan(12.34) === '12,3' && soNhan(null) === '' && soNhan(-4500) === '-4.500',
+      t58.length ? `${t58.length} biểu đồ thiếu: ${t58.map(c => c.canvas.id).join(', ')}` : `${c58.length} biểu đồ`);
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -3993,7 +4061,7 @@ function renderPerf(){
     const d = ngay.slice(-14), s1 = css('--s1'), s2 = css('--s2'), n = d.length;
     mk('cPerfFc', {type:'line', data:{labels:d.map(k => `${thu(k)} ${dShort(k)}`).concat(`Mai ${dShort(mai)}`), datasets:[
         {label:'Thực tế', data:d.map(k => lyN[k]).concat(null), borderColor:s1, backgroundColor:s1, borderWidth:2, pointRadius:3, tension:.25},
-        {label:'Dự báo', data:Array(n - 1).fill(null).concat(lyN[d[n - 1]], du), borderColor:s2, backgroundColor:s2, borderWidth:2, borderDash:[5, 4], pointRadius:c => c.dataIndex === n ? 5 : 0}]},
+        {label:'Dự báo', nhan:true, data:Array(n - 1).fill(null).concat(lyN[d[n - 1]], du), borderColor:s2, backgroundColor:s2, borderWidth:2, borderDash:[5, 4], pointRadius:c => c.dataIndex === n ? 5 : 0}]},
       options:{plugins:{tooltip:{filter:c => !(c.datasetIndex === 1 && c.dataIndex < n), callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} ly${c.datasetIndex === 1 ? ` (${fmt(lo)}–${fmt(hi)})` : ''}`}}}}});
     $('lgPerfFc').innerHTML = `<span><i style="background:${s1}"></i>Số ly thực tế</span><span><i style="background:${s2}"></i>Dự báo mai <b class="num">${fmt(du)} ly</b></span>`;
   })();
@@ -4071,7 +4139,7 @@ function renderKho(){
       backgroundColor:it.map(x => x.ngay < 3 ? bad : x.ngay < 7 ? warn : good), borderRadius:4, maxBarThickness:20},
       {type:'line', label:'Mốc 7 ngày', data:it.map(() => 7), borderColor:bad, borderDash:[3, 3], borderWidth:1.5, pointRadius:0, indexAxis:'y'}]},
     options:{indexAxis:'y', interaction:{mode:'nearest', intersect:true}, scales:{x:{beginAtZero:true, max:30, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:7, callback:v => v >= 30 ? '≥ 30' : v}}, y:{grid:{display:false}, ticks:{autoSkip:false}}},
-      plugins:{tooltip:{callbacks:{label:c => c.datasetIndex ? null : ` đủ khoảng ${it[c.dataIndex].ngay.toLocaleString('vi-VN', {maximumFractionDigits:1})} ngày`}}}}});
+      plugins:{nhanSo:{fmt:(v, i, d) => d ? '' : `${it[i].ngay.toLocaleString('vi-VN', {maximumFractionDigits:1})} ngày`}, tooltip:{callbacks:{label:c => c.datasetIndex ? null : ` đủ khoảng ${it[c.dataIndex].ngay.toLocaleString('vi-VN', {maximumFractionDigits:1})} ngày`}}}}});
 }
 
 /* ============ thẻ: mục lục · thu gọn ▾ · phóng to ⤢ (− + Vừa khung, Esc để đóng) ============ */
