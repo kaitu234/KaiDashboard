@@ -2,7 +2,7 @@
  * - Trang (index.html): lấy mạng trước, mất mạng thì dùng bản đã lưu → luôn có code mới khi online.
  * - Chart.js, font, icon: lưu sẵn, dùng bản lưu (đổi phiên bản thì tải lại).
  * - API Apps Script, thời tiết: KHÔNG lưu ở đây (số liệu lần trước do trang tự giữ). */
-const CACHE = 'kai-v2';
+const CACHE = 'kai-v3';   // v1.7.55
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'];
 
@@ -19,7 +19,8 @@ self.addEventListener('fetch', e => {
   if (/script\.google(usercontent)?\.com$|open-meteo\.com$/.test(url.hostname)) return;   // số liệu: luôn đi mạng
 
   if (req.mode === 'navigate'){   // trang chính: mạng trước
-    e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put('index.html', c)); return r; })
+    e.respondWith(fetch(req.url, {cache:'no-cache'}).then(r =>   // v1.7.55: bỏ qua bản lưu tạm HTTP (Pages giữ 10 phút)
+      { const c = r.clone(); caches.open(CACHE).then(x => x.put('index.html', c)); return r; })
       .catch(() => caches.match('index.html')));
     return;
   }
