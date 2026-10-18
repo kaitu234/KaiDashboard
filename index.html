@@ -1292,6 +1292,7 @@ function thuongPhatNgay(k){ return (D.thuongPhat || []).filter(x => x.k === k).r
 function luongNgay(k){
   let luong = thuongPhatNgay(k), tam = false;   // v1.7.42 (Fable 5 V-04): lương ngày = tiền công các ca + thưởng − phạt (trước đây thiếu → lệch BangLuong 80.334 đ)
   D.cong.filter(c => c.k === k).forEach(c => {
+    luong += c.cc || 0;   // v1.7.56: thưởng chuyên cần đủ chuỗi (ChamCong cột R "🎉 7/7 +50.000đ") — bot cộng vào lương, không nằm trong Tiền công (P)
     if (c.tien != null){ luong += c.tien; if (!c.ra) tam = true; }
     else if (c.luongGio){ const het = c.ra || gioRaTam(c); if (het){ luong += Math.max(0, (het - c.vao) / 36e5) * c.luongGio; tam = true; } }
   });
@@ -1412,7 +1413,7 @@ function parseWorkbook(wb){
   // ChamCong: Ngày · NV · ID · Giờ vào · Giờ ra · Số giờ · … · Ghi chú(I) · … · Lương/giờ(N) · Phụ cấp(O) · Tiền công(P)
   rowsOf(wb, 'ChamCong').slice(1).forEach(r => { const k = dayKey(r[0]); const vao = toDate(r[3]); if (!k || !vao) return;
     const ra = toDate(r[4]); D.cong.push({k, nv:txt(r[1]), id:txt(r[2]), vao, ra, gio: num(r[5]) || (ra ? (ra - vao)/36e5 : 0), note:txt(r[8]),
-      luongGio:num(r[13]), tien: r[15] == null ? null : num(r[15]), som:tick(r[16]), mot:tick(r[18]), bu:tick(r[19])}); });
+      luongGio:num(r[13]), tien: r[15] == null ? null : num(r[15]), cc:(m => m ? +m[1].replace(/\./g, '') : 0)(/\+\s*([\d.]+)\s*đ/.exec(txt(r[17]))), som:tick(r[16]), mot:tick(r[18]), bu:tick(r[19])}); });
   // Cùng Telegram ID nhưng tên khác (tên Telegram trước khi /themnv) → gộp về tên mới nhất
   const tenMoi = {}, alias = {};
   D.cong.forEach(c => { if (c.id) tenMoi[c.id] = c.nv; });
@@ -2433,11 +2434,11 @@ function renderFin(){
   const chiKhac = D.chi.filter(r => !['Đầu tư', 'Giá vốn'].includes(blockOf(r)) && !laBoQua(r) && !laChoKem(r) && !r.tamLuong).reduce((s, r) => s + r.amt, 0);   // v1.7.54: dòng lương tạm tính của bot không cộng (phần tạm đã tính từ ChamCong)
   // v1.7.51 (chủ quán 18/10): lương = sổ chi Nhân sự (đã nằm trong chiKhac, mỗi kỳ đã chốt 1 dòng / người) + tiền công bot + thưởng/phạt chỉ của (ID, ngày) CHƯA thuộc kỳ đã chốt (tab LuongDaChot) — bỏ luật nsSo theo tháng; cùng Sheet N15
   const tpBot = (D.thuongPhat || []).filter(x => !daChotLuong(x.id, x.k)).reduce((s, x) => s + x.tien, 0);
-  const congTam = D.cong.filter(c => !daChotLuong(c.id, c.k)), luongBot = congTam.reduce((s, c) => s + (c.tien || 0), 0) + tpBot;
+  const congTam = D.cong.filter(c => !daChotLuong(c.id, c.k)), luongBot = congTam.reduce((s, c) => s + (c.tien || 0) + (c.cc || 0), 0) + tpBot;
   const luongSo = D.chi.filter(r => blockOf(r) === 'Nhân sự' && !r.tamLuong).reduce((s, r) => s + r.amt, 0);
   const noLuong = D.chi.filter(r => blockOf(r) === 'Nhân sự' && r.no && r.amt > 0 && !r.tamLuong), tongNoLuong = noLuong.reduce((s, r) => s + r.amt, 0);   // lương đã chốt, chưa trả (tick Công nợ)
   const soTam = D.chi.filter(r => blockOf(r) === 'Nhân sự' && r.tamLuong).reduce((s, r) => s + r.amt, 0), coSoTam = D.chi.some(r => blockOf(r) === 'Nhân sự' && r.tamLuong);   // v1.7.55: dòng lương tạm bot ghi vào sổ (chỉ để đối chiếu)
-  const tamNguoi = {}; congTam.forEach(c => tamNguoi[c.nv] = (tamNguoi[c.nv] || 0) + (c.tien || 0)); (D.thuongPhat || []).filter(x => !daChotLuong(x.id, x.k)).forEach(x => tamNguoi[x.nv] = (tamNguoi[x.nv] || 0) + x.tien);
+  const tamNguoi = {}; congTam.forEach(c => tamNguoi[c.nv] = (tamNguoi[c.nv] || 0) + (c.tien || 0) + (c.cc || 0)); (D.thuongPhat || []).filter(x => !daChotLuong(x.id, x.k)).forEach(x => tamNguoi[x.nv] = (tamNguoi[x.nv] || 0) + x.tien);
   // Hàng cho kèm (ly trà đá, ly pha trà/bọc đá, trà sâm dứa): tính riêng theo tiền chi thực tế, không hao hụt, không nằm trong giá vốn/ly
   const choKem = D.chi.filter(r => laChoKem(r) && !laBoQua(r)).reduce((s, r) => s + r.amt, 0), boQuaFin = D.chi.filter(laBoQua).reduce((s, r) => s + r.amt, 0);
   const lai = gvBan == null || cogs == null || (!lyBan && !luongBot && !chiKhac && !choKem) ? null : totalRev - gvBan - chiKhac - luongBot - choKem, laiSo = totalRev - opex;   // v1.7.42 (Fable 5 T-20): chưa có đơn, lương, chi → chưa có số thật
@@ -2615,6 +2616,7 @@ function daChotLuong(id, k){
 function luongBotChuaChot(k){
   let luong = (D.thuongPhat || []).filter(x => x.k === k && !daChotLuong(x.id, k)).reduce((s, x) => s + x.tien, 0), tam = false;
   D.cong.filter(c => c.k === k && !daChotLuong(c.id, k)).forEach(c => {
+    luong += c.cc || 0;   // v1.7.56: thưởng chuyên cần đủ chuỗi (ChamCong cột R "🎉 7/7 +50.000đ") — bot cộng vào lương, không nằm trong Tiền công (P)
     if (c.tien != null){ luong += c.tien; if (!c.ra) tam = true; }
     else if (c.luongGio){ const het = c.ra || gioRaTam(c); if (het){ luong += Math.max(0, (het - c.vao) / 36e5) * c.luongGio; tam = true; } }
   });
@@ -2628,7 +2630,7 @@ function phanBoNhanSu(){
   D.chi.filter(r => r.block === 'Nhân sự' && r.amt && !r.tamLuong).forEach(r => {
     const ky = r.kyL;
     if (!ky){ pb[r.k] = (pb[r.k] || 0) + r.amt; return; }
-    const w = {}; rangeDays(ky.tu, ky.den).forEach(k => w[k] = D.cong.filter(c => c.k === k && String(c.id) === ky.id).reduce((s, c) => s + (c.tien || 0), 0) + (D.thuongPhat || []).filter(x => x.k === k && x.id === ky.id).reduce((s, x) => s + x.tien, 0));
+    const w = {}; rangeDays(ky.tu, ky.den).forEach(k => w[k] = D.cong.filter(c => c.k === k && String(c.id) === ky.id).reduce((s, c) => s + (c.tien || 0) + (c.cc || 0), 0) + (D.thuongPhat || []).filter(x => x.k === k && x.id === ky.id).reduce((s, x) => s + x.tien, 0));
     const t = phanBoLuong(r.amt, w); Object.entries(t).forEach(([k, v]) => pb[k] = (pb[k] || 0) + v);
   });
   _pbNS = {d:D, tk:today(), pb}; return pb;
@@ -2958,7 +2960,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.55';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.56';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3015,6 +3017,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.56', ngay:'18/10/2026', nd:['Lương tạm tính cộng thưởng chuyên cần đủ chuỗi (ChamCong cột R "🎉 7/7 +50.000đ") như bot — trước đây thiếu, thẻ Lương (công nợ) lệch 50.000 đ với dòng tạm tính bot ghi (Như Quỳnh 18/10).']},
   {v:'v1.7.55', ngay:'18/10/2026', nd:['Thẻ Lương (công nợ): đối chiếu phần tạm tính dashboard (từ ChamCong) với dòng "(tạm tính)" bot ghi trong sổ chi — khớp hoặc báo lệch.', 'App mở lâu trên điện thoại tự kiểm bản mới (5 phút / lần và mỗi lần mở lại app); có bản mới thì hiện nút "Có bản mới — bấm để tải lại". Service worker luôn lấy trang mới nhất (không dùng bản lưu tạm của trình duyệt).']},
   {v:'v1.7.54', ngay:'18/10/2026', nd:['Dòng sổ chi lương "(tạm tính)" do bot ghi cho kỳ chưa chốt: không cộng vào lương trong lãi (PNL, Thu chi) và thẻ Lương (công nợ) — phần tạm lấy từ ChamCong; thẻ Công nợ tổng vẫn gồm dòng này (tick L).', 'Ca chưa check-out: giờ ra tạm 10:30 cùng ngày (vào sau 10:30 thì giờ hết ca theo lịch) cho lương ngày, tab Hôm nay, PNL; có giờ ra thật thì dùng số thật.']},
   {v:'v1.7.53', ngay:'18/10/2026', nd:['Lương (chủ quán chốt 18/10, cùng Sheet N15): lương trong lãi (PNL, Thu chi, tab Hôm nay) = sổ chi Nhân sự (mỗi kỳ đã chốt 1 dòng / người, phân về đúng các ngày của kỳ) + tiền công bot + thưởng / phạt chỉ của những ngày CHƯA thuộc kỳ đã chốt (tab LuongDaChot; dự phòng đọc kỳ + ID từ dòng sổ chi). Bỏ luật cũ "tháng có sổ chi Nhân sự thì lấy cả tháng theo sổ chi".', 'Thu chi có thẻ Lương (công nợ): lương đã chốt chưa trả (dòng Lương nhân viên tick Công nợ) từng người, từng kỳ + tạm tính kỳ chưa chốt; thẻ Công nợ ghi "trong đó lương …".', 'Quỹ tiền: đọc bảng ĐỔI TIỀN MẶT → CK (tab Quỹ tiền, tiêu đề "SỐ TIỀN ĐỔI") — trừ tiền mặt, cộng CK; cảnh báo khi tiền CK âm (vd trả lương bằng CK) kèm số tiền mặt cần đổi.']},
