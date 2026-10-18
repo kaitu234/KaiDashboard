@@ -1642,14 +1642,16 @@ function tinhKhoCore(src){
     for (let i = 1; i < xs.length; i++){ const a = xs[i - 1], b = xs[i], d = (b.luc - a.luc) / 864e5; if (d <= 0 || dk(b.luc) < cat) continue; dungDo += a.dem + layTong(k.ma, a.luc, b.luc) - b.dem; ngayDo += d; }
     const nhipDo = ngayDo >= 1 ? Math.max(0, dungDo) / ngayDo : 0;
     const dung7 = src.orders.filter(o => o.k >= tu7 && o.k <= tk).reduce((s, o) => s + dungCua(o), 0), nhip = dungCT ? (nd7 ? dung7 / nd7 : 0) : nhipDo;
-    const xe = kx ? kx.dem + layTong(k.ma, kx.luc) : null;
-    const xeUoc = kx ? xe - (dungCT ? dungSau(kx.luc) : nhipDo * Math.max(0, (nowMs - kx.luc.getTime()) / 864e5)) : null;
+    const xeDem = kx ? kx.dem + layTong(k.ma, kx.luc) : null;
+    const xeUoc = kx ? xeDem - (dungCT ? dungSau(kx.luc) : nhipDo * Math.max(0, (nowMs - kx.luc.getTime()) / 864e5)) : null;
+    // v1.7.58 (chủ chốt 18/10/2026, bot xetruct-v1): mục KHÔNG kiểm xe hằng ngày (Kho cột U = FALSE) có công thức → xe tự trừ theo món đã bán (vd kem muối); mục kiểm hằng ngày giữ số đếm
+    const xeTheoCT = !!kx && dungCT && !k.kiemNgay, xe = kx ? (xeTheoCT ? Math.max(0, xeUoc) : xeDem) : null;
     const khoChuaKiem = !kh && tongMua > 0, kho = kh ? kh.dem + muaSau(dk(kh.luc)) - layTong(k.ma, kh.luc) : (khoChuaKiem ? tongMua - layTong(k.ma) : null), tongKiem = !!kx && !!kh;
     const ton = xe != null && kho != null ? xe + kho : null, tonBiet = xe != null || kho != null ? (xe || 0) + (kho || 0) : null;
     const ngay = ton != null && nhip > 0 ? ton / nhip : null;
     const can = (ngay != null && ngay < k.baoNgay) || (kho != null && k.baoCon != null && kho <= k.baoCon), canLay = xe != null && k.xeBao != null && xe < k.xeBao;
     const gan = [kx, kh].filter(Boolean).sort((a, b) => b.luc - a.luc)[0] || null, kd = x => x ? {luc:x.luc, dem:x.dem} : null, tuoi = x => x ? Math.floor((nowMs - x.luc.getTime()) / 864e5) : null;
-    return {ma:k.ma, ten:k.ten, dv:k.dv, dvTinh:k.dvTinh, quyDoi:k.quyDoi, ton, tong:ton, tonBiet, xe, xeUoc, kho, khoChuaKiem, tongKiem, nhip, nhipDo, ngay, tongMua, tongDung, soDongMua:muaRows.length,
+    return {ma:k.ma, ten:k.ten, dv:k.dv, dvTinh:k.dvTinh, quyDoi:k.quyDoi, xeTheoCT, ton, tong:ton, tonBiet, xe, xeUoc, kho, khoChuaKiem, tongKiem, nhip, nhipDo, ngay, tongMua, tongDung, soDongMua:muaRows.length,
       kiem:kd(gan), kiemXe:kd(kx), kiemKho:kd(kh), tuoiXe:tuoi(kx), tuoiKho:tuoi(kh), dungCT, theoDoi:k.theoDoi, xeBao:k.xeBao, xeLay:k.xeLay, kiemNgay:k.kiemNgay, baoCon:k.baoCon, baoNgay:k.baoNgay, can, canLay};
   });
 }
@@ -2488,7 +2490,7 @@ function renderFin(){
   if (!A.length) A.push(['good','Ổn','Không có điểm cần xử lý','Số liệu đang khớp các quy tắc kiểm tra.','']);
   table({id:'tNL', rows:KH.map(x => Object.assign({}, x, {botTxt: x.bot && x.bot.ton != null ? `${so(x.bot.ton, x.dv)}${x.bot.ngay != null ? ` · ${ngayTxt(x.bot.ngay)} ngày` : ''} (lúc ${x.bot.luc})` : '—',
       kiemTxt: `🚚 ${x.kiemXe ? gioKiem(x.kiemXe.luc) : '—'} · 🏠 ${x.kiemKho ? gioKiem(x.kiemKho.luc) : '—'}`, viec: [x.can ? 'Mua thêm' : '', x.canLay ? 'Lấy từ kho ra xe' : ''].filter(Boolean).join(' · ')})), sortDefault:{k:'ngay', d:1}, cols:[{k:'ten', l:'Nguyên liệu / vật tư'},
-    {k:'xe', l:'🚚 Xe', r:1, f:(v, r) => v == null ? '<span class="muted">chưa kiểm xe</span>' : so(Math.max(0, v), r.dv) + (r.tuoiXe > (r.kiemNgay ? 2 : 8) ? ` <span class="pill neu" title="Lần /kiemxe gần nhất đã ${r.tuoiXe} ngày trước">số cũ ${r.tuoiXe} ngày</span>` : ''), cls:(v, r) => v != null && r.canLay ? 'dn' : ''},
+    {k:'xe', l:'🚚 Xe', r:1, f:(v, r) => v == null ? '<span class="muted">chưa kiểm xe</span>' : so(Math.max(0, v), r.dv) + ((r.xeTheoCT ? ' <span class="pill neu" title="Không đếm xe hằng ngày: lấy số đếm gần nhất + hàng lấy từ kho − món đã bán × công thức">trừ theo món</span>' : r.tuoiXe > (r.kiemNgay ? 2 : 8) ? ` <span class="pill neu" title="Lần /kiemxe gần nhất đã ${r.tuoiXe} ngày trước">số cũ ${r.tuoiXe} ngày</span>` : '')), cls:(v, r) => v != null && r.canLay ? 'dn' : ''},
     {k:'kho', l:'🏠 Kho', r:1, f:(v, r) => v == null ? '<span class="muted">chưa có số nhập</span>' : so(Math.max(0, v), r.dv) + (r.khoChuaKiem ? ' <span class="pill neu" title="Chưa /kiemkho lần nào: số nhập (sổ chi) − hàng đã lấy ra xe">theo số nhập</span>' : r.tuoiKho > 8 ? ` <span class="pill neu" title="Lần /kiemkho gần nhất đã ${r.tuoiKho} ngày trước">số cũ ${r.tuoiKho} ngày</span>` : ''), cls:(v, r) => v != null && v <= 0 ? 'dn' : ''},
     {k:'ton', l:'Tổng', r:1, f:(v, r) => v == null ? (r.khongQuyDoi ? '<span class="muted" title="Cột E tab Kho trống">chưa có quy đổi</span>' : r.tonBiet != null ? `<span class="muted" title="Tổng = xe + kho, cần có số của cả hai nơi">thiếu số ${r.xe == null ? 'xe' : 'kho'}</span>` : r.soDongMua ? '—' : '<span class="muted">chưa có số</span>') : so(Math.max(0, v), r.dv), cls:v => v != null && v <= 0 ? 'dn' : ''},
     {k:'nhip', l:'Dùng TB/ngày', r:1, f:(v, r) => v ? so(v, r.dv) + (r.dungCT ? '' : ' <span class="pill neu" title="Đo từ các lần kiểm xe">đo</span>') : r.dungCT ? '<span class="muted">chưa có ly bán</span>' : '<span class="muted" title="Chưa có định lượng trong CongThuc, cần ≥ 2 lần /kiemxe cách ≥ 1 ngày">chưa đo được</span>'},
@@ -2960,7 +2962,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.57';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.58';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3017,6 +3019,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.58', ngay:'18/10/2026', nd:['Tồn xe của mục KHÔNG kiểm hằng ngày (Kho cột U = FALSE, vd kem muối, sữa đặc, cacao) giờ tự trừ theo món đã bán: số đếm xe gần nhất + hàng lấy từ kho − ly bán × công thức (không âm), cột 🚚 Xe ghi "trừ theo món". Mục kiểm hằng ngày (ly, cà phê) vẫn theo số đếm. Cùng luật với bot (xetruct-v1, Apps Script @140) và Sheet Bảng kho. Tự kiểm: bất biến 46.']},
   {v:'v1.7.57', ngay:'18/10/2026', nd:['Chủ quán chốt 18/10: nhân viên không bấm 🏦 chuyển khoản từng đơn, TM / CK chỉ ghi tổng lúc chốt ca. Tab Báo cáo bỏ đề xuất "CK bot ghi thấp hơn CK chốt ca" (sẽ báo sai mọi kỳ) và cột "CK bot ghi"; thay bằng đề xuất: ngày bán chưa chốt ca (trừ hôm nay), két thiếu từ 30.000 đ / ngày hoặc 60.000 đ / kỳ.', 'Tab Hôm nay: tỉ lệ chuyển khoản lấy từ chốt ca (chưa chốt thì "—"), không lấy từ đơn bot.']},
   {v:'v1.7.56', ngay:'18/10/2026', nd:['Lương tạm tính cộng thưởng chuyên cần đủ chuỗi (ChamCong cột R "🎉 7/7 +50.000đ") như bot — trước đây thiếu, thẻ Lương (công nợ) lệch 50.000 đ với dòng tạm tính bot ghi (Như Quỳnh 18/10).']},
   {v:'v1.7.55', ngay:'18/10/2026', nd:['Thẻ Lương (công nợ): đối chiếu phần tạm tính dashboard (từ ChamCong) với dòng "(tạm tính)" bot ghi trong sổ chi — khớp hoặc báo lệch.', 'App mở lâu trên điện thoại tự kiểm bản mới (5 phút / lần và mỗi lần mở lại app); có bản mới thì hiện nút "Có bản mới — bấm để tải lại". Service worker luôn lấy trang mới nhất (không dùng bản lưu tạm của trình duyệt).']},
@@ -3479,6 +3482,9 @@ function tuKiem(){
         Hk.xe.length === 1 && gn(x.duKien, 1.1) && gn(x.hut, 0.6) && gn(x.tien, 120000) && x.muc === 'bad' && x.nv.join() === 'An' && Hk.kho.length === 1 && gn(kh.duKien, 2.5) && gn(kh.hut, 0.1) && Math.round(kh.tien) === 20000
           && gn(tg.dungThat, 2.1) && gn(tg.dung, 0.4) && gn(tg.hut, 1.7) && Hk.nguoi.length === 1 && gn(Hk.nguoi[0].hut, 120000) && gN.gv === 31000 && gN.gvLy === 7750 && gN.tamLy === 1,
         `xe hụt ${x && x.hut.toFixed(2)} · kho hụt ${kh && kh.hut.toFixed(2)} · tổng hụt ${tg && tg.hut != null ? tg.hut.toFixed(2) : '—'} · gv ${gN.gvLy} đ/ly`); }
+    // 46. xetruct (chủ chốt 18/10/2026, bot xetruct-v1): mục không kiểm xe hằng ngày có công thức → xe = số đếm + lấy − món đã bán × công thức (không âm); cùng ca biết trước bất biến 20
+    { const rT = tinhKhoCore({khoAll:[Object.assign({}, kx2, {kiemNgay:false})], chi:chiK, orders:odK.concat([{k:'2026-10-05', t:new Date(2026, 9, 5, 8), ma:'m1', sl:30}]), congThuc:{m1:{x:2}}, kiemKho:kK, layKho:lK, today:'2026-10-06', first:'2026-10-02', now:new Date(2026, 9, 6, 12).getTime()})[0];
+      ok('Xe tự trừ theo món (không kiểm hằng ngày): 1,5 + lấy 3 − 35 ly × 2 g ÷ 10 = −2,5 → 0, cờ xeTheoCT', rT.xeTheoCT && rT.xe === 0 && gan(rT.xeUoc, -2.5, 1e-9) && cx.xeTheoCT === false, `xe ${rT.xe} · định lượng ${rT.xeUoc}`); }
     // 45. Vá theo kiểm định Fable 5 (17/10): dò tiêu đề tab Doanh thu khi có dòng tổng phía trên; bảng 1 cột không lỗi; ngày đã qua không đếm hôm nay khi chưa có đơn; hạng mục NFC/NFD gộp một
     const fvR = [['DOANH THU THEO NGÀY'], ['TỔNG DOANH THU', '', '', 'TIỀN MẶT', '', 'CHUYỂN KHOẢN + LỆCH TIỀN'], ['Formula'], ['NGÀY', 'THỨ', 'TIỀN MẶT (= Trích)', 'CHUYỂN KHOẢN', 'Lệch', 'GHI CHÚ', 'ĐÃ CHUYỂN TM VÀO QUỸ CK', 'THÁNG', 'TỔNG DOANH THU', 'MỤC TIÊU'], ['D:2026-10-16 00:00:00', 'T6', 780000, 250000, -17000, 'Chốt ca 11:32', true, 'T10/2026', 6284000, 23760000]];
     const fvS = docDtSheet(fvR), fvSort = (() => { const o = {cols:[{k:'ly'}]}; return (S.sort.__fv || o.sortDefault || {k:(o.cols[1] || o.cols[0]).k}).k; })();
