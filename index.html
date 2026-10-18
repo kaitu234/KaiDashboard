@@ -2903,7 +2903,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.50';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.51';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -2960,6 +2960,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.51', ngay:'18/10/2026', nd:['Đồng bộ với bot (chudaysom-v1): chủ quán cũng hưởng phụ cấp dậy sớm 10.000 đ/ca khi check-in từ 05:45 trở về trước, như nhân viên; vẫn không có chuyên cần, ca 1 người, thưởng. Bảng "Nhân viên trong kỳ" đếm ca dậy sớm của chủ (tiền đã nằm trong Tiền công ChamCong do bot tính).']},
   {v:'v1.7.50', ngay:'17/10/2026', nd:['Tab Hôm nay, khối Tiền & lãi chia 2 cột: trái là số, phải là Phân tích nhanh (lời gộp mỗi ly, cơ cấu chi phí trên 100 đ doanh thu, cần bao nhiêu ly để đủ lương / hoà vốn ròng, món góp lãi nhiều nhất), Gợi ý theo luật (lỗ ròng cần thêm bao nhiêu ly, món biên gộp dưới 30%, thiếu giá vốn, ngày chưa chốt ca, két thiếu, đơn huỷ ≥ 5%) và Cách tính. Điện thoại: cột phải xuống dưới.']},
   {v:'v1.7.49', ngay:'17/10/2026', nd:['Tab Hôm nay có lọc kỳ: Ngày · Tuần · Tháng · Khoảng (chọn từ ngày → đến ngày). Nút ◀ ▶ lùi / tới theo kỳ; máy nhớ lựa chọn. Kỳ tuần / tháng / khoảng: thẻ so với kỳ liền trước (kỳ đang chạy so trung bình mỗi ngày bán), biểu đồ Ly theo ngày, Ly theo giờ (TB mỗi ngày bán), Món, Đơn và Ca & két của cả kỳ.', 'Thêm thẻ Thực thu (sau chốt ca), Lãi gộp, Lãi sau lương; Đơn huỷ gộp vào thẻ Số đơn. Khối Tiền & lãi đi đủ bậc như tab PNL: doanh thu → giá vốn → lãi gộp → lương → lãi sau lương → hàng cho kèm, chi vận hành khác, thuê chỗ + điện nước → lãi vận hành → khấu hao → lãi ròng, kèm ghi chú cách tính. Cùng hàm tinhPnl nên trùng số tab PNL khi chọn cùng kỳ.']},
   {v:'v1.7.48', ngay:'17/10/2026', nd:['Tab Hôm nay, khối tiền: "Lãi / lỗ ước tính" đổi tên thành "Lãi sau lương (ước tính)" (cùng tên tab PNL) — đây không phải lãi gộp. Thêm dòng Doanh thu theo đơn bot và Lãi gộp (doanh thu − giá vốn) để thấy từng bước trừ; dòng lương ghi riêng thưởng / phạt nếu có.', 'Ghi chú đủ cách tính: đã trừ giá vốn món (gồm ly, nắp, ống hút, túi, đá, hao hụt 5%) và lương; chưa trừ chi vận hành khác, hàng cho kèm, khấu hao phí nhượng quyền, thuê chỗ + điện nước — lãi đủ khoản xem tab Thu chi / PNL. Số không đổi.']},
@@ -3823,7 +3824,7 @@ function renderHr(){
   C.forEach(c => { const chu = c.chu || laChu(c.nv), p = (per[c.id || c.nv] ??= {nv:D.nhanNv(c), ten:c.nv, id:c.id, chu, ca:0, gio:0, ly:0, tre:0, quen:0, tien:0, chuaTinh:0, som:0, mot:0, tp:0}); p.ca++; p.gio += c.gio || 0;
     if (!chu) trongCa(c).forEach(o => { p.ly += o.sl; daDem.add(o); });
     if (c.tien == null) p.chuaTinh++; else p.tien += c.tien;
-    if (!chu && c.ra){ if (c.som) p.som++; if (c.mot) p.mot++; }   // v1.7.32: ca được phụ cấp dậy sớm (bot ghi) / ca 1 người (chủ tick) — tiền đã nằm trong Tiền công; chủ quán không hưởng
+    if (c.ra){ if (c.som) p.som++; if (!chu && c.mot) p.mot++; }   // v1.7.32: ca được phụ cấp dậy sớm (bot ghi) / ca 1 người (chủ tick) — tiền đã nằm trong Tiền công. v1.7.51 (bot chudaysom-v1, 18/10): chủ quán CŨNG hưởng dậy sớm, vẫn không hưởng ca 1 người / chuyên cần
     if (/trễ/i.test(c.note)) p.tre++; if (!c.ra || /Tự đóng/.test(c.note)) p.quen++; });
   const ccKy = {}; Object.values(D.ccRes || {}).forEach(o => ccKy[o.id] = o.thuong.filter(k => k >= S.from && k <= S.to).length);   // lần chuyên cần đạt trong kỳ đang lọc (tiền tính riêng ở bảng lương của bot) · v1.7.42: khoá theo id của chuyenCanCore (id hoặc 'n:' + tên)
   (D.thuongPhat || []).filter(x => x.k >= S.from && x.k <= S.to).forEach(x => { const p = per[x.id]; if (p) p.tp += x.tien; });   // v1.7.42 (Fable 5 V-04): thưởng − phạt chủ ghi trong kỳ, theo ID
