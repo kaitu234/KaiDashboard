@@ -2270,7 +2270,7 @@ function renderToday(){
   const nTM = new Set(L.filter(o => o.pt === 'TM').map(o => o.id)).size, nCK = new Set(L.filter(o => o.pt === 'CK').map(o => o.id)).size;
   $('tdMoney').innerHTML = `<span>💵 Tiền mặt · ${nTM} đơn (theo đơn bot)</span><b>${fmt(A.tm)} đ</b>
     <span>🏦 Chuyển khoản · ${nCK} đơn (theo đơn bot)</span><b>${fmt(A.ck)} đ</b>
-    <span>Tỉ lệ chuyển khoản</span><b>${pct(A.dt ? A.ck / A.dt : null)}</b>
+    ${(() => { const n = nguonTien()[k]; return `<span>Tỉ lệ chuyển khoản <span class="muted">(${n && n.chot ? 'theo chốt ca' : 'chưa chốt ca — nhân viên không bấm 🏦 từng đơn'})</span></span><b>${n && n.chot && n.tt ? pct(n.ck / n.tt) : '—'}</b>`; })()}
     ${(() => { const n = nguonTien()[k]; return n && n.tt ? `<span class="sep"></span>
     <span>${n.chot ? '🔒 Thực thu sau chốt ca' : '⏳ Chưa chốt ca: số theo đơn bot'}</span><b>${fmt(n.tt)} đ</b>
     <span>💵 Tiền mặt (giữ lại)</span><b>${fmt(n.tm)} đ</b>
@@ -2960,7 +2960,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.56';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.57';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3017,6 +3017,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.57', ngay:'18/10/2026', nd:['Chủ quán chốt 18/10: nhân viên không bấm 🏦 chuyển khoản từng đơn, TM / CK chỉ ghi tổng lúc chốt ca. Tab Báo cáo bỏ đề xuất "CK bot ghi thấp hơn CK chốt ca" (sẽ báo sai mọi kỳ) và cột "CK bot ghi"; thay bằng đề xuất: ngày bán chưa chốt ca (trừ hôm nay), két thiếu từ 30.000 đ / ngày hoặc 60.000 đ / kỳ.', 'Tab Hôm nay: tỉ lệ chuyển khoản lấy từ chốt ca (chưa chốt thì "—"), không lấy từ đơn bot.']},
   {v:'v1.7.56', ngay:'18/10/2026', nd:['Lương tạm tính cộng thưởng chuyên cần đủ chuỗi (ChamCong cột R "🎉 7/7 +50.000đ") như bot — trước đây thiếu, thẻ Lương (công nợ) lệch 50.000 đ với dòng tạm tính bot ghi (Như Quỳnh 18/10).']},
   {v:'v1.7.55', ngay:'18/10/2026', nd:['Thẻ Lương (công nợ): đối chiếu phần tạm tính dashboard (từ ChamCong) với dòng "(tạm tính)" bot ghi trong sổ chi — khớp hoặc báo lệch.', 'App mở lâu trên điện thoại tự kiểm bản mới (5 phút / lần và mỗi lần mở lại app); có bản mới thì hiện nút "Có bản mới — bấm để tải lại". Service worker luôn lấy trang mới nhất (không dùng bản lưu tạm của trình duyệt).']},
   {v:'v1.7.54', ngay:'18/10/2026', nd:['Dòng sổ chi lương "(tạm tính)" do bot ghi cho kỳ chưa chốt: không cộng vào lương trong lãi (PNL, Thu chi) và thẻ Lương (công nợ) — phần tạm lấy từ ChamCong; thẻ Công nợ tổng vẫn gồm dòng này (tick L).', 'Ca chưa check-out: giờ ra tạm 10:30 cùng ngày (vào sau 10:30 thì giờ hết ca theo lịch) cho lương ngày, tab Hôm nay, PNL; có giờ ra thật thì dùng số thật.']},
@@ -3033,7 +3034,7 @@ const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều 
   {v:'v1.7.43', ngay:'17/10/2026', nd:['Tab mới "Báo cáo" (chủ quán duyệt 17/10/2026, đề xuất từ phiên Business Analysis): xem lại cả kỳ để quyết định thay đổi — nằm ngay dưới Tổng quan (thanh bên và bảng "Thêm" trên điện thoại), không nhét vào Tổng quan.',
     'Chọn kỳ bằng 4 nút Tuần này · Tuần trước · Tháng này · Tháng trước (tuần = thứ Hai → Chủ nhật; máy nhớ nút đã chọn), không theo bộ lọc nhân viên / món chung. Mỗi số kèm mức tăng / giảm so với kỳ liền trước cùng loại; kỳ trước chưa có dữ liệu hoặc dưới 3 ngày bán thì "—"; kỳ đang chạy dở so theo trung bình mỗi ngày bán.',
     'Các phần: Tổng quan kỳ (ngày bán, ly, đơn, ly/ngày, giá TB/ly, doanh thu đơn bot, thực thu TM · CK theo nguonTien, lãi gộp và lãi vận hành theo tinhPnl — giá vốn theo từng ngày bán) với cơ sở từng số ghi rõ; Ly theo ngày (cột, nét đứt = cùng thứ tuần trước / 4 tuần trước); Khung giờ (giờ đông nhất); Cơ cấu món và lãi (top theo ly và lãi gộp, món chưa bán); Ca làm và năng suất (giờ công nhân viên, ly/giờ công từng ngày, chủ quán không tính); Két và chuyển khoản (chênh két từng ngày, CK bot ghi so với CK thực nhận lúc chốt — ChotCa cột M); Đơn huỷ (số đơn, tiền).',
-    'Đề xuất tự động chỉ hiện khi đúng điều kiện, mỗi dòng có số thật: CK bấm trên bot thấp hơn CK thực nhận lúc chốt → nhắc bấm 🏦; có ngày dưới NGUONG_LY_GIO_CONG = 6 ly/giờ công (ngưỡng chủ quán duyệt 17/10/2026; chỉ xét khi kỳ có ≥ 3 ngày chấm công) → gợi ý bớt người; ly/ngày dưới mốc hoà vốn sau khấu hao (hoaVonLyNgay) → cảnh báo kèm số ly/ngày còn thiếu. Không có luật nào dựa trên giả định; thiếu số thì không phát.',
+    'Đề xuất tự động chỉ hiện khi đúng điều kiện, mỗi dòng có số thật: ngày bán chưa chốt ca (trừ hôm nay) → nhắc chốt bù; két thiếu từ 30.000 đ / ngày hoặc 60.000 đ / kỳ → đối chiếu người đứng ca (v1.7.57: bỏ luật CK bot vì nhân viên không bấm 🏦 từng đơn); có ngày dưới NGUONG_LY_GIO_CONG = 6 ly/giờ công (ngưỡng chủ quán duyệt 17/10/2026; chỉ xét khi kỳ có ≥ 3 ngày chấm công) → gợi ý bớt người; ly/ngày dưới mốc hoà vốn sau khấu hao (hoaVonLyNgay) → cảnh báo kèm số ly/ngày còn thiếu. Không có luật nào dựa trên giả định; thiếu số thì không phát.',
     'Phần đã có ở PNL / Hiệu suất / Doanh thu thuần / Nhân sự chỉ tóm tắt 1–2 số và có nút "Xem chi tiết →" mở đúng tab, đặt sẵn kỳ đang xem vào bộ lọc chung. Số liệu đọc từ dữ liệu hiện tại như các tab khác. Bất biến 51 (tổng khớp PNL / Doanh thu thuần cùng kỳ), 52 (ranh giới tuần T2–CN, tháng 28 / 29 / 30 / 31 ngày), 53 (kỳ không có đơn không lỗi).']},
   {v:'v1.7.42', ngay:'17/10/2026', nd:['Bản vá Fable 5 vòng 2 (chủ quán giao 17/10, mục 4 phản hồi). Số đổi so với v1.7.41 trên dữ liệu 16/10: lương T10 2.206.667 → 2.287.001 đ (cộng 80.334 đ thưởng chủ ghi bằng /thuong), lãi vận hành PNL −642.754 → −723.088 đ, Thu chi / Tổng quan −614.571 → −694.905 đ (vẫn theo thực thu × giá vốn bình quân, chủ chốt 13/10), lương/ngày Kế hoạch 313.452 → 324.929 đ, mốc hoà vốn giá đang bán 110 / 136 → 114 / 140 ly/ngày.',
     'V-04 Lương gồm thưởng / phạt chủ ghi bằng /thuong /phat: Dashboard.gs gửi thêm tab ThuongPhat; luongNgay, PNL, Thu chi, Kế hoạch (lương/ngày, hoà vốn) và bảng Nhân viên trong kỳ (cột Thưởng / phạt, Thực nhận; thẻ Lương tạm tính) cộng thưởng − phạt theo ngày, chỉ người có chấm công (cùng BangLuong của bot); dòng của người không chấm công liệt kê ở Kiểm chứng. Bất biến 47.',
@@ -4479,11 +4480,14 @@ function soSanhKy(cur, prev, K, KT, goodUp = true, theoNgay = true){
   return dlt(cur, prev, goodUp);
 }
 /** Đề xuất tự động của kỳ: mảng {muc, t, ev, ac}; rỗng khi không đủ điều kiện (hàm thuần theo K, bất biến 53) */
+const NGUONG_THIEU_KET = 30000;   // v1.7.57: 1 ngày thiếu két từ mức này (hoặc cả kỳ gấp đôi) mới đề xuất
 function deXuatBaoCao(K){
   const R = [];
-  // 1. CK bấm trên bot thấp hơn CK thực nhận lúc chốt ca (chỉ các ngày chốt có cột M)
-  const coM = K.ket.filter(x => x.ckThuc != null), ckBot = coM.reduce((s, x) => s + x.botCk, 0), ckThuc = coM.reduce((s, x) => s + x.ckThuc, 0);
-  if (coM.length && ckBot < ckThuc) R.push({muc:'warn', t:'Nhân viên bấm 🏦 thiếu khi khách chuyển khoản', ev:`${coM.length} ngày chốt có ghi CK thực nhận: bot ghi CK ${fmt(ckBot)} đ, chốt ca nhận ${fmt(ckThuc)} đ (thiếu ${fmt(ckThuc - ckBot)} đ)`, ac:'Nhắc nhân viên bấm 🏦 khi khách chuyển khoản; két phải có theo bot mới đúng và tỉ lệ CK mới tin được.'});
+  // 1. v1.7.57 (chủ quán chốt 18/10: nhân viên KHÔNG bấm 🏦 từng đơn, TM / CK chỉ ghi tổng lúc chốt ca) — bỏ luật "CK bot thấp hơn CK chốt"; thay bằng: ngày có bán chưa chốt ca · két thiếu đáng kể
+  const tkB = today(), chuaChot = K.ket.filter(x => !x.chot && x.bot && x.k < tkB);
+  if (chuaChot.length) R.push({muc:'warn', t:`${chuaChot.length} ngày bán chưa chốt ca`, ev:`${chuaChot.map(x => `${thu(x.k)} ${dShort(x.k)} (đơn bot ${fmt(x.bot)} đ)`).join(' · ')} — thực thu và tách TM / CK các ngày này đang tạm theo đơn bot`, ac:`Chủ chốt bù: /chotca ${dShort(chuaChot[0].k)} tm <tiền mặt> ck <chuyển khoản> ở bot, hoặc báo số cho Claude`});
+  const thieu = K.ket.filter(x => x.chot && x.chenh < 0), tongThieu = -thieu.reduce((a, x) => a + x.chenh, 0), lon = thieu.filter(x => x.chenh <= -NGUONG_THIEU_KET);
+  if (lon.length || tongThieu >= 2 * NGUONG_THIEU_KET) R.push({muc:'warn', t:`Két thiếu ${fmt(tongThieu)} đ trong kỳ`, ev:`${thieu.length} ngày chốt thiếu: ${thieu.map(x => `${thu(x.k)} ${dShort(x.k)} −${fmt(-x.chenh)}`).join(' · ')}`, ac:`Đối chiếu với người đứng ca các ngày thiếu từ ${fmt(NGUONG_THIEU_KET)} đ; kiểm lại tiền đầu ca và chi từ két`});
   // 2. Năng suất dưới ngưỡng (chỉ xét khi kỳ có ≥ 3 ngày có chấm công nhân viên)
   if (K.ca.length >= 3){ const thap = K.ca.filter(x => x.lyGio != null && x.lyGio < NGUONG_LY_GIO_CONG);
     if (thap.length) R.push({muc:'warn', t:`${thap.length} ngày năng suất dưới ${NGUONG_LY_GIO_CONG} ly/giờ công`, ev:thap.map(x => `${thu(x.k)} ${dShort(x.k)}: ${fmt(x.ly)} ly ÷ ${x.gio.toLocaleString('vi-VN', {maximumFractionDigits:1})} giờ công = ${x.lyGio.toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/giờ (${x.soCa} ca)`).join(' · '), ac:`Xem khung giờ vắng ở tab Hiệu suất rồi bớt người ở khung đó (ngưỡng ${NGUONG_LY_GIO_CONG} ly/giờ công do chủ quán duyệt 17/10/2026).`}); }
@@ -4544,7 +4548,7 @@ function renderBc(){
   // két & CK
   table({id:'tBcKet', rows:K.ket, sortDefault:{k:'k', d:1}, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`}, {k:'bot', l:'Đơn bot', r:1, f:fmt}, {k:'tt', l:'Thực thu', r:1, f:fmt},
       {k:'chenh', l:'Chênh két', r:1, f:(v, r) => !r.chot ? '<span class="muted">chưa chốt</span>' : v === 0 ? '<span class="up">khớp</span>' : fmt(v), cls:v => v < 0 ? 'dn' : ''},
-      {k:'botCk', l:'CK bot ghi', r:1, f:fmt}, {k:'ckThuc', l:'CK thực nhận', r:1, f:v => v == null ? '<span class="muted" title="Chốt kiểu cũ hoặc chưa chốt: không ghi CK">—</span>' : fmt(v), cls:(v, r) => v != null && r.botCk < v ? 'dn' : ''}]});
+      {k:'ckThuc', l:'CK thực nhận (chốt ca)', r:1, f:v => v == null ? '<span class="muted" title="Chốt kiểu cũ hoặc chưa chốt: không ghi CK">—</span>' : fmt(v)}]});
   if (!K.ket.length) $('tBcKet').innerHTML = '<tbody><tr><td class="muted" style="padding:10px">Kỳ này chưa có ngày bán.</td></tr></tbody>';
   const chenhTong = K.ket.filter(x => x.chot).reduce((s, x) => s + x.chenh, 0), soChot = K.ket.filter(x => x.chot).length;
   $('bcKetTxt').innerHTML = `${K.ket.length ? `${soChot}/${K.ket.length} ngày đã chốt · tổng chênh két ${fmt(chenhTong)} đ. ` : ''}<a href="#" data-bcgo="dtt">Xem chi tiết Doanh thu thuần →</a> · <a href="#" data-bcgo="hr">Chốt ca & két (Nhân sự) →</a>`;
