@@ -148,6 +148,8 @@ details.guide p{margin:4px 0;max-width:110ch}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kpi.main .v.up{color:#1E5B33} :root:not([data-theme="light"]) .kpi.main .v.dn{color:#8E2A20} :root:not([data-theme="light"]) .kpi.main .muted{color:#5C4A3A}}
 :root[data-theme="dark"] .kpi.main .v.up{color:#1E5B33} :root[data-theme="dark"] .kpi.main .v.dn{color:#8E2A20} :root[data-theme="dark"] .kpi.main .muted{color:#5C4A3A}
 th .muted{color:inherit;opacity:.75}   /* v1.7.42 (Fable 5 T-22): chữ mờ trong tiêu đề bảng (vd "(cần 2)") lấy màu tiêu đề thay vì --muted (quá mờ trên nền be ở chế độ Tối) */
+.kbar{display:inline-block;width:96px;height:10px;border-radius:3px;background:var(--line);vertical-align:middle;overflow:hidden}.kbar i{display:block;height:100%;background:var(--good)}.kbar i.warn{background:var(--warn)}.kbar i.bad{background:var(--bad)}
+td.kc-ten{background:var(--beige)} td.kc-bad{background:var(--bad-bg);color:var(--bad);font-weight:700} td.kc-warn{background:var(--warn-bg)} td.kc-good{background:var(--good-bg)}
 .meter{height:6px;border-radius:3px;background:var(--line);position:relative;margin-top:4px;overflow:visible}
 .meter i{position:absolute;inset:0 auto 0 0;border-radius:3px;background:var(--caramel)}
 .meter b{position:absolute;top:-3px;width:2px;height:12px;background:var(--bad)}
@@ -878,14 +880,15 @@ html.mcap{background:var(--paper)}
   <!-- ================= KHO ================= -->
   <div class="view" id="v-kho" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục tab Kho"></nav>
+    <div class="kpis" id="khoKpis"></div>
+    <div class="card" id="sec-kho-nl">
+      <div class="ct">📦 Kho &amp; xe — tồn hiện tại <span class="nt">· 🚚 xe = kiểm xe + lấy từ kho (mục không đếm hằng ngày: trừ theo món đã bán) · 🏠 kho = kiểm kho + mua − lấy ra xe · thanh = số ngày còn đủ (tối đa 14)</span></div>
+      <div class="tblwrap" style="border:0"><table id="tNL"></table></div>
+      <p class="muted" id="nlNote" style="margin:0;font-size:12px"></p>
+    </div>
     <div class="card" id="sec-kho-al">
       <div class="ct">Cần xử lý <span class="nt">· 🏠 kho tồn (cần mua) trước, 🚚 xe (lấy từ kho) sau</span></div>
       <div class="alerts" id="khoAlerts"></div>
-    </div>
-    <div class="card" id="sec-kho-nl">
-      <div class="ct">Tồn xe + kho <span class="nt">· 🚚 xe = kiểm xe + lấy từ kho − dùng · 🏠 kho = kiểm kho + mua − lấy ra xe</span></div>
-      <div class="tblwrap" style="border:0"><table id="tNL"></table></div>
-      <p class="muted" id="nlNote" style="margin:0;font-size:12px"></p>
     </div>
     <div class="card" id="sec-kho-bc">
       <div class="ct">Báo cáo hằng ngày của nhân viên <span class="nt">· kiểm xe cuối ngày (ly, cà phê) · hàng lấy từ kho ra xe · cuối tuần đếm đủ</span></div>
@@ -1666,6 +1669,23 @@ function khoTheoDoi(){
 }
 /** Cảnh báo tồn dùng chung (Thu chi · Kho · Tổng quan · Kế hoạch): THỨ TỰ cố định 🏠 KHO (cần mua, thiếu nhất trước) → 🚚 XE (lấy từ kho) → nhắc kiểm xe.
  *  Mỗi phần tử [mức, nhãn, tiêu đề, chi tiết, việc cần làm] — cùng dạng với mảng A của renderFin. */
+/** v1.7.59 — tab Kho theo thiết kế Sheet Bảng kho (chủ quán 18/10/2026).
+ *  Đủ ~ngày hiển thị = tổng ÷ dùng/ngày; chưa đếm xe thì lấy phần đã biết (như cột F Bảng kho) — cảnh báo mua vẫn theo x.ngay / x.can.
+ *  Trạng thái: 🔴 Mua gấp (cần mua và kho ≤ 0 hoặc đủ < 2 ngày) · 🟠 Cần mua · 🚚 Lấy từ kho (ghép được với cần mua) · ✅ Ổn (có số, không cờ nào). */
+const khoNgayHt = x => x.ngay != null ? x.ngay : (x.tonBiet != null && x.nhip > 0 ? x.tonBiet / x.nhip : null);
+function khoTrangThai(x){
+  if (x.xe == null && x.kho == null) return {m:'', t:'—'};
+  const d = khoNgayHt(x), gap = x.can && ((x.kho != null && x.kho <= 0) || (d != null && d < 2));
+  const mua = gap ? '🔴 Mua gấp' : x.can ? '🟠 Cần mua' : '', lay = x.canLay ? '🚚 Lấy từ kho' : '';
+  return mua || lay ? {m: gap ? 'bad' : x.can ? 'warn' : 'xe', t:[mua, lay].filter(Boolean).join(' · ')} : {m:'good', t:'✅ Ổn'};
+}
+/** Việc cần làm 1 dòng (cùng chữ cột K Bảng kho): mua thêm ~N (đủ 7 ngày theo nhịp) · lấy … từ kho */
+function khoViec(x){
+  const v = [];
+  if (x.can) v.push(x.nhip > 0 ? `Mua thêm ~${Math.max(1, Math.ceil(x.nhip * 7 - Math.max(0, x.tonBiet || 0)))} ${x.dv}` : 'Mua thêm');
+  if (x.canLay) v.push(`Lấy ${x.xeLay ? x.xeLay + (/[a-zà-ỹ]/i.test(x.xeLay) ? '' : ' ' + x.dv) : 'thêm'} từ kho`);
+  return v.join(' · ');
+}
 function khoCanhBao(){
   const KH = khoTheoDoi(), A = [], so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})} ${dv}`, gio = t => `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}`;
   KH.filter(x => x.can).sort((a, b) => (a.ngay == null ? 99 : a.ngay) - (b.ngay == null ? 99 : b.ngay)).forEach(x => A.push([(x.kho != null ? x.kho : 1) <= 0 || (x.ngay != null && x.ngay < 2) ? 'bad' : 'warn', 'Kho',
@@ -2488,16 +2508,22 @@ function renderFin(){
   const KH = khoTheoDoi();
   khoCanhBao().forEach(a => A.push(a));   // 🏠 kho tồn → 🚚 xe → nhắc kiểm
   if (!A.length) A.push(['good','Ổn','Không có điểm cần xử lý','Số liệu đang khớp các quy tắc kiểm tra.','']);
+  { const bar = (d, bao) => d == null ? '' : `<span class="kbar" aria-hidden="true"><i class="${d < bao ? 'bad' : d < 7 ? 'warn' : ''}" style="width:${Math.round(100 * Math.min(14, Math.max(0, d)) / 14)}%"></i></span>`;
+    const gioK = x => x ? gioKiem(x.luc) : '<span class="muted">—</span>';
   table({id:'tNL', rows:KH.map(x => Object.assign({}, x, {botTxt: x.bot && x.bot.ton != null ? `${so(x.bot.ton, x.dv)}${x.bot.ngay != null ? ` · ${ngayTxt(x.bot.ngay)} ngày` : ''} (lúc ${x.bot.luc})` : '—',
-      kiemTxt: `🚚 ${x.kiemXe ? gioKiem(x.kiemXe.luc) : '—'} · 🏠 ${x.kiemKho ? gioKiem(x.kiemKho.luc) : '—'}`, viec: [x.can ? 'Mua thêm' : '', x.canLay ? 'Lấy từ kho ra xe' : ''].filter(Boolean).join(' · ')})), sortDefault:{k:'ngay', d:1}, cols:[{k:'ten', l:'Nguyên liệu / vật tư'},
-    {k:'xe', l:'🚚 Xe', r:1, f:(v, r) => v == null ? '<span class="muted">chưa kiểm xe</span>' : so(Math.max(0, v), r.dv) + ((r.xeTheoCT ? ' <span class="pill neu" title="Không đếm xe hằng ngày: lấy số đếm gần nhất + hàng lấy từ kho − món đã bán × công thức">trừ theo món</span>' : r.tuoiXe > (r.kiemNgay ? 2 : 8) ? ` <span class="pill neu" title="Lần /kiemxe gần nhất đã ${r.tuoiXe} ngày trước">số cũ ${r.tuoiXe} ngày</span>` : '')), cls:(v, r) => v != null && r.canLay ? 'dn' : ''},
-    {k:'kho', l:'🏠 Kho', r:1, f:(v, r) => v == null ? '<span class="muted">chưa có số nhập</span>' : so(Math.max(0, v), r.dv) + (r.khoChuaKiem ? ' <span class="pill neu" title="Chưa /kiemkho lần nào: số nhập (sổ chi) − hàng đã lấy ra xe">theo số nhập</span>' : r.tuoiKho > 8 ? ` <span class="pill neu" title="Lần /kiemkho gần nhất đã ${r.tuoiKho} ngày trước">số cũ ${r.tuoiKho} ngày</span>` : ''), cls:(v, r) => v != null && v <= 0 ? 'dn' : ''},
-    {k:'ton', l:'Tổng', r:1, f:(v, r) => v == null ? (r.khongQuyDoi ? '<span class="muted" title="Cột E tab Kho trống">chưa có quy đổi</span>' : r.tonBiet != null ? `<span class="muted" title="Tổng = xe + kho, cần có số của cả hai nơi">thiếu số ${r.xe == null ? 'xe' : 'kho'}</span>` : r.soDongMua ? '—' : '<span class="muted">chưa có số</span>') : so(Math.max(0, v), r.dv), cls:v => v != null && v <= 0 ? 'dn' : ''},
-    {k:'nhip', l:'Dùng TB/ngày', r:1, f:(v, r) => v ? so(v, r.dv) + (r.dungCT ? '' : ' <span class="pill neu" title="Đo từ các lần kiểm xe">đo</span>') : r.dungCT ? '<span class="muted">chưa có ly bán</span>' : '<span class="muted" title="Chưa có định lượng trong CongThuc, cần ≥ 2 lần /kiemxe cách ≥ 1 ngày">chưa đo được</span>'},
-    {k:'ngay', l:'Đủ ~ngày', r:1, f:v => ngayTxt(v), cls:(v, r) => v != null && v < r.baoNgay ? 'dn' : ''},
-    {k:'viec', l:'Việc cần làm', f:v => v ? `<b>${esc(v)}</b>` : '—'},
-    {k:'kiemTxt', l:'Kiểm gần nhất (xe · kho)', f:v => esc(v)}, {k:'botTxt', l:'Bot tính (tab Kho)', r:1, f:v => `<span class="muted">${esc(v)}</span>`}]});
-  $('nlNote').innerHTML = KH.length ? '<b>Tồn lấy từ số đếm, không trừ hao theo công thức.</b> 🚚 <b>Xe</b> = số <b>/kiemxe</b> gần nhất (ly + cà phê đếm hằng ngày, mọi mục đếm Chủ nhật) + hàng nhân viên báo <b>/laykho</b> sau lúc đếm. 🏠 <b>Kho</b> = số <b>/kiemkho</b> (chủ, 1–2 lần/tuần) gần nhất + hàng mua (sổ chi) sau ngày kiểm − hàng đã lấy ra xe; chưa đếm kho lần nào thì = số nhập − hàng đã ra xe ("theo số nhập"). <b>Tổng</b> = xe + kho khi có số cả hai nơi. Bán thêm ly nào thì số xe vẫn là số đếm gần nhất cho tới lần /kiemxe kế (hiện "số cũ" khi xe quá 2 ngày, mục kiểm tuần quá 8 ngày, kho quá 8 ngày). Định lượng CongThuc chỉ còn dùng để tính nhịp dùng (đủ ~ngày) và so với số đếm khi kiểm (hao hụt). Xe báo lấy từ kho khi ly dưới 50, cà phê dưới 1 kg (đổi ở cột S–U tab Kho). Cột "Bot tính" là số ở tab Kho (bot làm mới mỗi ~10 phút khi số đổi).' :'Chưa có tab <b>Kho</b> (hoặc chưa có quy đổi) nên chưa tính được tồn kho — chưa có số thật.';
+      ngayHt:khoNgayHt(x), tt:khoTrangThai(x), viec:khoViec(x), tX: x.kiemXe ? x.kiemXe.luc.getTime() : null, tK: x.kiemKho ? x.kiemKho.luc.getTime() : null})), sortDefault:{k:'ngayHt', d:1}, cols:[
+    {k:'ten', l:'Nguyên liệu', f:v => `<b>${esc(v)}</b>`, cls:() => 'kc-ten'}, {k:'dv', l:'Đv', f:v => esc(v)},
+    {k:'xe', l:'🚚 Xe', r:1, f:(v, r) => v == null ? '<span class="muted">chưa kiểm</span>' : so(Math.max(0, v), '') + (r.xeTheoCT ? ' <span class="pill neu" title="Không đếm xe hằng ngày: số đếm gần nhất + hàng lấy từ kho − món đã bán × công thức">trừ theo món</span>' : r.tuoiXe > (r.kiemNgay ? 2 : 8) ? ` <span class="pill neu" title="Lần /kiemxe gần nhất đã ${r.tuoiXe} ngày trước">số cũ ${r.tuoiXe} ngày</span>` : ''), cls:(v, r) => v != null && r.canLay ? 'kc-bad' : ''},
+    {k:'kho', l:'🏠 Kho', r:1, f:(v, r) => v == null ? '<span class="muted">chưa có số</span>' : so(Math.max(0, v), '') + (r.khoChuaKiem ? ' <span class="pill neu" title="Chưa /kiemkho lần nào: số nhập (sổ chi) − hàng đã lấy ra xe">theo số nhập</span>' : r.tuoiKho > 8 ? ` <span class="pill neu" title="Lần /kiemkho gần nhất đã ${r.tuoiKho} ngày trước">số cũ ${r.tuoiKho} ngày</span>` : ''), cls:v => v != null && v <= 0 ? 'kc-bad' : ''},
+    {k:'ton', l:'Tổng', r:1, f:(v, r) => v == null ? (r.khongQuyDoi ? '<span class="muted" title="Cột E tab Kho trống">chưa có quy đổi</span>' : r.tonBiet != null ? `<span class="muted" title="Tổng = xe + kho, cần có số của cả hai nơi">thiếu số ${r.xe == null ? 'xe' : 'kho'}</span>` : '<span class="muted">—</span>') : so(Math.max(0, v), '')},
+    {k:'ngayHt', l:'Đủ ~ngày', r:1, f:v => v == null ? '<span class="muted">—</span>' : `<b>${ngayTxt(v)}</b>`, cls:(v, r) => v == null ? '' : v < r.baoNgay ? 'kc-bad' : v < 7 ? 'kc-warn' : 'kc-good'},
+    {k:'bar', l:'Thanh · số ngày còn đủ (tối đa 14)', f:(v, r) => r.ngayHt == null ? `<span class="muted">${r.dungCT ? 'chưa có ly bán' : 'chưa có mức dùng/ngày'}</span>` : bar(r.ngayHt, r.baoNgay) + ` <span class="muted num">${ngayTxt(r.ngayHt)}</span>`},
+    {k:'tt', l:'Trạng thái', f:v => v.m ? `<span class="pill ${v.m === 'xe' ? 'warn' : v.m}">${v.t}</span>` : '<span class="muted">—</span>', cls:v => v.m ? 'kc-' + (v.m === 'xe' ? 'warn' : v.m) : ''},
+    {k:'tX', l:'Kiểm xe gần nhất', f:(v, r) => gioK(r.kiemXe)}, {k:'tK', l:'Kiểm kho gần nhất', f:(v, r) => gioK(r.kiemKho)},
+    {k:'viec', l:'Việc cần làm', f:v => v ? `<b>${esc(v)}</b>` : '<span class="muted">—</span>'},
+    {k:'nhip', l:'Dùng TB/ngày', r:1, f:(v, r) => v ? so(v, r.dv) + (r.dungCT ? '' : ' <span class="pill neu" title="Đo từ các lần kiểm xe">đo</span>') : '<span class="muted">—</span>'},
+    {k:'botTxt', l:'Bot tính (tab Kho)', r:1, f:v => `<span class="muted">${esc(v)}</span>`}]}); }
+  $('nlNote').innerHTML = KH.length ? '<b>Tồn lấy từ số đếm.</b> Mục không đếm xe hằng ngày (tab Kho cột U = FALSE, vd kem muối, sữa đặc, cacao) thì 🚚 xe tự trừ theo món đã bán × công thức (ghi "trừ theo món"). 🚚 <b>Xe</b> = số <b>/kiemxe</b> gần nhất (ly + cà phê đếm hằng ngày, mọi mục đếm Chủ nhật) + hàng nhân viên báo <b>/laykho</b> sau lúc đếm. 🏠 <b>Kho</b> = số <b>/kiemkho</b> (chủ, 1–2 lần/tuần) gần nhất + hàng mua (sổ chi) sau ngày kiểm − hàng đã lấy ra xe; chưa đếm kho lần nào thì = số nhập − hàng đã ra xe ("theo số nhập"). <b>Tổng</b> = xe + kho khi có số cả hai nơi. Bán thêm ly nào thì số xe vẫn là số đếm gần nhất cho tới lần /kiemxe kế (hiện "số cũ" khi xe quá 2 ngày, mục kiểm tuần quá 8 ngày, kho quá 8 ngày). Định lượng CongThuc chỉ còn dùng để tính nhịp dùng (đủ ~ngày) và so với số đếm khi kiểm (hao hụt). Xe báo lấy từ kho khi ly dưới 50, cà phê dưới 1 kg (đổi ở cột S–U tab Kho). Cột "Bot tính" là số ở tab Kho (bot làm mới mỗi ~10 phút khi số đổi).' :'Chưa có tab <b>Kho</b> (hoặc chưa có quy đổi) nên chưa tính được tồn kho — chưa có số thật.';
   const vt = KH.filter(x => x.dv === 'cái');
   $('vatTu').innerHTML = vt.length ? vt.map(x => `<span>${esc(x.ten)}</span><b>${x.ton == null ? (x.tonBiet == null ? '—' : so(Math.max(0, x.tonBiet), 'cái') + ' (thiếu số ' + (x.xe == null ? 'xe' : 'kho') + ')') : so(Math.max(0, x.ton), 'cái')}${x.ngay != null ? ` · ~${ngayTxt(x.ngay)} ngày` : ''}</b>`).join('')
     : '<span class="muted">Tab Kho chưa theo dõi vật tư tính theo cái.</span>';
@@ -2962,7 +2988,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.58';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.59';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3019,6 +3045,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.59', ngay:'18/10/2026', nd:['Tab Kho làm lại theo thiết kế Sheet Bảng kho (chủ quán nhờ 18/10/2026): 5 thẻ đầu (🏠 Kho cần mua · 🚚 Xe cần lấy từ kho · ✅ Ổn · Kiểm xe gần nhất · Kiểm kho gần nhất); bảng "Kho & xe — tồn hiện tại" lên đầu với cột Đv, ô tô màu (xe dưới mức lấy / kho hết = đỏ, đủ ~ngày đỏ–vàng–xanh), thanh số ngày còn đủ (tối đa 14), trạng thái 🔴 Mua gấp / 🟠 Cần mua / 🚚 Lấy từ kho / ✅ Ổn, kiểm xe và kiểm kho gần nhất tách 2 cột, việc cần làm (mua thêm ~N đủ 7 ngày · lấy … từ kho). Đủ ~ngày hiển thị như Sheet: chưa đếm xe thì tính phần đã biết; cảnh báo cần mua giữ nguyên luật.']},
   {v:'v1.7.58', ngay:'18/10/2026', nd:['Tồn xe của mục KHÔNG kiểm hằng ngày (Kho cột U = FALSE, vd kem muối, sữa đặc, cacao) giờ tự trừ theo món đã bán: số đếm xe gần nhất + hàng lấy từ kho − ly bán × công thức (không âm), cột 🚚 Xe ghi "trừ theo món". Mục kiểm hằng ngày (ly, cà phê) vẫn theo số đếm. Cùng luật với bot (xetruct-v1, Apps Script @140) và Sheet Bảng kho. Tự kiểm: bất biến 46.']},
   {v:'v1.7.57', ngay:'18/10/2026', nd:['Chủ quán chốt 18/10: nhân viên không bấm 🏦 chuyển khoản từng đơn, TM / CK chỉ ghi tổng lúc chốt ca. Tab Báo cáo bỏ đề xuất "CK bot ghi thấp hơn CK chốt ca" (sẽ báo sai mọi kỳ) và cột "CK bot ghi"; thay bằng đề xuất: ngày bán chưa chốt ca (trừ hôm nay), két thiếu từ 30.000 đ / ngày hoặc 60.000 đ / kỳ.', 'Tab Hôm nay: tỉ lệ chuyển khoản lấy từ chốt ca (chưa chốt thì "—"), không lấy từ đơn bot.']},
   {v:'v1.7.56', ngay:'18/10/2026', nd:['Lương tạm tính cộng thưởng chuyên cần đủ chuỗi (ChamCong cột R "🎉 7/7 +50.000đ") như bot — trước đây thiếu, thẻ Lương (công nợ) lệch 50.000 đ với dòng tạm tính bot ghi (Như Quỳnh 18/10).']},
@@ -4431,6 +4458,14 @@ function renderPerf(){
 /* ============ render: kho ============ */
 function renderKho(){
   renderMuaHang(); renderHaoHut(); renderBaoCaoXe();
+  { const KH = khoTheoDoi(), T = KH.map(khoTrangThai), dem = m => T.filter(t => t.m === m).length, gan = noi => D.kiemKho.filter(x => x.noi === noi && x.luc).map(x => x.luc).sort((a, b) => b - a)[0];
+    const gio = t => t ? `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}` : '—', nMua = KH.filter(x => x.can).length, nLay = KH.filter(x => x.canLay).length, nOn = dem('good');
+    $('khoKpis').innerHTML = `
+    <div class="kpi tgt"><span class="lb">🏠 Kho cần mua</span><span class="v ${nMua ? 'dn' : 'up'}">${nMua}</span><span class="s">${dem('bad') ? `trong đó ${dem('bad')} mua gấp` : 'kho còn ≤ ngưỡng hoặc đủ ít ngày'}</span></div>
+    <div class="kpi tgt"><span class="lb">🚚 Xe cần lấy từ kho</span><span class="v ${nLay ? 'dn' : 'up'}">${nLay}</span><span class="s">xe dưới mức báo lấy</span></div>
+    <div class="kpi tgt"><span class="lb">✅ Ổn</span><span class="v up">${nOn}</span><span class="s">trên ${KH.length} mục đang theo dõi</span></div>
+    <div class="kpi tgt"><span class="lb">Kiểm xe gần nhất</span><span class="v">${gio(gan('xe'))}</span><span class="s">nhân viên /kiemxe</span></div>
+    <div class="kpi tgt"><span class="lb">Kiểm kho gần nhất</span><span class="v">${gio(gan('kho'))}</span><span class="s">chủ /kiemkho</span></div>`; }
   { const KA = khoCanhBao(); $('khoAlerts').innerHTML = (KA.length ? KA : [['good', 'Ổn', 'Kho và xe chưa có điểm cần xử lý', 'Tồn kho đủ dùng; ly và cà phê ở xe đủ.', '']]).map(([lv, tag, t, d, fix]) => `<div class="alert ${lv}"><span class="pill ${lv}">${tag}</span><div><div class="t">${t}</div><div class="d">${d}</div></div><span class="fix">${fix}</span></div>`).join(''); }
   const it = duNgay().map(x => ({ten:x.ten, ngay:Math.max(0, x.ngay)})).sort((a, b) => a.ngay - b.ngay);
   const bad = css('--bad'), warn = css('--warn'), good = css('--good');
