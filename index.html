@@ -1331,7 +1331,7 @@ function laiNgay(k){
   const L = D.orders.filter(o => o.k === k), a = agg(L), G = giaNL(), cogsTB = cogsO();   // v1.3: chưa tính được giá vốn/ly bình quân → không có số thật, không tính
   const {luong, tam} = luongNgay(k);
   // v1.7.40 (chủ chốt 16/10/2026): giá vốn ngày = Σ giá vốn từng món × ly bán của CHÍNH ngày đó (theo tỉ lệ món), không lấy giá vốn/ly bình quân cả kỳ × số ly (cào bằng). Chưa bán ly nào → tạm bình quân để tính "hoà khi bán … ly"
-  const g = gvNhomCore(L, (ma, kk) => giaVonMon(ma, G, kk), cogsTB), cogs = a.ly ? g.gvLy : cogsTB;
+  const g = gvNhomCore(L, (ma, kk, hs) => giaVonMon(ma, G, kk, hs), cogsTB), cogs = a.ly ? g.gvLy : cogsTB;
   const gv = a.ly ? g.gv : (cogs == null ? null : 0), laiLy = cogs == null ? null : (a.asp || D.giaThuong || 0) - cogs;
   return {dt:a.dt, ly:a.ly, gv, luong, tam, lai: gv == null ? null : a.dt - gv - luong, laiLy, canLy: laiLy > 0 ? Math.ceil(luong / laiLy) : null, cogs, cogsTB, tamLy:g.tamLy};
 }
@@ -1367,7 +1367,7 @@ const cogsO = () => { const v = cogsTheoCT(); return v == null ? null : Math.rou
 /** v1.7.45 (Fable 5 V-01b) — tổng giá vốn các đơn theo định lượng ĐÚNG NGÀY BÁN (lịch DINH_LUONG_CU, cùng cách tinhPnl); món chưa có công thức tạm theo giá vốn/ly bình quân. Không theo bộ lọc. null = chưa có giá vốn */
 function giaVonTheoNgayBan(orders){
   const G = giaNL(), bq = cogsTheoCT(), cache = {}; let t = 0, co = false;
-  orders.forEach(o => { const c = cache[o.ma + '|' + ctKhoa(o.k)] ??= giaVonMon(o.ma, G, o.k), g = c.coCT && c.gv != null && Object.keys(c.nl).length ? c.gv : bq; if (g != null){ t += g * o.sl; co = true; } });
+  orders.forEach(o => { const c = cache[o.ma + '|' + ctKhoa(o.k) + '|' + (o.hs || 1)] ??= giaVonMon(o.ma, G, o.k, o.hs), g = c.coCT && c.gv != null && Object.keys(c.nl).length ? c.gv : bq; if (g != null){ t += g * o.sl; co = true; } });
   return co ? t : null;
 }
 
@@ -1430,7 +1430,7 @@ function parseWorkbook(wb){
     const k = dayKey(r[2]) || dk(toDate(r[1])); if (!k) return;
     const t = toDate(r[1]);
     if (txt(r[10]).toUpperCase() !== 'OK'){ if (txt(r[10]).toUpperCase() === 'HUY') D.cancel.push({id:txt(r[0]), k, tt:num(r[8]), sl:num(r[6])}); return; }
-    D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: txt(r[9]).toUpperCase() === 'CK' ? 'CK' : 'TM'});
+    D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: txt(r[9]).toUpperCase() === 'CK' ? 'CK' : 'TM', hs: num(r[12]) > 0 ? num(r[12]) : 1});   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
   });
   rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE', tat:tatMon(r[5])}; });
   // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái · Sổ chi (H = "202610:47" nếu /chiphi đã tự ghi vào dòng 47 sổ Chi T10-2026; trống = chưa vào sổ)
@@ -1684,7 +1684,7 @@ function tinhKhoCore(src){
   const tk = src.today, tu7 = src.first > addDays(tk, -6) ? src.first : addDays(tk, -6), nd7 = tu7 <= tk ? nDays(tu7, tk) : 0, lay = src.layKho || [], nowMs = src.now != null ? src.now : Date.now();
   const layTong = (ma, tu, den) => lay.reduce((s, x) => x.ma === ma && (!tu || x.luc > tu) && (!den || x.luc <= den) ? s + x.sl : s, 0);
   return src.khoAll.filter(k => k.quyDoi > 0 || k.theoDoi).map(k => {
-    const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * o.sl / k.quyDoi : 0; };
+    const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh) * o.sl / k.quyDoi : 0; };
     const muaRows = src.chi.filter(r => khopNL(k, r) && !laHdCu(r)), tongMua = muaRows.reduce((s, r) => s + r.qty, 0), tongDung = src.orders.reduce((s, o) => s + dungCua(o), 0);
     const muaSau = kk => muaRows.filter(r => r.k > kk).reduce((s, r) => s + r.qty, 0), dungSau = tu => src.orders.filter(o => o.t ? o.t > tu : o.k > dk(tu)).reduce((s, o) => s + dungCua(o), 0);
     const ks = src.kiemKho.filter(x => x.ma === k.ma && x.luc).sort((a, b) => a.luc - b.luc), cuoi = noi => ks.filter(x => (x.noi || 'cu') === noi).pop() || null;
@@ -2787,10 +2787,10 @@ function luongNgayPnl(k){
 }
 function tinhPnl(from, to){
   const L = sel(new Set(['nv', 'pt', 'mon', 'hour']), from, to), A = agg(L), G = giaNL(), cogs = cogsO();   // v1.3: ô trống → null (chưa có số thật)
-  const ngay = rangeDays(from, to).filter(dayOk), cache = {}, gvM = (ma, k) => cache[ma + '|' + ctKhoa(k)] ??= giaVonMon(ma, G, k);   // v1.7.2: theo ngày bán (lịch sử định lượng)
+  const ngay = rangeDays(from, to).filter(dayOk), cache = {}, gvM = (ma, k, hs = 1) => cache[ma + '|' + ctKhoa(k) + '|' + hs] ??= giaVonMon(ma, G, k, hs);   // v1.7.2: theo ngày bán (lịch sử định lượng)
   const nl = {}, day = {}, mon = {}, chuaCT = new Set(), thieu = new Set(); let gvNL = 0, gvBB = 0, gvKhac = 0, choDi = 0, khongGiaVon = 0;
   L.forEach(o => {
-    const c = gvM(o.ma, o.k), d = (day[o.k] ??= {k:o.k, ly:0, dt:0, gv:0}), m = (mon[o.mon] ??= {mon:o.mon, ma:o.ma, ly:0, dt:0, gv:0, cho:0});
+    const c = gvM(o.ma, o.k, o.hs), d = (day[o.k] ??= {k:o.k, ly:0, dt:0, gv:0}), m = (mon[o.mon] ??= {mon:o.mon, ma:o.ma, ly:0, dt:0, gv:0, cho:0});
     let g;
     if (c.coCT){ g = c.gv; Object.entries(c.nl).forEach(([k, x]) => { nl[k] = (nl[k] || 0) + x * o.sl; if (BAO_BI.has(k)) gvBB += x * o.sl; else gvNL += x * o.sl; }); c.thieu.forEach(t => thieu.add(t)); }
     else if (cogs != null){ g = cogs; gvKhac += cogs * o.sl; chuaCT.add(o.mon); }   // món chưa có công thức → tạm theo giá vốn/ly bình quân
@@ -3103,7 +3103,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.65';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.66';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3161,6 +3161,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.66', ngay:'19/10/2026', nd:['Size lớn (bot sizelon-v1, chủ quán 19/10): đơn gõ "+5" là size lớn, DonHang cột M = hệ số 1,3. Giá vốn, PNL, lãi ngày và lượng nguyên liệu dùng (kho, hao hụt) nhân 1,3 cho mọi nguyên liệu trừ đơn vị "cái" (ly, nắp, ống hút, túi vẫn 1 cái / ly). Doanh thu đã nằm trong đơn giá.']},
   {v:'v1.7.65', ngay:'19/10/2026', nd:['Khoản chi trả một lần (chủ quán đồng ý 19/10): dòng sổ chi có chú thích chứa "một lần" hoặc "1 lần" vẫn trừ vào lãi tháng của nó, nhưng không vào chi vận hành trung bình / tháng dùng để dự phóng hoà vốn và Kế hoạch. Đang có: phí hệ thống 159.000 đ (T10, STT 38). Cách đánh dấu ghi ở Hướng dẫn đọc dashboard.']},
   {v:'v1.7.64', ngay:'19/10/2026', nd:['Chi vận hành (phí hệ thống 600.000, chi khác 159.000…) chia đều theo ngày trong tháng thay vì dồn vào đúng ngày ghi sổ: xem 1 ngày / 1 tuần ở tab Hôm nay, PNL cũng trừ phần của mình (tháng đang chạy chia cho số ngày đã qua, nên cả tháng tới hôm nay vẫn đủ 759.000). Chủ quán báo 19/10.']},
   {v:'v1.7.63', ngay:'19/10/2026', nd:['Tổng quan + Thu chi có bảng "Tổng hợp theo tháng" cùng cột Sheet Tổng hợp: doanh thu thực thu, giá vốn theo ly bán (% DT), nhân sự, vận hành, lãi, biên, chi đầu tư, vốn góp, thu khác, dòng tiền (kèm công nợ), tiền cuối tháng, lãi cộng dồn, % thu hồi vốn đầu tư; dòng cuối = cả kỳ.', 'Khối Tiền & lãi (tab Hôm nay): bỏ dòng doanh thu bị ghi 2 lần; dòng lương ghi rõ "đã chốt X + tạm tính Y" thay cho "gồm thưởng / phạt" dễ hiểu nhầm.']},
@@ -3325,7 +3326,7 @@ function renderTreo(){
 /** Giá vốn từng nguyên liệu cho cả kỳ: {nl:{mã: đ}, ly, gv} (món chưa có công thức không vào) */
 function gvTheoNL(L){
   const G = giaNL(), nl = {}, lyDung = {}; let ly = 0, gv = 0;
-  L.forEach(o => { const c = giaVonMon(o.ma, G, o.k); ly += o.sl; if (!c.coCT) return;
+  L.forEach(o => { const c = giaVonMon(o.ma, G, o.k, o.hs); ly += o.sl; if (!c.coCT) return;
     Object.entries(c.nl).forEach(([k, x]) => { nl[k] = (nl[k] || 0) + x * o.sl; gv += x * o.sl; lyDung[k] = (lyDung[k] || 0) + o.sl; }); });
   return {nl, lyDung, ly, gv, G};
 }
@@ -3717,6 +3718,8 @@ function tuKiem(){
     // 62. v1.7.62: bảng Tổng hợp theo tháng — Σ lãi các tháng = lãi Thu chi; tiền cuối tháng cuối = quỹ
     { const sl = FIN_THANG.reduce((a, r) => a + r.lai, 0), qc = FIN_THANG.length ? FIN_THANG[FIN_THANG.length - 1].quy : null;
       ok('v1.7.62: bảng Tổng hợp theo tháng — cộng lãi các tháng = lãi Thu chi; tiền cuối tháng cuối = tiền quỹ còn lại', FIN.lai == null || (gan(sl, FIN.lai, 1) && (qc == null || gan(qc, FIN.cash, 1))), `Σ lãi ${fmt(sl)} vs ${fmt(FIN.lai)} · quỹ ${fmt(qc)} vs ${fmt(FIN.cash)}`); }
+    // 63. v1.7.66: size lớn — hệ số 1,3 nhân nguyên liệu, trừ đơn vị "cái"
+    ok('v1.7.66: size lớn (DonHang cột M = 1,3) nhân lượng nguyên liệu × 1,3, riêng nguyên liệu đơn vị "cái" (ly, nắp, ống hút, túi) vẫn 1 cái / ly; trống = 1', heSoNL(1.3, 'g') === 1.3 && heSoNL(1.3, 'ml') === 1.3 && heSoNL(1.3, 'cái') === 1 && heSoNL(1.3, ' Cái ') === 1 && heSoNL(1, 'g') === 1 && heSoNL(undefined, 'g') === 1 && D.orders.every(o => o.hs > 0), D.orders.filter(o => o.hs !== 1).length + ' dòng đơn size lớn');
     // 58. v1.7.46: mọi biểu đồ có lớp ghi số; định dạng số in đủ (không tr / k)
     const c58 = Object.values(charts), t58 = c58.filter(c => !(c.config.plugins || []).includes(nhanSoPlugin));
     ok('v1.7.46: mọi biểu đồ ghi số trên cột / đường (1.234.567 · 12,3 · trống khi không có số)', !t58.length && soNhan(1234567) === '1.234.567' && soNhan(12.34) === '12,3' && soNhan(null) === '' && soNhan(-4500) === '-4.500',
@@ -3732,7 +3735,7 @@ function haoHutThat(){
   const out = {};
   D.khoAll.filter(k => k.quyDoi > 0).forEach(k => {
     const ks = D.kiemKho.filter(x => x.ma === k.ma && x.luc && x.noi === 'xe').sort((a, b) => a.luc - b.luc);
-    const dungCua = o => { const ct = ctTheoNgay(D.congThuc[String(o.ma).toLowerCase()], DINH_LUONG_CU, o.k); return ct && ct[k.ma] ? ct[k.ma] * o.sl / k.quyDoi : 0; };
+    const dungCua = o => { const ct = ctTheoNgay(D.congThuc[String(o.ma).toLowerCase()], DINH_LUONG_CU, o.k); return ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh) * o.sl / k.quyDoi : 0; };
     let hut = 0, dung = 0, cap = 0;
     for (let i = 1; i < ks.length; i++){ const a = ks[i - 1], b = ks[i]; if ((b.luc - a.luc) / 864e5 < 1) continue;
       const ka = dk(a.luc), kb = dk(b.luc), lay = D.layKho.filter(x => x.ma === k.ma && x.luc > a.luc && x.luc <= b.luc).reduce((s, x) => s + x.sl, 0);
@@ -3759,7 +3762,7 @@ function haoHutKyCore(src){
   const ai = (a, b) => { const c = [...new Set(cong.filter(x => ms(x.vao) < ms(b) && ms(x.ra || x.vao) > ms(a)).map(x => x.nv))]; return c.length ? c : [...new Set(src.orders.filter(o => trong(o, a, b)).map(o => o.nv))]; };
   const tong = [], xe = [], kho = [];
   src.khoAll.filter(k => k.quyDoi > 0 && k.theoDoi).forEach(k => {   // chỉ mục đang theo dõi (tab Kho cột K)
-    const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return ct && ct[k.ma] ? ct[k.ma] * o.sl / k.quyDoi : 0; };
+    const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh) * o.sl / k.quyDoi : 0; };
     const coCT = Object.values(src.congThuc).some(ct => ct[k.ma]), gia = src.gia && src.gia[k.ma] > 0 ? src.gia[k.ma] : null, tien = h => gia == null ? null : h * gia;
     const muaRows = src.chi.filter(r => khopNL(k, r) && !laHdCu(r)), tongMua = muaRows.reduce((s, r) => s + r.qty, 0);
     const ks = src.kiemKho.filter(x => x.ma === k.ma && x.luc).sort((a, b) => ms(a.luc) - ms(b.luc)), xs = ks.filter(x => x.noi === 'xe'), hs = ks.filter(x => x.noi === 'kho');
@@ -3790,7 +3793,7 @@ function haoHutKyCore(src){
  *  gvMon(ma, k) → {gv, coCT}; món chưa có công thức → tạm giá vốn/ly bình quân cogs (tamLy đếm số ly đó); cogs cũng null → gv null (chưa có số thật). */
 function gvNhomCore(orders, gvMon, cogs){
   let ly = 0, gv = 0, tamLy = 0, thieu = false;
-  orders.forEach(o => { const c = gvMon(o.ma, o.k); ly += o.sl; if (c && c.coCT) gv += c.gv * o.sl; else if (cogs != null){ gv += cogs * o.sl; tamLy += o.sl; } else thieu = true; });
+  orders.forEach(o => { const c = gvMon(o.ma, o.k, o.hs); ly += o.sl; if (c && c.coCT) gv += c.gv * o.sl; else if (cogs != null){ gv += cogs * o.sl; tamLy += o.sl; } else thieu = true; });
   return {ly, gv: thieu ? null : gv, gvLy: !thieu && ly ? gv / ly : null, tamLy};
 }
 
@@ -3926,7 +3929,7 @@ function renderHh(){
     {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'tien', l:'Tiền (đ)', r:1, f:tienF}, {k:'muc', l:'Mức', f:m => m === 'good' ? '<span class="pill good">Khớp</span>' : m === 'du' ? '<span class="pill neu">Dư</span>' : pill(m)}]});
   if (!H.kho.length) $('tHhKho').querySelector('tbody').innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:14px">Cần ≥ 2 lần kiểm kho khác ngày cho cùng nguyên liệu.</td></tr>';
   /* 5 · giá vốn theo ngày, theo tỉ lệ món */
-  const cache = {}, gvM = (ma, k) => cache[ma + '|' + ctKhoa(k)] ??= giaVonMon(ma, G, k), cogsTB = cogsO();
+  const cache = {}, gvM = (ma, k, hs = 1) => cache[ma + '|' + ctKhoa(k) + '|' + hs] ??= giaVonMon(ma, G, k, hs), cogsTB = cogsO();
   const gvRows = [...groupBy(D.orders, o => o.k)].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([k, L]) => { const g = gvNhomCore(L, gvM, cogsTB), a = agg(L);
     const top = [...groupBy(L, o => o.mon)].map(([m, l]) => [m, l.reduce((s, o) => s + o.sl, 0)]).sort((x, y) => y[1] - x[1]).slice(0, 3);
     return {k, thu:thu(k), ly:g.ly, dt:a.dt, gv:g.gv, gvLy:g.gvLy, lech: g.gvLy != null && cogsTB != null ? g.gvLy - cogsTB : null, pc: g.gv != null && a.dt ? g.gv / a.dt : null, tamLy:g.tamLy, top}; });
@@ -4484,12 +4487,14 @@ function ctTheoNgay(ct, hist, k){
 /** Khoá cache: ngày k đang ở "thời kỳ" định lượng nào (dãy chỉ số các mốc lịch sử còn áp dụng) */
 const ctKhoa = k => k ? DINH_LUONG_CU.map((h, i) => k <= h.den ? i : '').join('') : '';
 /** Giá vốn 1 ly theo công thức: {gv, thieu:[nguyên liệu chưa có giá], coCT}; k = ngày bán (không truyền = định lượng hiện hành) */
-function giaVonMon(ma, G, k){
+/** v1.7.66 (bot sizelon-v1, chủ quán 19/10): hệ số công thức size lớn (DonHang cột M) nhân lượng nguyên liệu, TRỪ nguyên liệu đơn vị tính "cái" (ly, nắp, ống hút, túi: vẫn 1 cái / ly) */
+const heSoNL = (hs, dvTinh) => hs && hs !== 1 && !/^cái$/i.test(String(dvTinh || "").trim()) ? hs : 1;
+function giaVonMon(ma, G, k, hs = 1){
   const ct = ctTheoNgay(D.congThuc[String(ma).toLowerCase()], DINH_LUONG_CU, k);
   if (!ct || !Object.keys(ct).length) return {gv:null, thieu:[], coCT:false, nl:{}};
   let gv = 0; const thieu = [], tung = {};   // tung: tiền từng nguyên liệu cho 1 ly (tab PNL)
   // nguyên liệu có đơn vị tính bắt đầu bằng "ly" (kem muối, đường, đá: Kai chia từ số ly đã bán thực tế; cacao tính theo g) đã gồm hao hụt → không cộng thêm 5% (v1.3: "ly muối" cũng được miễn)
-  Object.entries(ct).forEach(([nl, l]) => { const g = G[nl]; if (g && g.gia != null){ const x = l * g.gia * heSoHaoHut(g.k.dvTinh); gv += x; tung[nl] = x; } else thieu.push(g ? g.k.ten : nl); });
+  Object.entries(ct).forEach(([nl, l]) => { const g = G[nl]; if (g && g.gia != null){ const x = l * heSoNL(hs, g.k.dvTinh) * g.gia * heSoHaoHut(g.k.dvTinh); gv += x; tung[nl] = x; } else thieu.push(g ? g.k.ten : nl); });
   return {gv, thieu, coCT:true, nl:tung};
 }
 const lyTheoNgay = () => { const o = {}; D.orders.forEach(x => o[x.k] = (o[x.k] || 0) + x.sl); return o; };
