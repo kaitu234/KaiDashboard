@@ -1682,7 +1682,10 @@ function muaVsKho(days){
  *  tuoiXe / tuoiKho = số ngày kể từ lần đếm gần nhất (hiện "số cũ" khi quá hạn).
  *  src = {khoAll, chi, orders, congThuc, kiemKho, layKho, today, first, now} → tuKiem() chạy hàm này với ca biết trước đáp án. */
 function tinhKhoCore(src){
-  const tk = src.today, tu7 = src.first > addDays(tk, -6) ? src.first : addDays(tk, -6), nd7 = tu7 <= tk ? nDays(tu7, tk) : 0, lay = src.layKho || [], nowMs = src.now != null ? src.now : Date.now();
+  const tk = src.today, tu7 = src.first > addDays(tk, -6) ? src.first : addDays(tk, -6), lay = src.layKho || [], nowMs = src.now != null ? src.now : Date.now();
+  // v1.7.69 (chủ chốt 19/10/2026 'gối đầu last 7 day', bot nhip7-v1): nhịp dùng = TB 7 NGÀY BÁN GIÁ THƯỜNG gần nhất (bỏ ngày đồng giá 10K); chưa đủ 3 ngày thường → 7 ngày lịch như cũ
+  const laKM = src.laKM || isPromo, ngayTh = [...new Set(src.orders.filter(o => o.k <= tk && !laKM(o.k)).map(o => o.k))].sort().slice(-7), theoTh = ngayTh.length >= 3, coNgay = new Set(ngayTh);
+  const trongCua = k => theoTh ? coNgay.has(k) : k >= tu7 && k <= tk, nd7 = theoTh ? ngayTh.length : tu7 <= tk ? nDays(tu7, tk) : 0;
   const layTong = (ma, tu, den) => lay.reduce((s, x) => x.ma === ma && (!tu || x.luc > tu) && (!den || x.luc <= den) ? s + x.sl : s, 0);
   return src.khoAll.filter(k => k.quyDoi > 0 || k.theoDoi).map(k => {
     const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma) * o.sl / k.quyDoi : 0; };
@@ -1693,7 +1696,7 @@ function tinhKhoCore(src){
     let dungDo = 0, ngayDo = 0;
     for (let i = 1; i < xs.length; i++){ const a = xs[i - 1], b = xs[i], d = (b.luc - a.luc) / 864e5; if (d <= 0 || dk(b.luc) < cat) continue; dungDo += a.dem + layTong(k.ma, a.luc, b.luc) - b.dem; ngayDo += d; }
     const nhipDo = ngayDo >= 1 ? Math.max(0, dungDo) / ngayDo : 0;
-    const dung7 = src.orders.filter(o => o.k >= tu7 && o.k <= tk).reduce((s, o) => s + dungCua(o), 0), ly7 = src.orders.filter(o => o.k >= tu7 && o.k <= tk).reduce((s, o) => s + o.sl, 0);
+    const dung7 = src.orders.filter(o => trongCua(o.k)).reduce((s, o) => s + dungCua(o), 0), ly7 = src.orders.filter(o => trongCua(o.k)).reduce((s, o) => s + o.sl, 0);
     const nhip = dungCT ? (nd7 ? dung7 / nd7 : 0) : k.kemLy > 0 ? (nd7 ? k.kemLy * ly7 / nd7 : 0) : nhipDo;   // v1.7.63: hàng kèm = tỉ lệ / 1 ly bán (tab Kho cột AO) × ly bán TB 7 ngày — cùng bot hangkem-v1, Sheet Bảng kho cột O
     const xeDem = kx ? kx.dem + layTong(k.ma, kx.luc) : null;
     const xeUoc = kx ? xeDem - (dungCT ? dungSau(kx.luc) : nhipDo * Math.max(0, (nowMs - kx.luc.getTime()) / 864e5)) : null;
@@ -3105,7 +3108,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.68';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.69';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3163,6 +3166,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.69', ngay:'19/10/2026', nd:['Dùng / ngày của kho (đủ ~ngày, cần mua, kế hoạch mua 7 ngày) = trung bình 7 ngày bán GIÁ THƯỜNG gần nhất, bỏ các ngày đồng giá 10K (chủ chốt 19/10/2026: gối đầu last 7 day). Chưa đủ 3 ngày giá thường thì như cũ (7 ngày lịch). Trước đây 7 ngày lịch còn gồm 4 ngày 10K (80–100 ly/ngày) nên dùng / ngày cao gần gấp đôi thực tế (20–40 ly/ngày). Cùng bot nhip7-v1 (tab Kho cột M → Sheet Bảng kho). Tự kiểm: bất biến 49.']},
   {v:'v1.7.68', ngay:'19/10/2026', nd:['Hàng cho kèm (ly trà, bịch đựng đá, trà sâm dứa) có số ngày đủ dùng ở tab Kho: dùng/ngày = tỉ lệ dùng trên 1 ly bán (tab Kho cột AO, chủ báo số thật 19/10: 100 ly trà · 0,5 kg bịch · 1 bịch trà / 732 ly) × ly bán TB 7 ngày. Dashboard.gs gửi thêm riêng cột AO (vẫn không gửi cột mua hàng AA–AN). Cùng luật bot hangkem-v1 và Sheet Bảng kho. Tự kiểm: bất biến 48.']},
   {v:'v1.7.67', ngay:'19/10/2026', nd:['Size lớn (chủ quán chốt 19/10): đá viên giữ nguyên lượng, đường cát × 1,3 như các nguyên liệu khác; ly, nắp, ống hút, túi vẫn 1 cái / ly.']},
   {v:'v1.7.66', ngay:'19/10/2026', nd:['Size lớn (bot sizelon-v1, chủ quán 19/10): đơn gõ "+5" là size lớn, DonHang cột M = hệ số 1,3. Giá vốn, PNL, lãi ngày và lượng nguyên liệu dùng (kho, hao hụt) nhân 1,3 cho mọi nguyên liệu trừ đơn vị "cái" (ly, nắp, ống hút, túi vẫn 1 cái / ly). Doanh thu đã nằm trong đơn giá.']},
@@ -3639,6 +3643,11 @@ function tuKiem(){
     // 48. Hàng kèm (v1.7.68, bot hangkem-v1): không công thức, tỉ lệ 0,01 / 1 ly bán → nhịp = 0,01 × ly bán TB/ngày
     { const rH = tinhKhoCore({khoAll:[Object.assign({}, ky2, {ma:'bd', kemLy:0.01, quyDoi:1})], chi:[], orders:odK.concat([{k:'2026-10-05', t:new Date(2026, 9, 5, 8), ma:'m1', sl:30}]), congThuc:{m1:{x:2}}, kiemKho:[], layKho:[], today:'2026-10-06', first:'2026-10-02', now:new Date(2026, 9, 6, 12).getTime()})[0];
       ok('Hàng kèm: 0,01 × (5 + 30 ly) ÷ 5 ngày = 0,07/ngày', gan(rH.nhip, 0.07, 1e-9), String(rH.nhip)); }
+    // 49. Nhịp 7 ngày giá thường (v1.7.69, bot nhip7-v1): 1 ngày 10K 100 ly + 3 ngày thường 20/10/10 → nhịp ly = 40/3; chỉ 1 ngày thường → 7 ngày lịch
+    { const kL = {ma:'ly', ten:'Ly', dvTinh:'cái', dv:'cái', quyDoi:1, hangMuc:'', noiDung:'ly', giaTC:0, theoDoi:true, baoCon:null, baoNgay:3, xeBao:null, xeLay:'', kiemNgay:true}, km = k => k === '2026-10-15';
+      const oN = (k, sl) => ({k, t:new Date(k + 'T08:00:00'), ma:'m1', sl}), base = {khoAll:[kL], chi:[], congThuc:{m1:{ly:1}}, kiemKho:[], layKho:[], first:'2026-10-15', laKM:km};
+      const a1 = tinhKhoCore(Object.assign({}, base, {orders:[oN('2026-10-15', 100), oN('2026-10-20', 20)], today:'2026-10-21'}))[0], a2 = tinhKhoCore(Object.assign({}, base, {orders:[oN('2026-10-15', 100), oN('2026-10-20', 20), oN('2026-10-21', 10), oN('2026-10-22', 10)], today:'2026-10-22'}))[0];
+      ok('Nhịp dùng: chưa đủ 3 ngày giá thường → 120 ly / 7 ngày lịch; đủ 3 ngày → (20 + 10 + 10) / 3, bỏ ngày 10K', gan(a1.nhip, 120 / 7, 1e-9) && gan(a2.nhip, 40 / 3, 1e-9), a1.nhip.toFixed(2) + ' · ' + a2.nhip.toFixed(2)); }
     // 47. Cảnh báo hao hụt (chủ quán 19/10/2026): kỳ kho lệch → 'Hao hụt' bad, kỳ xe Đáng lo → warn, tất cả dẫn tab Hao hụt; kỳ cũ hơn 14 ngày không báo
     { const n = new Date(), lui = d => new Date(n.getTime() - d * 864e5), mk2 = (o, d) => Object.assign({}, o, {tu:lui(d + 1), den:lui(d)});
       const Hs = {kho:[mk2({ma:'cc', ten:'Cacao', dv:'hũ', dauKy:3, mua:1, lay:0, duKien:4, dem:1, hut:3, tien:480000}, 1), mk2({ma:'sd', ten:'Sữa đặc', dv:'hộp', dauKy:2, mua:0, lay:0, duKien:2, dem:2, hut:0, tien:0}, 1), mk2({ma:'kb', ten:'Kem muối', dv:'hộp', dauKy:5, mua:0, lay:0, duKien:5, dem:3, hut:2, tien:66000}, 30)],
