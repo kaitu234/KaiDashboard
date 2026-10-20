@@ -860,6 +860,15 @@ html.mcap{background:var(--paper)}
       <div class="legend" id="lgOvMonth"></div>
       <div class="tblwrap"><table id="tMonth"></table></div>
     </div>
+    <div class="card" id="sec-fin-kq">
+      <div class="ct">Kết quả tháng <span class="nt">· như khối "Tổng hợp tháng" ở mỗi sổ Chi · % trên doanh thu</span>
+        <select id="finKqM" aria-label="Chọn tháng" style="margin-left:auto;font:inherit;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);color:var(--ink)"></select></div>
+      <div class="tblwrap" style="max-width:720px"><table id="tKqThang"></table></div>
+    </div>
+    <div class="card" id="sec-fin-hm">
+      <div class="ct">Chi theo hạng mục × tháng <span class="nt">· như Tổng hợp mục 2 · gồm cả khoản chưa trả (công nợ)</span></div>
+      <div class="tblwrap"><table id="tHmThang"></table></div>
+    </div>
     <div class="g2">
       <div class="card">
         <div class="ct">Chi theo khối
@@ -872,9 +881,9 @@ html.mcap{background:var(--paper)}
         <div class="cw"><canvas id="cCat" aria-label="Chi theo hạng mục"></canvas></div>
       </div>
       <div class="card">
-        <div class="ct">Vốn &amp; chi theo người</div>
+        <div class="ct">Vốn góp &amp; chi theo người <span class="nt">· như Tổng hợp mục 3 · đã chi gồm cả khoản chưa trả</span></div>
         <div class="tblwrap" style="border:0"><table id="tPeople"></table></div>
-        <div class="lbl">Các khoản góp vốn &amp; thu khác</div>
+        <div class="lbl">Các khoản góp vốn &amp; thu khác (tab Vốn &amp; Thu)</div>
         <div class="tblwrap" style="border:0"><table id="tCap"></table></div>
       </div>
     </div>
@@ -1518,7 +1527,7 @@ function parseWorkbook(wb){
     if (r.kyL && !r.tamLuong && !D.luongChot.some(x => x.id === r.kyL.id && x.tu === r.kyL.tu && x.den === r.kyL.den)) D.luongChot.push(Object.assign({ten:r.kyL.ten, nguon:'sochi'}, r.kyL)); });
   _chotIdx = null;
   rowsOf(wb, 'Vốn & Thu').forEach(r => { const stt = num(r[0]), d = toDate(r[1]); if (!(stt > 0 && d && num(r[5]))) return;
-    D.capital.push({k:dk(d), type:txt(r[2]), desc:txt(r[3]), person:txt(r[4]) || 'Chưa ghi người', amt:num(r[5])}); });
+    D.capital.push({k:dk(d), type:txt(r[2]), desc:txt(r[3]), person:txt(r[4]) || 'Chưa ghi người', amt:num(r[5]), note:txt(r[7]), chuaGop:/chưa góp|chua gop/i.test(txt(r[7]))}); });   // v1.7.74: cột H chú thích (Đã góp / Chưa góp)
   rowsOf(wb, 'Tổng hợp').some(r => { const i = r.findIndex(c => /Tiền mặt đầu kỳ/i.test(txt(c))); if (i < 0) return false;
     const v = r.slice(i+1).find(c => c !== null && c !== '' && !isNaN(num(c))); D.opening = num(v); return true; });
   // Doanh thu nhập tay (dự phòng khi bot chưa có đơn)
@@ -2664,8 +2673,9 @@ function renderFin(){
       const ns = c.filter(r => blockOf(r) === 'Nhân sự' && !r.tamLuong).reduce((a, r) => a + r.amt, 0) + congTam.filter(x => mkey(x.k) === m).reduce((a, x) => a + (x.tien || 0) + (x.cc || 0), 0) + (D.thuongPhat || []).filter(x => mkey(x.k) === m && !daChotLuong(x.id, x.k)).reduce((a, x) => a + x.tien, 0);
       const vh = c.filter(r => !['Đầu tư', 'Giá vốn', 'Nhân sự', '?'].includes(blockOf(r)) && !laBoQua(r) && !laChoKem(r)).reduce((a, r) => a + r.amt, 0) + c.filter(r => laChoKem(r) && !laBoQua(r)).reduce((a, r) => a + r.amt, 0);
       const dt = c.filter(r => blockOf(r) === 'Đầu tư').reduce((a, r) => a + r.amt, 0), gop = D.capital.filter(x => mkey(x.k) === m && /góp/i.test(x.type)).reduce((a, x) => a + x.amt, 0), khac = D.capital.filter(x => mkey(x.k) === m && !/góp/i.test(x.type)).reduce((a, x) => a + x.amt, 0);
-      const cn = chiVaNoCore(c), flow = gop + khac + rev - cn.tra, lai = rev - gv - ns - vh; quy += flow; luy += lai; dtLuy += dt;
-      return {m, rev, gv, gvPct: rev ? gv / rev : null, ns, vh, lai, bien: rev ? lai / rev : null, dt, gop, khac, no:cn.tongNo, flow, quy, luy, thv: dtLuy ? Math.max(0, luy) / dtLuy : null, empty: !rev && !c.length && !gop && !khac}; }).filter(r => !r.empty);
+      const cn = chiVaNoCore(c), flow = gop + khac + rev - cn.tra, lai = rev - gv - ns - vh, dau = quy; quy += flow; luy += lai; dtLuy += dt;
+      const ck = c.filter(r => laChoKem(r) && !laBoQua(r)).reduce((a, r) => a + r.amt, 0), chuaPL = c.filter(r => blockOf(r) === '?').reduce((a, r) => a + r.amt, 0);
+      return {m, rev, gv, ck, chuaPL, dau, gvPct: rev ? gv / rev : null, ns, vh, lai, bien: rev ? lai / rev : null, dt, gop, khac, no:cn.tongNo, flow, quy, luy, thv: dtLuy ? Math.max(0, luy) / dtLuy : null, empty: !rev && !c.length && !gop && !khac}; }).filter(r => !r.empty);
     FIN_THANG = thang; }
   FIN = {cash, tm:QT.tm, ck:QT.ck, lai, gvBan, luongSo, laiSauKH, khauHao, thv, luongBot, totalRev, chenhKet:DT.chenh, capitalIn, alerts:A, mRows, tongNo};   // tab Tổng quan dùng lại
   veTongHopThang('tMonth');
@@ -2692,12 +2702,19 @@ function renderFin(){
       plugins:{tooltip:{callbacks:{label:c => ` ${fmt(c.raw)} đ`}}}}});
 
   /* people & capital */
-  const ppl = Object.entries(persons).map(([n, p]) => ({n, gop:p.gop, chi:p.chi, d:p.gop - p.chi}));
-  table({id:'tPeople', rows:ppl, sortDefault:{k:'gop', d:-1}, cols:[{k:'n', l:'Người'}, {k:'gop', l:'Góp', r:1, f:fmt}, {k:'chi', l:'Đã chi', r:1, f:fmt},
-    {k:'d', l:'Chênh', r:1, f:v => (v > 0 ? '+' : '') + fmt(v), cls:v => v < 0 ? 'dn' : 'up'}],
-    total:{gop:ppl.reduce((s, p) => s + p.gop, 0), chi:ppl.reduce((s, p) => s + p.chi, 0), d:ppl.reduce((s, p) => s + p.d, 0)}});
-  const cg = {}; D.capital.forEach(c => { const k = `${c.type} · ${c.desc}`; cg[k] = (cg[k] || 0) + c.amt; });
-  table({id:'tCap', rows:Object.entries(cg).map(([k, v]) => ({k, v})), sortDefault:{k:'v', d:-1}, cols:[{k:'k', l:'Khoản'}, {k:'v', l:'Số tiền', r:1, f:fmt}]});
+  // v1.7.74 — như Sheet Tổng hợp mục 3: vốn góp · tỷ lệ vốn · thu khác · đã chi (cả khoản chưa trả) · số khoản · thu − chi
+  const pp = {}, P0 = n => pp[n] ??= {n, gop:0, khac:0, chi:0, no:0, sk:0, chua:0};
+  D.capital.forEach(c => { const x = P0(c.person); if (/góp/i.test(c.type)){ x.gop += c.amt; if (c.chuaGop) x.chua += c.amt; } else x.khac += c.amt; });
+  D.chi.forEach(r => { const x = P0(r.person); x.chi += r.amt; x.sk++; if (r.no) x.no += r.amt; });
+  const ppl = Object.values(pp).filter(x => x.gop || x.khac || x.chi), tGop = ppl.reduce((a, x) => a + x.gop, 0);
+  ppl.forEach(x => { x.ty = tGop ? x.gop / tGop : null; x.d = x.gop + x.khac - x.chi; });
+  table({id:'tPeople', rows:ppl, sortDefault:{k:'gop', d:-1}, cols:[{k:'n', l:'Người'}, {k:'gop', l:'Vốn góp', r:1, f:(v, r) => fmt(v) + (r && r.chua ? ` <span class="pill warn" title="Dòng Vốn & Thu ghi chú Chưa góp">chưa góp ${fmt(r.chua)}</span>` : '')}, {k:'ty', l:'Tỷ lệ vốn', r:1, f:v => pct(v, 1)},
+    {k:'khac', l:'Thu khác', r:1, f:v => v ? fmt(v) : '–'}, {k:'chi', l:'Đã chi', r:1, f:(v, r) => fmt(v) + (r && r.no ? ` <span class="muted" style="font-size:11px">(chưa trả ${fmt(r.no)})</span>` : '')}, {k:'sk', l:'Số khoản', r:1, f:fmt},
+    {k:'d', l:'Thu − chi', r:1, f:v => (v > 0 ? '+' : '') + fmt(v), cls:v => v < 0 ? 'dn' : 'up'}],
+    total:{gop:tGop, ty:tGop ? 1 : null, khac:ppl.reduce((a, x) => a + x.khac, 0), chi:ppl.reduce((a, x) => a + x.chi, 0), sk:ppl.reduce((a, x) => a + x.sk, 0), d:ppl.reduce((a, x) => a + x.d, 0)}});
+  table({id:'tCap', rows:D.capital.map((c, i) => Object.assign({i}, c)), sortDefault:{k:'k', d:1}, total:{amt:D.capital.reduce((a, c) => a + c.amt, 0)}, cols:[{k:'k', l:'Ngày', f:v => dShort(v)}, {k:'type', l:'Loại', f:v => esc(v)}, {k:'desc', l:'Nội dung', f:v => esc(v)},
+    {k:'person', l:'Người', f:v => esc(v)}, {k:'amt', l:'Số tiền', r:1, f:fmt}, {k:'note', l:'Chú thích', f:(v, r) => r && r.chuaGop ? `<span class="pill warn">${esc(v)}</span>` : `<span class="muted">${esc(v || '')}</span>`}]});
+  veKetQuaThang(); veHangMucThang();   // v1.7.74
 
   /* line items */
   const ms = D.months.filter(m => D.chi.some(r => r.m === m));
@@ -2737,6 +2754,29 @@ const ngayTrongThang = m => new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate(
 /** v1.7.61 — thẻ "Chi phí vận hành mỗi tháng" (tab Thu chi): khoản cố định (tab Chi cố định; ghi sổ thì số thật, chưa thì tạm tính cả tháng) + chi vận hành khác thực trong sổ chi */
 let FIN_THANG = [];
 /** v1.7.62 — bảng Tổng hợp theo tháng (Tổng quan + Thu chi), cột như Sheet "Tổng hợp" mục 1; dòng cuối = cả kỳ */
+/** v1.7.74 — "Kết quả tháng" (như khối Tổng hợp tháng ở mỗi sổ Chi: số tiền + % doanh thu); chọn tháng ở ô bên phải tiêu đề */
+function veKetQuaThang(){
+  if (!$('tKqThang')) return;
+  const ms = FIN_THANG.map(r => r.m); if (!ms.length){ $('tKqThang').innerHTML = '<tbody><tr><td class="muted" style="padding:10px">Chưa có tháng nào có số.</td></tr></tbody>'; return; }
+  if (!ms.includes(S.finKq)) S.finKq = ms[ms.length - 1];
+  $('finKqM').innerHTML = ms.map(m => `<option value="${m}">${mlabel(m)}</option>`).join(''); $('finKqM').value = S.finKq;
+  $('finKqM').onchange = () => { S.finKq = $('finKqM').value; veKetQuaThang(); };
+  const r = FIN_THANG.find(x => x.m === S.finKq), gvCk = r.gv + r.ck, vhK = r.vh - r.ck, laiGop = r.rev - gvCk;
+  const L = [['Doanh thu (thực thu sau chốt ca)', r.rev, 1], ['Giá vốn theo món bán (định lượng đúng ngày) + hàng cho kèm', gvCk, 1], ['Lãi gộp', laiGop, 2], ['Nhân sự (lương đã chốt trong sổ chi + kỳ chưa chốt)', r.ns, 1], ['Vận hành (chi vận hành, chi cố định đã ghi sổ)', vhK, 1],
+    ['Lãi hoạt động', r.lai, 2], ['Chi đầu tư (không trừ vào lãi)', r.dt, 1], ['Chưa phân loại (khối "?" trong sổ chi)', r.chuaPL, 1], ['Vốn góp', r.gop, 0], ['Thu khác', r.khac, 0], ['Dòng tiền trong tháng', r.flow, 2],
+    ['Tiền đầu tháng (mặt + CK)', r.dau, 0], ['Tiền cuối tháng (mặt + CK)', r.quy, 2], ['Công nợ chưa trả (đã tính vào chi, chưa trừ tiền)', r.no, 0]];
+  table({id:'tKqThang', rows:L.map(([l, v, k], i) => ({i, l, v, pt: k && r.rev ? v / r.rev : null, dam:k === 2})), sortDefault:{k:'i', d:1}, cols:[{k:'l', l:'Kết quả ' + mlabel(r.m), f:(v, x) => x && x.dam ? `<b>${v}</b>` : v},
+    {k:'v', l:'Số tiền', r:1, f:(v, x) => v ? (x && x.dam ? `<b>${fmt(v)}</b>` : fmt(v)) : '–', cls:v => v < 0 ? 'dn' : ''}, {k:'pt', l:'% doanh thu', r:1, f:v => v == null ? '' : pct(v, 1), cls:v => v < 0 ? 'dn' : ''}]});
+}
+/** v1.7.74 — "Chi theo hạng mục × tháng" (như Tổng hợp mục 2): mỗi hạng mục 1 dòng, khối, từng tháng, tổng */
+function veHangMucThang(){
+  if (!$('tHmThang')) return;
+  const ms = D.months.filter(m => D.chi.some(r => r.m === m)), hm = {};
+  D.chi.forEach(r => { const x = hm[r.cat || '(trống)'] ??= {cat:r.cat || '(trống)', khoi:laDauTu(r) ? 'Đầu tư' : r.block, tong:0}; x[r.m] = (x[r.m] || 0) + r.amt; x.tong += r.amt; });
+  const rows = Object.values(hm).filter(x => x.tong), tot = {tong:rows.reduce((a, x) => a + x.tong, 0)}; ms.forEach(m => tot[m] = rows.reduce((a, x) => a + (x[m] || 0), 0));
+  table({id:'tHmThang', rows, sortDefault:{k:'tong', d:-1}, total:tot, cols:[{k:'cat', l:'Hạng mục', f:v => esc(v)}, {k:'khoi', l:'Khối', f:v => v === '?' ? '<span class="pill bad">?</span>' : esc(v)}]
+    .concat(ms.map(m => ({k:m, l:mlabel(m), r:1, f:v => v ? fmt(v) : '–'}))).concat([{k:'tong', l:'Tổng', r:1, heat:1, f:fmt}])});
+}
 function veTongHopThang(id){
   if (!$(id)) return;
   const R = FIN_THANG, sum = k => R.reduce((a, r) => a + (r[k] || 0), 0), last = R[R.length - 1] || {};
@@ -2784,7 +2824,7 @@ function kyLuongTuChi(r){
   if (!m || !id || !r.k) return null;
   const y = +r.k.slice(0, 4), vat = +m[4] < +m[2], sau = vat && +r.k.slice(5, 7) < +m[2];   // kỳ vắt năm (16/12–15/01): dòng ghi tháng 1 → kỳ bắt đầu năm trước
   const tu = `${sau ? y - 1 : y}-${p2(m[2])}-${p2(m[1])}`, den = `${vat && !sau ? y + 1 : y}-${p2(m[4])}-${p2(m[3])}`;
-  return {tu, den, id:id[1], ten:((r.desc || '').split('·')[1] || '').replace(/(tạm tính)/i, '').trim()};
+  return {tu, den, id:id[1], ten:((r.desc || '').split('·')[1] || '').replace(/s*(s*tạm tínhs*)/i, '').trim()};   // v1.7.74: bỏ cả ngoặc
 }
 let _chotIdx = null;
 /** (ID, ngày) đã nằm trong kỳ lương đã chốt chưa */
@@ -3141,7 +3181,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.73';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.74';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3199,6 +3239,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.74', ngay:'20/10/2026', nd:['Tab Thu chi chi tiết như Sheet (chủ quán 20/10): thẻ "Kết quả tháng" (doanh thu, giá vốn + cho kèm, lãi gộp, nhân sự, vận hành, lãi hoạt động, chi đầu tư, chưa phân loại, vốn góp, thu khác, dòng tiền, tiền đầu / cuối tháng, công nợ — kèm % doanh thu, chọn tháng); thẻ "Chi theo hạng mục × tháng".', 'Vốn góp & chi theo người đủ cột như Tổng hợp mục 3 (vốn góp, tỷ lệ vốn, thu khác, đã chi gồm khoản chưa trả, số khoản, thu − chi); danh sách vốn góp hiện từng dòng tab Vốn & Thu kèm chú thích, dòng "Chưa góp" tô vàng.']},
   {v:'v1.7.73', ngay:'20/10/2026', nd:['Tab Kho: cột "Giá trị còn lại (đ)" và thẻ tổng giá trị hàng còn = (xe + kho, chưa có số tính 0) × giá mua / đv tính (chưa hao hụt) × quy đổi — cùng Sheet Bảng kho cột B.', 'Dòng sổ chi khối "?" hoặc trống (hạng mục chưa có trong Danh mục) không còn bị tự tính vào chi vận hành: hạng mục trùng nguyên liệu tab Kho thì tạm coi là Giá vốn, còn lại báo đỏ "Sổ chi: dòng chi chưa có khối" ở Cần chú ý (lỗi 20/10: Sữa đặc, Sữa tươi, Ống hút hiện dưới lương ở PNL).']},
   {v:'v1.7.72', ngay:'20/10/2026', nd:['Tab Nhân sự có thẻ Hồ sơ nhân viên (chủ quán nhờ 20/10/2026) như tab NhanVien của Sheet: chức vụ, level hiện tại (đánh dấu level đặt tay), lương nền / giờ, phụ cấp thâm niên, lương / giờ hiện tại, giờ thâm niên, còn bao nhiêu giờ lên level, sinh nhật; thêm từ chấm công: làm từ ngày, tổng ca, tổng giờ, ca / giờ tháng này, thưởng / phạt tháng này. Dashboard.gs gửi thêm tab NhanVien.']},
   {v:'v1.7.71', ngay:'20/10/2026', nd:['Tab Hôm nay: thẻ Lãi gộp ghi số ly cần để đủ trả lương, thẻ Lãi sau lương ghi số ly cần để hoà vốn vận hành (lương + chi vận hành + cho kèm + chi cố định), so với số ly đang bán (theo ngày; xem tuần / tháng thì theo ly / ngày bán).']},
@@ -3777,6 +3818,9 @@ function tuKiem(){
     { const kh = D.chi.filter(r => r.block === '?'), Pq = tinhPnl(D.first || today(), today()), loTay = kh.some(r => Pq.vh[r.cat] && !D.chi.some(z => z.cat === r.cat && z.block === 'Vận hành'));
       const gx = (() => { const k = D.khoAll.find(z => z.quyDoi > 0 && giaNL()[z.ma] && giaNL()[z.ma].gia != null); return k ? gan(giaTriTon({ma:k.ma, xe:2, kho:null}), 2 * k.quyDoi * giaNL()[k.ma].gia) : true; })();
       ok('v1.7.72: dòng sổ chi khối "?" / trống không bị tính vào chi vận hành (có cảnh báo); giá trị hàng còn lại = (xe + kho, trống = 0) × quy đổi × giá / đv tính', !loTay && gx, `${kh.length} dòng khối "?" · ${D.chi.filter(r => r.khoiDoan).length} dòng tạm coi Giá vốn`); }
+    // 65. v1.7.74: Chi theo hạng mục × tháng cộng = tổng chi sổ; Kết quả tháng: lãi hoạt động = doanh thu − (giá vốn + cho kèm) − nhân sự − vận hành
+    { const tc = D.chi.reduce((a, r) => a + r.amt, 0), r65 = FIN_THANG[FIN_THANG.length - 1];
+      ok('v1.7.74: bảng Chi theo hạng mục × tháng cộng đúng tổng chi sổ; Kết quả tháng: lãi hoạt động = doanh thu − (giá vốn + hàng cho kèm) − nhân sự − vận hành', !r65 || gan(r65.rev - (r65.gv + r65.ck) - r65.ns - (r65.vh - r65.ck), r65.lai, 1), `tổng chi ${fmt(tc)}${r65 ? ' · lãi ' + mlabel(r65.m) + ' ' + fmt(r65.lai) : ''}`); }
     // 58. v1.7.46: mọi biểu đồ có lớp ghi số; định dạng số in đủ (không tr / k)
     const c58 = Object.values(charts), t58 = c58.filter(c => !(c.config.plugins || []).includes(nhanSoPlugin));
     ok('v1.7.46: mọi biểu đồ ghi số trên cột / đường (1.234.567 · 12,3 · trống khi không có số)', !t58.length && soNhan(1234567) === '1.234.567' && soNhan(12.34) === '12,3' && soNhan(null) === '' && soNhan(-4500) === '-4.500',
