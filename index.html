@@ -2494,11 +2494,11 @@ function renderToday(){
 /* ============ doanh thu THỰC THU (cho tài chính) ============
  * v1.7.1 (chủ quán chốt 13/10/2026): Thu chi, tiền quỹ và kế hoạch quỹ dùng tiền THỰC THU = doanh thu đơn bot + chênh két của từng ca đã chốt (/chotca: thiếu −, dư +),
  * vì tiền két đếm được = tiền bán TM − chi từ két ± chênh. Ngày bán chưa chốt ca chưa có tiền thật → tạm tính theo đơn bot (hiện cảnh báo). PNL / hiệu suất vẫn dùng doanh thu đơn bot (đo bán hàng). */
-/** Dòng ChotCa có hiệu lực của từng ngày (cùng luật bot chotHieuLuc_, chotca-v3): lần chốt CUỐI của chủ; chưa có chủ chốt thì lần chốt cuối. Mỗi lần chốt là số của cả ngày (bot so với toàn bộ đơn trong ngày) nên KHÔNG cộng dồn. Nhân viên chốt sau chủ chỉ để tham khảo. */
+/** Dòng ChotCa có hiệu lực của từng ngày (cùng luật bot chotHieuLuc_): v1.7.75 (bot chotmoi-v1, chủ chốt 21/10/2026) = lần chốt CUỐI, ai chốt cũng vậy (nhân viên chốt sau chủ cũng thay thế). Mỗi lần chốt là số của cả ngày nên KHÔNG cộng dồn. laChuFn giữ lại cho tương thích, không còn dùng. */
 function chotHieuLucCore(chot, laChuFn){
   const by = new Map();
   chot.forEach(c => { const e = by.get(c.k) || {chu:null, cuoi:null}; if (laChuFn(c.nv)) e.chu = c; e.cuoi = c; by.set(c.k, e); });
-  return [...by.values()].map(e => e.chu || e.cuoi);
+  return [...by.values()].map(e => e.cuoi);
 }
 function doanhThuThuCore(orders, chot, legacy, tk, tick){
   const thang = {}, ngayBan = new Set(orders.map(o => o.k)), chotNgay = new Set(chot.map(c => c.k)); let bot = 0, chenh = 0;
@@ -3181,7 +3181,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.74';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.75';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3239,6 +3239,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.75', ngay:'21/10/2026', nd:['Chốt ca: lần chốt MỚI NHẤT của ngày có hiệu lực, kể cả nhân viên chốt lại sau chủ (chủ quán chốt 21/10/2026). Trước đây số của chủ được giữ và nhân viên chốt sau chỉ ghi tham khảo. Cùng luật bot chotmoi-v1 (Apps Script @161) và Sheet tab Doanh thu (cột Tiền mặt / Tổng doanh thu lấy dòng chốt cuối). Tự kiểm: bất biến 29.']},
   {v:'v1.7.74', ngay:'20/10/2026', nd:['Tab Thu chi chi tiết như Sheet (chủ quán 20/10): thẻ "Kết quả tháng" (doanh thu, giá vốn + cho kèm, lãi gộp, nhân sự, vận hành, lãi hoạt động, chi đầu tư, chưa phân loại, vốn góp, thu khác, dòng tiền, tiền đầu / cuối tháng, công nợ — kèm % doanh thu, chọn tháng); thẻ "Chi theo hạng mục × tháng".', 'Vốn góp & chi theo người đủ cột như Tổng hợp mục 3 (vốn góp, tỷ lệ vốn, thu khác, đã chi gồm khoản chưa trả, số khoản, thu − chi); danh sách vốn góp hiện từng dòng tab Vốn & Thu kèm chú thích, dòng "Chưa góp" tô vàng.']},
   {v:'v1.7.73', ngay:'20/10/2026', nd:['Tab Kho: cột "Giá trị còn lại (đ)" và thẻ tổng giá trị hàng còn = (xe + kho, chưa có số tính 0) × giá mua / đv tính (chưa hao hụt) × quy đổi — cùng Sheet Bảng kho cột B.', 'Dòng sổ chi khối "?" hoặc trống (hạng mục chưa có trong Danh mục) không còn bị tự tính vào chi vận hành: hạng mục trùng nguyên liệu tab Kho thì tạm coi là Giá vốn, còn lại báo đỏ "Sổ chi: dòng chi chưa có khối" ở Cần chú ý (lỗi 20/10: Sữa đặc, Sữa tươi, Ống hút hiện dưới lương ở PNL).']},
   {v:'v1.7.72', ngay:'20/10/2026', nd:['Tab Nhân sự có thẻ Hồ sơ nhân viên (chủ quán nhờ 20/10/2026) như tab NhanVien của Sheet: chức vụ, level hiện tại (đánh dấu level đặt tay), lương nền / giờ, phụ cấp thâm niên, lương / giờ hiện tại, giờ thâm niên, còn bao nhiêu giờ lên level, sinh nhật; thêm từ chấm công: làm từ ngày, tổng ca, tổng giờ, ca / giờ tháng này, thưởng / phạt tháng này. Dashboard.gs gửi thêm tab NhanVien.']},
@@ -3619,11 +3620,11 @@ function tuKiem(){
     const qtC = quyTienCore(2000000, [{k:'2026-10-13', tm:500000}, {k:'2026-10-14', tm:669000}], '2026-10-14', [{k:'2026-10-13'}]), qtC0 = quyTienCore(2000000, [{k:'2026-10-13', tm:500000}, {k:'2026-10-14', tm:669000}], '2026-10-14', []);
     ok('Quỹ tiền: tick đã chuyển 13/10 (giữ 500.000) → mặt 669.000, CK 1.331.000, tổng vẫn 2.000.000; không tick ngày nào thì như cũ (mặt 1.169.000)',
       qtC.tm === 669000 && qtC.ck === 1331000 && qtC.tm + qtC.ck === 2000000 && qtC0.tm === 1169000 && qtC0.ck === 831000, `${fmt(qtC.tm)} + ${fmt(qtC.ck)}`);
-    // 29. ChotCa nhiều dòng trong ngày (bot chotca-v3): chỉ 1 dòng có hiệu lực mỗi ngày = lần chốt cuối của chủ, chưa có chủ chốt thì lần chốt cuối; không cộng dồn
+    // 29. ChotCa nhiều dòng trong ngày (bot chotmoi-v1): chỉ 1 dòng có hiệu lực mỗi ngày = lần chốt CUỐI (kể cả nhân viên chốt sau chủ); không cộng dồn
     const chH = chotHieuLucCore([{k:'2026-10-15', nv:'Khoa Từ', chenh:35}, {k:'2026-10-15', nv:'An', chenh:-5}, {k:'2026-10-14', nv:'An', chenh:-1}, {k:'2026-10-14', nv:'Bình', chenh:-2}, {k:'2026-10-13', nv:'Khoa Từ', chenh:10}, {k:'2026-10-13', nv:'Khoa Từ', chenh:12}], n => n === 'Khoa Từ');
     const chHv = k => (chH.find(c => c.k === k) || {}).chenh;
-    ok('ChotCa nhiều dòng một ngày: 15/10 chủ chốt +35 rồi nhân viên chốt −5 → lấy của chủ (+35); 14/10 chỉ nhân viên (−1 rồi −2) → lần cuối (−2); 13/10 chủ chốt 2 lần (+10 rồi +12) → lần cuối (+12); 3 ngày = 3 dòng, tổng +45 (không cộng dồn)',
-      chH.length === 3 && chHv('2026-10-15') === 35 && chHv('2026-10-14') === -2 && chHv('2026-10-13') === 12 && chH.reduce((s, c) => s + c.chenh, 0) === 45, chH.map(c => `${c.k.slice(8)}:${c.chenh}`).join(' · '));
+    ok('ChotCa nhiều dòng một ngày: 15/10 chủ chốt +35 rồi nhân viên chốt −5 → lần cuối (−5, chotmoi-v1); 14/10 chỉ nhân viên (−1 rồi −2) → lần cuối (−2); 13/10 chủ chốt 2 lần (+10 rồi +12) → lần cuối (+12); 3 ngày = 3 dòng, tổng +5 (không cộng dồn)',
+      chH.length === 3 && chHv('2026-10-15') === -5 && chHv('2026-10-14') === -2 && chHv('2026-10-13') === 12 && chH.reduce((s, c) => s + c.chenh, 0) === 5, chH.map(c => `${c.k.slice(8)}:${c.chenh}`).join(' · '));
     // 31. Quy trình vận hành (Tổng quan): trạng thái 3 luồng theo dữ liệu hôm nay — kiểm xe (10h chờ, 21h thiếu, đủ), kiểm kho (≤ 4 ngày ổn, 6 ngày sắp tới hạn, 9 ngày quá hạn, chưa đếm), chốt ca (trước 12h chờ, sau 12h trễ, tick/ChotCa là đã chốt)
     const qvK = [{ma:'cf', ten:'Cà phê hạt', theoDoi:true, kiemNgay:true}, {ma:'ly', ten:'Ly', theoDoi:true, kiemNgay:true}, {ma:'sd', ten:'Sữa đặc', theoDoi:true, kiemNgay:false}], qvDon = [{k:'2026-10-15', sl:1, tt:10000}];
     const qvGio = h => new Date(2026, 9, 15, h, 0).getTime(), qvKk = (ma, d, noi = 'xe') => ({noi, ma, dem:1, luc:new Date(2026, 9, 15 - d, 10, 0)}), qvQ = (gio, o) => quyTrinhCore(Object.assign({tk:'2026-10-15', gio, now:qvGio(gio), orders:qvDon, khoAll:qvK, kiemKho:[], chot:[], tick:[]}, o));
