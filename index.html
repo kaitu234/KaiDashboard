@@ -3181,7 +3181,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.75';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.76';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3239,6 +3239,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.76', ngay:'25/10/2026', nd:['Tab Hao hụt / cảnh báo Hao hụt: nhiều lần kiểm cùng nơi trong CÙNG NGÀY (đếm lại, sửa số – vd 23/10 kiểm kho ly gõ 23 rồi sửa 1.150) chỉ lấy lần cuối của ngày làm mốc kỳ, không còn báo hụt giả. Bot caylY-v1 (@162): ly / ly trà gõ số nhỏ không đơn vị hiểu là cây × 50.']},
   {v:'v1.7.75', ngay:'21/10/2026', nd:['Chốt ca: lần chốt MỚI NHẤT của ngày có hiệu lực, kể cả nhân viên chốt lại sau chủ (chủ quán chốt 21/10/2026). Trước đây số của chủ được giữ và nhân viên chốt sau chỉ ghi tham khảo. Cùng luật bot chotmoi-v1 (Apps Script @161) và Sheet tab Doanh thu (cột Tiền mặt / Tổng doanh thu lấy dòng chốt cuối). Tự kiểm: bất biến 29.']},
   {v:'v1.7.74', ngay:'20/10/2026', nd:['Tab Thu chi chi tiết như Sheet (chủ quán 20/10): thẻ "Kết quả tháng" (doanh thu, giá vốn + cho kèm, lãi gộp, nhân sự, vận hành, lãi hoạt động, chi đầu tư, chưa phân loại, vốn góp, thu khác, dòng tiền, tiền đầu / cuối tháng, công nợ — kèm % doanh thu, chọn tháng); thẻ "Chi theo hạng mục × tháng".', 'Vốn góp & chi theo người đủ cột như Tổng hợp mục 3 (vốn góp, tỷ lệ vốn, thu khác, đã chi gồm khoản chưa trả, số khoản, thu − chi); danh sách vốn góp hiện từng dòng tab Vốn & Thu kèm chú thích, dòng "Chưa góp" tô vàng.']},
   {v:'v1.7.73', ngay:'20/10/2026', nd:['Tab Kho: cột "Giá trị còn lại (đ)" và thẻ tổng giá trị hàng còn = (xe + kho, chưa có số tính 0) × giá mua / đv tính (chưa hao hụt) × quy đổi — cùng Sheet Bảng kho cột B.', 'Dòng sổ chi khối "?" hoặc trống (hạng mục chưa có trong Danh mục) không còn bị tự tính vào chi vận hành: hạng mục trùng nguyên liệu tab Kho thì tạm coi là Giá vốn, còn lại báo đỏ "Sổ chi: dòng chi chưa có khối" ở Cần chú ý (lỗi 20/10: Sữa đặc, Sữa tươi, Ống hút hiện dưới lương ở PNL).']},
@@ -3867,7 +3868,7 @@ function haoHutKyCore(src){
     const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma) * o.sl / k.quyDoi : 0; };
     const coCT = Object.values(src.congThuc).some(ct => ct[k.ma]), gia = src.gia && src.gia[k.ma] > 0 ? src.gia[k.ma] : null, tien = h => gia == null ? null : h * gia;
     const muaRows = src.chi.filter(r => khopNL(k, r) && !laHdCu(r)), tongMua = muaRows.reduce((s, r) => s + r.qty, 0);
-    const ks = src.kiemKho.filter(x => x.ma === k.ma && x.luc).sort((a, b) => ms(a.luc) - ms(b.luc)), xs = ks.filter(x => x.noi === 'xe'), hs = ks.filter(x => x.noi === 'kho');
+    const ks = src.kiemKho.filter(x => x.ma === k.ma && x.luc).sort((a, b) => ms(a.luc) - ms(b.luc)), cuoiNgay = a => a.filter((x, i) => i === a.length - 1 || dk(a[i + 1].luc) !== dk(x.luc)), xs = cuoiNgay(ks.filter(x => x.noi === 'xe')), hs = cuoiNgay(ks.filter(x => x.noi === 'kho'));   // v1.7.x: đếm lại trong cùng ngày (vd 23/10 ly 23 cây → sửa 1.150) → chỉ lấy lần CUỐI của ngày, tránh báo hụt giả
     const base = {ma:k.ma, ten:k.ten, dv:k.dv, gia};
     if (coCT){
       for (let i = 1; i < xs.length; i++){ const a = xs[i - 1], b = xs[i]; if (ms(b.luc) - ms(a.luc) < gio6) continue;
