@@ -3181,7 +3181,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.78';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.79';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3239,6 +3239,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.79', ngay:'25/10/2026', nd:['Đồng bộ bot chuchuyencan-v1 (chủ chốt 25/10/2026): chủ quán (Khoa Từ) cũng hưởng thưởng chuyên cần 50.000 đ/7 ca liên tiếp, được muộn ≤ 10 phút tối đa 3 lần/tháng (nhân viên 2 lần từ 25/10). Thẻ Chuyên cần và bảng Nhân viên trong kỳ hiện cả chủ; bất biến 68.']},
   {v:'v1.7.78', ngay:'25/10/2026', nd:['Đồng bộ bot vipham-v2 (chủ chốt 25/10/2026): tháng nào nhân viên quá 3 lỗi vi phạm bị phạt tiền (/phat, hoặc bot tự ghi quên check-in/out từ lần 4) thì chuỗi đủ 7 ca đạt từ 25/10 KHÔNG có thưởng chuyên cần — thẻ Chuyên cần hiện ⛔ mất thưởng, bất biến 67. Bot tự ghi quên check-in/out không bù trong ngày vào tab ThuongPhat (3 lần đầu/tháng 0đ, từ lần 4 trừ 1 giờ công); lệnh mới /vipham cho nhân viên xem lỗi trong tháng.']},
   {v:'v1.7.77', ngay:'25/10/2026', nd:['Đồng bộ bot bosom-v1 (chủ chốt 25/10/2026): (1) BỎ phụ cấp dậy sớm cho ca từ 25/10 — ca trước đó vẫn tính (dashboard đọc cột Q ChamCong do bot ghi nên tự theo); (2) Chuyên cần: mỗi tháng chỉ được muộn ≤ 10 phút tối đa 2 lần (trước 25/10 là 3 lần) — thẻ Chuyên cần, quy tắc và bất biến 66 cùng đáp án test/t-cs16.js của bot.']},
   {v:'v1.7.76', ngay:'25/10/2026', nd:['Tab Hao hụt / cảnh báo Hao hụt: nhiều lần kiểm cùng nơi trong CÙNG NGÀY (đếm lại, sửa số – vd 23/10 kiểm kho ly gõ 23 rồi sửa 1.150) chỉ lấy lần cuối của ngày làm mốc kỳ, không còn báo hụt giả. Bot caylY-v1 (@162): ly / ly trà gõ số nhỏ không đơn vị hiểu là cây × 50.']},
@@ -3711,6 +3712,12 @@ function tuKiem(){
       ok('Quá 3 lỗi/tháng chặn thưởng chuyên cần: 3 lỗi vẫn được · 4 lỗi mất (chan, chuỗi về 0) · lỗi của tháng khác không ảnh hưởng',
         vA.thuong.length === 1 && vA.chan.length === 0 && vB.thuong.length === 0 && vB.chan.join() === kV(7) && vB.ds[6].chan === true && vB.chuoi === 0 && vC.thuong.length === 1,
         `A ${vA.thuong.length}/${vA.chan.length} · B ${vB.thuong.length}/${vB.chan.length} · C ${vC.thuong.length}`); }
+    // 68. v1.7.79 — chủ quán cũng có chuyên cần, miễn muộn 3 lần/tháng (nhân viên 2 từ 25/10) (cùng đáp án test/t-quenvipham.js của bot)
+    { const CCc = Object.assign({}, CHUYEN_CAN), kC = d => `2026-11-${String(d).padStart(2, '0')}`, dC = (d, id, chu) => ({k:kC(d), nv:id === '1' ? 'Kai' : 'An', id, vao:new Date(kC(d) + 'T05:40:00'), chu}),
+        cs4 = [1, 2, 3, 4].flatMap(d => [dC(d, '1', true), dC(d, '2', false)]), rc = chuyenCanCore(cs4, [], x => !!x.chu, CCc, {}), rk = chuyenCanCore(cs4, [], x => !!x.chu, Object.assign({}, CCc, {chuGom:false}), {});
+      ok('Chủ quán cũng có chuyên cần: được muộn ≤10p 3 lần/tháng (lần 4 đứt) · nhân viên 2 lần · tắt chuGom thì chủ bị loại như trước',
+        rc['1'].muonThang['2026-11'] === 3 && rc['1'].ds[3].tt === 'tre' && rc['2'].muonThang['2026-11'] === 2 && rc['2'].ds[2].tt === 'tre' && !rk['1'] && !!rk['2'],
+        `chủ ${JSON.stringify(rc['1'].muonThang)} · nv ${JSON.stringify(rc['2'].muonThang)}`); }
     // 42. Tab Doanh thu thuần: đọc ghi chú / chênh MoMo / mục tiêu tháng của tab Doanh thu theo TÊN cột (dời cột vẫn đúng); dòng trước tiêu đề và ô '-' bỏ qua
     const dsR = [['DOANH THU THEO NGÀY'], ['Tháng', 'x'], ['NGÀY', 'THỨ', 'TIỀN MẶT (= Trích)', 'CHUYỂN KHOẢN', 'Lệch', 'GHI CHÚ', 'CHÊNH MOMO − CK', 'THÁNG', 'TỔNG DOANH THU', 'MỤC TIÊU'],
       ['D:2026-10-12 00:00:00', 'T2', 0, 770000, -70000, 'Thiếu két', '-', 'T10/2026', 6284000, 23760000], ['D:2026-10-13 00:00:00', 'T3', 500000, 380000, 10000, '', 15000, 'T11/2026', 0, 38400000], ['D:2026-10-14 00:00:00', 'T4', 0, 0, 0, '', '', 'TỔNG', 1, 2]],
@@ -4157,20 +4164,22 @@ function renderLich(){
  *  Ngày không có lịch không làm đứt chuỗi; check-in sau `gio` hoặc VẮNG ca đã nhận (ngày đã qua, không có chấm công) → chuỗi về 0. Chủ quán không tính. Mỗi ngày lấy lần check-in sớm nhất.
  *  v1.7.32 — Cho bù chuyên cần (bot ccbu-v1): dòng chấm công có bu (ChamCong cột T do chủ tick) và check-in sau `gio` → ngày đó vẫn 'dung' (ds[].bu = true), không đứt chuỗi.
  *  cong = D.cong · dkQua = lịch đã nhận (DangKyCa OK) của các ngày đã qua · laChuFn(x) → true nếu x ({id, nv}) là chủ.  Trả { id: {nv, chuoi, thuong:[ngày đạt], ds:[{k, tt:'dung'|'tre'|'vang', gio, chuoi, dat, bu}]} } */
-const CHUYEN_CAN = {gio:'05:30', soCa:7, tien:50000, muonPhut:10, muonThang:2, muonThangCu:3, bo:'2026-10-25', moiTu:'2026-10-16', quenTu:'2026-10-25', loiMax:3};   // v1.7.77 (bot bosom-v1): từ 25/10/2026 chỉ 2 lần muộn/tháng (trước đó muonThangCu = 3). nguồn: bot CHUYEN_CAN + CS_MOI_TU — đổi bên đó thì đổi cả ở đây. v1.7.52: từ 16/10/2026 mỗi THÁNG được muộn tối đa muonThang lần, mỗi lần ≤ muonPhut phút mà không đứt chuỗi
+const CHUYEN_CAN = {gio:'05:30', soCa:7, tien:50000, muonPhut:10, muonThang:2, muonThangCu:3, bo:'2026-10-25', moiTu:'2026-10-16', quenTu:'2026-10-25', loiMax:3, chuGom:true, muonThangChu:3};   // v1.7.79 (bot chuchuyencan-v1): chủ quán cũng hưởng chuyên cần, được muộn ≤10p tối đa muonThangChu lần/tháng   // v1.7.77 (bot bosom-v1): từ 25/10/2026 chỉ 2 lần muộn/tháng (trước đó muonThangCu = 3). nguồn: bot CHUYEN_CAN + CS_MOI_TU — đổi bên đó thì đổi cả ở đây. v1.7.52: từ 16/10/2026 mỗi THÁNG được muộn tối đa muonThang lần, mỗi lần ≤ muonPhut phút mà không đứt chuỗi
 /** v1.7.78 (bot vipham-v2): loi = { id: { 'yyyy-MM': số lỗi bị phạt tiền } } — tháng quá CC.loiMax lỗi thì thưởng đạt từ CC.quenTu trở đi bị chặn (o.chan), cùng chuyenCanTatCa_ của bot */
 function chuyenCanCore(cong, dkQua, laChuFn, CC, loi){
   const key = x => x.id || ('n:' + x.nv), ngayLam = {}, ev = {}, ten = {}, buNgay = {};   // buNgay: v1.7.32 — chủ tick "Cho bù chuyên cần" (ChamCong cột T, bot ccbu-v1): ca đi trễ vẫn tính đúng giờ, tick dòng nào trong ngày cũng được; không cứu ca vắng
-  cong.forEach(c => { if (!c.vao || laChuFn(c)) return;
-    const id = key(c), g = `${p2(c.vao.getHours())}:${p2(c.vao.getMinutes())}`, d = ngayLam[id] = ngayLam[id] || {};
+  const chuId = {};
+  cong.forEach(c => { if (!c.vao || (laChuFn(c) && !CC.chuGom)) return;
+    const id = key(c); if (laChuFn(c)) chuId[id] = 1;
+    const  g = `${p2(c.vao.getHours())}:${p2(c.vao.getMinutes())}`, d = ngayLam[id] = ngayLam[id] || {};
     ten[id] = c.nv; if (!d[c.k] || g < d[c.k]) d[c.k] = g; if (c.bu) (buNgay[id] = buNgay[id] || {})[c.k] = true; });
   const muonTb = {}, phutHm = g => +g.slice(0, 2) * 60 + +g.slice(3, 5);   // v1.7.52 (bot cs16-10-v1): muonTb[id][yyyy-MM] = số lần muộn ≤ muonPhut đã miễn; ô tick bù không tốn lượt
   Object.keys(ngayLam).forEach(id => { ev[id] = {}; Object.keys(ngayLam[id]).sort().forEach(k => { const g = ngayLam[id][k], tre = g > CC.gio, bu = !!(buNgay[id] && buNgay[id][k]);
     if (!tre || bu){ ev[id][k] = {tt:'dung', gio:g, bu: tre && bu, muon:0}; return; }
     const m = k.slice(0, 7), tb = muonTb[id] = muonTb[id] || {};
-    if (CC.muonThang && k >= (CC.moiTu || '0000-00-00') && phutHm(g) - phutHm(CC.gio) <= CC.muonPhut && (tb[m] || 0) < (k >= (CC.bo || '9999-99-99') ? CC.muonThang : (CC.muonThangCu || CC.muonThang))){ tb[m] = (tb[m] || 0) + 1; ev[id][k] = {tt:'dung', gio:g, bu:false, muon:tb[m]}; }
+    if (CC.muonThang && k >= (CC.moiTu || '0000-00-00') && phutHm(g) - phutHm(CC.gio) <= CC.muonPhut && (tb[m] || 0) < (CC.chuGom && chuId[id] ? CC.muonThangChu : k >= (CC.bo || '9999-99-99') ? CC.muonThang : (CC.muonThangCu || CC.muonThang))){ tb[m] = (tb[m] || 0) + 1; ev[id][k] = {tt:'dung', gio:g, bu:false, muon:tb[m]}; }
     else ev[id][k] = {tt:'tre', gio:g}; }); });
-  dkQua.forEach(x => { const id = key(x); if (laChuFn(x) || (ngayLam[id] && ngayLam[id][x.k])) return; ten[id] = ten[id] || x.nv; (ev[id] = ev[id] || {})[x.k] = {tt:'vang', gio:''}; });
+  dkQua.forEach(x => { const id = key(x); if ((laChuFn(x) && !CC.chuGom) || (ngayLam[id] && ngayLam[id][x.k])) return; ten[id] = ten[id] || x.nv; (ev[id] = ev[id] || {})[x.k] = {tt:'vang', gio:''}; });
   const out = {};
   Object.keys(ev).forEach(id => { const o = out[id] = {id, nv:ten[id], chuoi:0, thuong:[], chan:[], ds:[], muonThang: muonTb[id] || {}};
     Object.keys(ev[id]).sort().forEach(k => { const e = ev[id][k];
