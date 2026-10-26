@@ -1570,6 +1570,8 @@ function parseWorkbook(wb){
   // KiemKho: Lúc · Mã · Nguyên liệu · Đếm được · Ước tính lúc kiểm · Chênh · Người kiểm · Nơi (xe / kho; trống = bản cũ) · Kiểu (ngày / tuần)
   D.kiemKho = rowsOf(wb, 'KiemKho').slice(1).filter(r => txt(r[1])).map(r => ({luc:toDate(r[0]), ma:txt(r[1]).toLowerCase(), ten:txt(r[2]), dem:num(r[3]), uoc:num(r[4]), chenh:num(r[5]), ai:txt(r[6]), noi:['xe', 'kho'].includes(txt(r[7]).toLowerCase()) ? txt(r[7]).toLowerCase() : 'cu', kieu:txt(r[8])}));
   // LayKho: Lúc · Mã · Nguyên liệu · Lấy ra xe (đv mua) · Người báo · Ghi chú — nhân viên báo mỗi lần lấy hàng từ kho ra xe
+  // v1.7.83 (chủ quán duyệt 26/10, bot dungnoibo-v1): tab DungNoiBo = nguyên liệu dùng KHÔNG bán (thử nghiệm, đổ bỏ, mời khách) — A Lúc · B Mã NL · C Nguyên liệu · D Số lượng (đv mua) · E Lý do · F Người ghi · G Gõ
+  D.noiBo = rowsOf(wb, 'DungNoiBo').slice(1).filter(r => txt(r[1]) && num(r[3]) > 0).map(r => ({luc:toDate(r[0]), ma:txt(r[1]).toLowerCase(), ten:txt(r[2]), sl:num(r[3]), lyDo:txt(r[4]), ai:txt(r[5])})).filter(x => x.luc);
   D.layKho = rowsOf(wb, 'LayKho').slice(1).filter(r => txt(r[1]) && num(r[3]) > 0).map(r => ({luc:toDate(r[0]), ma:txt(r[1]).toLowerCase(), ten:txt(r[2]), sl:num(r[3]), ai:txt(r[4])})).filter(x => x.luc);
   D.kho = rowsOf(wb, 'Kho').slice(1).filter(r => txt(r[1])).map(r => ({ma:txt(r[0]), ten:txt(r[1]), dv:txt(r[3]),
     ton: r[11] == null ? null : num(r[11]), dung:num(r[12]), ngay: r[13] == null ? null : num(r[13]), nenMua:txt(r[14]), kiem:txt(r[15]), capNhat: r[16] ? toDate(r[16]) : null,
@@ -1757,7 +1759,7 @@ let _hh = null;
 function haoHutNay(){
   if (_hh && _hh.d === D) return _hh.v;
   const G = giaNL(), gia = {}; D.khoAll.forEach(k => { const g = G[k.ma]; if (g && g.gia != null && k.quyDoi > 0) gia[k.ma] = g.gia * k.quyDoi; });
-  const v = haoHutKyCore({khoAll:D.khoAll, chi:D.chi, orders:D.orders, congThuc:D.congThuc, dinhLuongCu:DINH_LUONG_CU, kiemKho:D.kiemKho, layKho:D.layKho, cong:D.cong, gia});
+  const v = haoHutKyCore({khoAll:D.khoAll, chi:D.chi, orders:D.orders, congThuc:D.congThuc, dinhLuongCu:DINH_LUONG_CU, kiemKho:D.kiemKho, layKho:D.layKho, cong:D.cong, noiBo:D.noiBo || [], gia});
   _hh = {d:D, v}; return v;
 }
 /** v1.7.62 (chủ quán 19/10/2026: "khi nào có hao hụt bất thường hoặc không khớp số thì flag lên") — cảnh báo cùng dạng khoCanhBao, nhãn 'Hao hụt' (Xem → tab Hao hụt).
@@ -3189,7 +3191,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.82';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.83';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3247,6 +3249,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.83', ngay:'26/10/2026', nd:['Dùng nội bộ (chủ quán duyệt 26/10, bot /dungnoibo, tab DungNoiBo): nguyên liệu dùng không bán (thử nghiệm, đổ bỏ, mời khách) được trừ ra khi tính hao hụt — kỳ kiểm xe: dự kiến = đầu kỳ + lấy kho − công thức − dùng nội bộ; đối chiếu tổng: dùng thật = tổng mua − xe − kho − dùng nội bộ. Kỳ kho không trừ. Bảng tab Hao hụt có cột "Dùng nội bộ".']},
   {v:'v1.7.82', ngay:'26/10/2026', nd:['Hàng bàn giao "KHÔNG TÍNH GIÁ" (chủ quán chốt 26/10, cùng bot khonggia-v1 và Sheet): dòng sổ chi có chú thích chứa "KHÔNG TÍNH GIÁ" vẫn cộng số lượng vào tồn kho / hao hụt, nhưng không vào giá mua — cacao giữ 160.000 đ/hũ (hũ HCN bàn giao 140.000 không kéo giá), đường cát theo giá mua 12/10.']},
   {v:'v1.7.81', ngay:'25/10/2026', nd:['Tab Nhân sự thêm thẻ "Lịch làm theo đợt" (cùng block lịch ở tab NhanVien của Sheet): các đợt làm việc liên tiếp của từng người, lưới T2–CN theo tuần có màu từng người, bảng ngày / giờ / lương dự kiến từ hôm nay tới hết lịch đã xếp; ngày chưa xếp báo đỏ. Quy tắc mới: mỗi ca 1 người (tab Ca = 1), chủ vào làm lúc nào cũng được. Bất biến 69. Nam Phạm nghỉ hẳn sau 01/11 nên lịch tháng 11 chỉ còn bơ và Như Quỳnh.']},
   {v:'v1.7.80', ngay:'25/10/2026', nd:['Kho: hàng còn đủ hơn 30 ngày thì không báo cần mua nữa (vd cacao còn ~41 ngày) — cùng bot dumua30-v1 và Sheet Bảng kho.']},
@@ -3868,6 +3871,11 @@ function tuKiem(){
     // 66. v1.7.82: dòng "KHÔNG TÍNH GIÁ" không vào giá mua (cacao bàn giao 140.000 + 2 hũ 160.000 → giá 160.000 / hũ)
     { const kk = {ma:'cc', quyDoi:500, giaTC:0}, g66 = giaMua(kk, [{qty:1, amt:140000, note:'HĐ 4773 · KHÔNG TÍNH GIÁ (hàng bàn giao)'}, {qty:1, amt:160000, note:''}, {qty:1, amt:160000, note:''}]);
       ok('v1.7.82: dòng sổ chi ghi "KHÔNG TÍNH GIÁ" vẫn là số lượng nhập nhưng không vào giá mua (cacao bàn giao 140.000 + 2 hũ 160.000 → 320 đ/g = 160.000 / hũ)', gan(g66.gia, 320, 1e-9) && g66.slTang === 500 && laKhongGia({note:'khong tinh gia'}) && !laKhongGia({note:'tính giá'}), `${g66.gia} đ/g · ${D.chi.filter(laKhongGia).length} dòng KHÔNG TÍNH GIÁ`); }
+    // 67. v1.7.83: dùng nội bộ (DungNoiBo) trừ khỏi hụt kỳ xe và đối chiếu tổng, kỳ kho không trừ
+    { const base = {khoAll:[{ma:'cf', ten:'Cà phê', dv:'kg', quyDoi:1000, theoDoi:true, hangMuc:'Cà phê (hạt)', noiDung:''}], congThuc:{a:{cf:20}}, dinhLuongCu:[], chi:[{k:'2031-01-01', cat:'Cà phê (hạt)', desc:'cf', qty:5, amt:1, note:''}], layKho:[], cong:[], gia:{cf:240000},
+        orders:[{k:'2031-01-02', t:new Date(2031, 0, 2, 8), ma:'a', sl:10, nv:'x'}], kiemKho:[{ma:'cf', noi:'xe', luc:new Date(2031, 0, 1, 20), dem:1}, {ma:'cf', noi:'xe', luc:new Date(2031, 0, 2, 20), dem:0.75}, {ma:'cf', noi:'kho', luc:new Date(2031, 0, 1, 20), dem:4}]};
+      const H0 = haoHutKyCore(base), H1 = haoHutKyCore(Object.assign({}, base, {noiBo:[{ma:'cf', luc:new Date(2031, 0, 2, 9), sl:0.036}]}));
+      ok('v1.7.83: dùng nội bộ 36 g cà phê (2 shot /dungnoibo) trừ khỏi hụt kỳ xe (hụt 50 g → 14 g) và khỏi dùng thật ở đối chiếu tổng', gan(H0.xe[0].hut, 0.05, 1e-9) && gan(H1.xe[0].hut, 0.014, 1e-9) && gan(H0.tong[0].dungThat - H1.tong[0].dungThat, 0.036, 1e-9), `hụt ${H0.xe[0].hut} → ${H1.xe[0].hut} kg · ${(D.noiBo || []).length} dòng DungNoiBo`); }
     // 58. v1.7.46: mọi biểu đồ có lớp ghi số; định dạng số in đủ (không tr / k)
     const c58 = Object.values(charts), t58 = c58.filter(c => !(c.config.plugins || []).includes(nhanSoPlugin));
     ok('v1.7.46: mọi biểu đồ ghi số trên cột / đường (1.234.567 · 12,3 · trống khi không có số)', !t58.length && soNhan(1234567) === '1.234.567' && soNhan(12.34) === '12,3' && soNhan(null) === '' && soNhan(-4500) === '-4.500',
@@ -3904,7 +3912,8 @@ const mucHH = (ty, tien) => ty == null ? '' : ty > NGUONG_HH.lo && tien >= NGUON
  *  3) Kỳ kho: 2 lần kiểm kho liên tiếp: dự kiến = đếm a + mua sau ngày a tới hết ngày b − lấy ra xe (a, b]; hụt = dự kiến − đếm b (dương = mất ở kho hoặc lấy mà chưa báo).
  *  Tiền = hụt × giá/đv mua (src.gia, đ). src = {khoAll, chi, orders, congThuc, dinhLuongCu, kiemKho, layKho, cong, gia} */
 function haoHutKyCore(src){
-  const lay = src.layKho || [], cong = src.cong || [], gio6 = 6 * 36e5, ms = d => d instanceof Date ? d.getTime() : +d;
+  const lay = src.layKho || [], cong = src.cong || [], noiBo = src.noiBo || [], gio6 = 6 * 36e5, ms = d => d instanceof Date ? d.getTime() : +d;
+  const nbGiua = (ma, a, b) => noiBo.reduce((s, x) => x.ma === ma && (a == null || ms(x.luc) > ms(a)) && (b == null || ms(x.luc) <= ms(b)) ? s + x.sl : s, 0);   // v1.7.83: dùng nội bộ (không bán) — trừ ra, không tính là hụt
   const trong = (o, a, b) => o.t ? (ms(o.t) > ms(a) && ms(o.t) <= ms(b)) : (o.k > dk(a) && o.k <= dk(b));
   const layGiua = (ma, a, b) => lay.reduce((s, x) => x.ma === ma && (a == null || ms(x.luc) > ms(a)) && (b == null || ms(x.luc) <= ms(b)) ? s + x.sl : s, 0);
   const ai = (a, b) => { const c = [...new Set(cong.filter(x => ms(x.vao) < ms(b) && ms(x.ra || x.vao) > ms(a)).map(x => x.nv))]; return c.length ? c : [...new Set(src.orders.filter(o => trong(o, a, b)).map(o => o.nv))]; };
@@ -3918,13 +3927,13 @@ function haoHutKyCore(src){
     if (coCT){
       for (let i = 1; i < xs.length; i++){ const a = xs[i - 1], b = xs[i]; if (ms(b.luc) - ms(a.luc) < gio6) continue;
         const dung = src.orders.filter(o => trong(o, a.luc, b.luc)).reduce((s, o) => s + dungCua(o), 0); if (!(dung > 0)) continue;
-        const l = layGiua(k.ma, a.luc, b.luc), duKien = a.dem + l - dung, hut = duKien - b.dem, ty = hut / dung;
-        xe.push(Object.assign({}, base, {tu:a.luc, den:b.luc, dauKy:a.dem, lay:l, dung, dungThat:a.dem + l - b.dem, duKien, dem:b.dem, hut, ty, tien:tien(hut), nv:ai(a.luc, b.luc), muc:mucHH(ty, tien(hut) || 0)})); }
+        const l = layGiua(k.ma, a.luc, b.luc), nb = nbGiua(k.ma, a.luc, b.luc), duKien = a.dem + l - dung - nb, hut = duKien - b.dem, ty = hut / dung;
+        xe.push(Object.assign({}, base, {tu:a.luc, den:b.luc, dauKy:a.dem, lay:l, dung, nb, dungThat:a.dem + l - b.dem, duKien, dem:b.dem, hut, ty, tien:tien(hut), nv:ai(a.luc, b.luc), muc:mucHH(ty, tien(hut) || 0)})); }
       const kx = xs[xs.length - 1], kh = hs[hs.length - 1];
       if (kx && kh && tongMua > 0){
         const xeNay = kx.dem + layGiua(k.ma, kx.luc, null), khoNay = kh.dem + muaRows.filter(r => r.k > dk(kh.luc)).reduce((s, r) => s + r.qty, 0) - layGiua(k.ma, kh.luc, null);
-        const dung = src.orders.filter(o => o.t ? ms(o.t) <= ms(kx.luc) : o.k <= dk(kx.luc)).reduce((s, o) => s + dungCua(o), 0), dungThat = tongMua - xeNay - khoNay, hut = dungThat - dung, ty = dung > 0 ? hut / dung : null;
-        tong.push(Object.assign({}, base, {tongMua, xe:xeNay, kho:khoNay, den:kx.luc, dung, dungThat, hut, ty, tien:tien(hut), muc:mucHH(ty, tien(hut) || 0)}));
+        const dung = src.orders.filter(o => o.t ? ms(o.t) <= ms(kx.luc) : o.k <= dk(kx.luc)).reduce((s, o) => s + dungCua(o), 0), nb = nbGiua(k.ma, null, kx.luc), dungThat = tongMua - xeNay - khoNay - nb, hut = dungThat - dung, ty = dung > 0 ? hut / dung : null;
+        tong.push(Object.assign({}, base, {tongMua, xe:xeNay, kho:khoNay, nb, den:kx.luc, dung, dungThat, hut, ty, tien:tien(hut), muc:mucHH(ty, tien(hut) || 0)}));
       } else tong.push(Object.assign({}, base, {tongMua, thieu: !kx ? 'chưa đếm xe' : !kh ? 'chưa đếm kho' : 'chưa có dòng mua', hut:null, ty:null, tien:null, muc:''}));
     }
     for (let i = 1; i < hs.length; i++){ const a = hs[i - 1], b = hs[i]; if (dk(b.luc) === dk(a.luc)) continue;
@@ -4053,14 +4062,14 @@ function renderHh(){
   const coSo = H.tong.filter(r => r.ty != null), hutTong = coSo.filter(r => r.tien > 0).reduce((s, r) => s + r.tien, 0), canXem = coSo.filter(r => r.muc === 'bad' || r.muc === 'warn');
   table({id:'tHhTong', rows:H.tong.map(r => Object.assign({}, r, {s: r.ty == null ? -9 : r.ty})), sortDefault:{k:'s', d:-1}, cols:[{k:'ten', l:'Nguyên liệu'},
     {k:'tongMua', l:'Tổng mua', r:1, f:(v, r) => so(v, r.dv)}, {k:'xe', l:'Tồn xe + kho (đếm)', r:1, f:(v, r) => r.thieu ? `<span class="muted">${esc(r.thieu)}</span>` : `${so(r.xe + r.kho, r.dv)} <span class="muted">(xe ${so(r.xe)} · kho ${so(r.kho)})</span>`},
-    {k:'dungThat', l:'Dùng thật', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv)}, {k:'dung', l:'Theo công thức', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv)},
+    {k:'dungThat', l:'Dùng thật (đã trừ dùng nội bộ)', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv) + (r.nb ? ` <span class="muted" title="/dungnoibo: thử nghiệm, đổ bỏ, mời khách">(nội bộ ${so(r.nb)})</span>` : '')}, {k:'dung', l:'Theo công thức', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv)},
     {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'s', l:'% so với CT', r:1, f:(v, r) => r.ty == null ? '—' : `${r.ty > 0 ? '+' : ''}${pct(r.ty, 1)}`},
     {k:'tien', l:'Tiền (đ)', r:1, f:(v, r) => r.thieu ? '—' : tienF(v)}, {k:'muc', l:'Mức', f:pill}, {k:'den', l:'Tính tới', f:(v, r) => r.thieu ? '—' : luc(v)}]});
   $('hhTongNote').innerHTML = `Kho không tiêu hao, chỉ nhận hàng mua và xuất ra xe, nên phần dùng nhiều hơn công thức nằm ở xe (pha chế, đổ bỏ, làm lại) hoặc ở hàng lấy kho mà không báo. Mục "chưa đếm xe / kho" sẽ có số khi đếm đủ (Chủ nhật nhân viên đếm đủ mọi mục ở xe). Hàng cho kèm (ly trà, bịch đựng đá, trà sâm dứa) không có định lượng trong CongThuc nên không đối chiếu ở đây. Dư nhiều (dùng ít hơn công thức) thường là định lượng trong CongThuc cao hơn thực tế, nên sửa CongThuc chứ không phải thất thoát.`;
   /* 2 · kỳ kiểm xe */
   const xeRows = H.xe.map(r => Object.assign({}, r, {t:r.den.getTime()})), hutXe = H.xe.filter(r => r.tien > 0).reduce((s, r) => s + r.tien, 0), duXe = H.xe.filter(r => r.tien < 0).reduce((s, r) => s - r.tien, 0);
   table({id:'tHhXe', rows:xeRows, sortDefault:{k:'t', d:-1}, cols:[{k:'t', l:'Kỳ', f:(v, r) => `${luc(r.tu)} → ${luc(r.den)}`}, {k:'ten', l:'Nguyên liệu'},
-    {k:'dauKy', l:'Đầu kỳ', r:1, f:(v, r) => so(v, r.dv)}, {k:'lay', l:'+ Lấy từ kho', r:1, f:(v, r) => v ? so(v, r.dv) : '—'}, {k:'dung', l:'− Dùng theo CT', r:1, f:(v, r) => so(v, r.dv)},
+    {k:'dauKy', l:'Đầu kỳ', r:1, f:(v, r) => so(v, r.dv)}, {k:'lay', l:'+ Lấy từ kho', r:1, f:(v, r) => v ? so(v, r.dv) : '—'}, {k:'dung', l:'− Dùng theo CT', r:1, f:(v, r) => so(v, r.dv)}, {k:'nb', l:'− Dùng nội bộ', r:1, f:(v, r) => v ? so(v, r.dv) : '—'},
     {k:'duKien', l:'= Dự kiến', r:1, f:(v, r) => so(v, r.dv)}, {k:'dem', l:'Đếm được', r:1, f:(v, r) => so(v, r.dv)},
     {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'ty', l:'% so với CT', r:1, f:v => `${v > 0 ? '+' : ''}${pct(v, 1)}`},
     {k:'tien', l:'Tiền (đ)', r:1, f:tienF}, {k:'muc', l:'Mức', f:pill}, {k:'nv', l:'Người đứng ca', f:v => esc(v.join(', ')) || '<span class="muted">—</span>'}]});
