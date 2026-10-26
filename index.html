@@ -2751,6 +2751,8 @@ const laBoQua = r => r.m === THANG_BO_QUA && (laChoKem(r) || /^marketing/.test(b
 const laTang = r => /(^|[^a-z])tang([^a-z]|$)/.test(boDau(r.desc + ' ' + (r.note || '')));
 /** v1.7.19 — "HĐ cũ" / "hóa đơn cũ" = hàng đã có trong kho, ghi sổ chi để đối chiếu công nợ, không cộng tồn kho; v1.7.20 — "Không còn dùng" = nguyên liệu đã bỏ khỏi công thức (đường chai → đường cát): không đưa vào cảnh báo "không vào PNL" */
 const laHdCu = r => /(^|[^a-z])((hd|hoa don) cu|khong con dung)([^a-z]|$)/.test(boDau(r.desc + ' ' + (r.note || '')));
+/** v1.7.82 (chủ quán chốt 26/10, cùng bot khonggia-v1 + Sheet): chú thích có "KHÔNG TÍNH GIÁ" = hàng bàn giao (vd cacao hũ cũ HCN, 2 chai đường) — vẫn cộng SỐ LƯỢNG vào tồn / hao hụt như dòng mua, nhưng KHÔNG vào giá mua */
+const laKhongGia = r => /(^|[^a-z])khong tinh gia([^a-z]|$)/.test(boDau((r.note || '') + ' ' + (r.desc || '')));
 const BAO_BI = new Set(['ly', 'ong', 'tui']);   // mã nguyên liệu tab Kho thuộc nhóm bao bì
 const THANG_MIEN_PHI_DEN = '2026-12';           // chi cố định (thuê chỗ, điện nước) miễn phí tới hết T12/2026
 const ngayTrongThang = m => new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate();
@@ -3187,7 +3189,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.81';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.82';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3245,6 +3247,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.82', ngay:'26/10/2026', nd:['Hàng bàn giao "KHÔNG TÍNH GIÁ" (chủ quán chốt 26/10, cùng bot khonggia-v1 và Sheet): dòng sổ chi có chú thích chứa "KHÔNG TÍNH GIÁ" vẫn cộng số lượng vào tồn kho / hao hụt, nhưng không vào giá mua — cacao giữ 160.000 đ/hũ (hũ HCN bàn giao 140.000 không kéo giá), đường cát theo giá mua 12/10.']},
   {v:'v1.7.81', ngay:'25/10/2026', nd:['Tab Nhân sự thêm thẻ "Lịch làm theo đợt" (cùng block lịch ở tab NhanVien của Sheet): các đợt làm việc liên tiếp của từng người, lưới T2–CN theo tuần có màu từng người, bảng ngày / giờ / lương dự kiến từ hôm nay tới hết lịch đã xếp; ngày chưa xếp báo đỏ. Quy tắc mới: mỗi ca 1 người (tab Ca = 1), chủ vào làm lúc nào cũng được. Bất biến 69. Nam Phạm nghỉ hẳn sau 01/11 nên lịch tháng 11 chỉ còn bơ và Như Quỳnh.']},
   {v:'v1.7.80', ngay:'25/10/2026', nd:['Kho: hàng còn đủ hơn 30 ngày thì không báo cần mua nữa (vd cacao còn ~41 ngày) — cùng bot dumua30-v1 và Sheet Bảng kho.']},
   {v:'v1.7.79', ngay:'25/10/2026', nd:['Đồng bộ bot chuchuyencan-v1 (chủ chốt 25/10/2026): chủ quán (Khoa Từ) cũng hưởng thưởng chuyên cần 50.000 đ/7 ca liên tiếp, được muộn ≤ 10 phút tối đa 3 lần/tháng (nhân viên 2 lần từ 25/10). Thẻ Chuyên cần và bảng Nhân viên trong kỳ hiện cả chủ; bất biến 68.']},
@@ -3862,6 +3865,9 @@ function tuKiem(){
     // 65. v1.7.74: Chi theo hạng mục × tháng cộng = tổng chi sổ; Kết quả tháng: lãi hoạt động = doanh thu − (giá vốn + cho kèm) − nhân sự − vận hành
     { const tc = D.chi.reduce((a, r) => a + r.amt, 0), r65 = FIN_THANG[FIN_THANG.length - 1];
       ok('v1.7.74: bảng Chi theo hạng mục × tháng cộng đúng tổng chi sổ; Kết quả tháng: lãi hoạt động = doanh thu − (giá vốn + hàng cho kèm) − nhân sự − vận hành', !r65 || gan(r65.rev - (r65.gv + r65.ck) - r65.ns - (r65.vh - r65.ck), r65.lai, 1), `tổng chi ${fmt(tc)}${r65 ? ' · lãi ' + mlabel(r65.m) + ' ' + fmt(r65.lai) : ''}`); }
+    // 66. v1.7.82: dòng "KHÔNG TÍNH GIÁ" không vào giá mua (cacao bàn giao 140.000 + 2 hũ 160.000 → giá 160.000 / hũ)
+    { const kk = {ma:'cc', quyDoi:500, giaTC:0}, g66 = giaMua(kk, [{qty:1, amt:140000, note:'HĐ 4773 · KHÔNG TÍNH GIÁ (hàng bàn giao)'}, {qty:1, amt:160000, note:''}, {qty:1, amt:160000, note:''}]);
+      ok('v1.7.82: dòng sổ chi ghi "KHÔNG TÍNH GIÁ" vẫn là số lượng nhập nhưng không vào giá mua (cacao bàn giao 140.000 + 2 hũ 160.000 → 320 đ/g = 160.000 / hũ)', gan(g66.gia, 320, 1e-9) && g66.slTang === 500 && laKhongGia({note:'khong tinh gia'}) && !laKhongGia({note:'tính giá'}), `${g66.gia} đ/g · ${D.chi.filter(laKhongGia).length} dòng KHÔNG TÍNH GIÁ`); }
     // 58. v1.7.46: mọi biểu đồ có lớp ghi số; định dạng số in đủ (không tr / k)
     const c58 = Object.values(charts), t58 = c58.filter(c => !(c.config.plugins || []).includes(nhanSoPlugin));
     ok('v1.7.46: mọi biểu đồ ghi số trên cột / đường (1.234.567 · 12,3 · trống khi không có số)', !t58.length && soNhan(1234567) === '1.234.567' && soNhan(12.34) === '12,3' && soNhan(null) === '' && soNhan(-4500) === '-4.500',
@@ -4665,7 +4671,7 @@ function khopNL(k, r){
 /** v1.3 — Giá 1 đơn vị tính từ các dòng sổ chi khớp nguyên liệu k: CHỈ dòng có tiền (amt > 0) vào mẫu số — dòng 0 đ là hàng tặng, không kéo giá xuống;
  *  không có dòng trả tiền nào → giá tham chiếu cột R tab Kho (nếu có). Số lượng tặng vẫn vào tồn kho (tinhKho). Hàm thuần để tuKiem() thử ca biết trước. */
 function giaMua(k, rows){
-  const tra = rows.filter(r => r.amt > 0), sl = tra.reduce((s, r) => s + r.qty, 0) * (k.quyDoi || 0), tien = tra.reduce((s, r) => s + r.amt, 0), slTang = rows.filter(r => !(r.amt > 0)).reduce((s, r) => s + r.qty, 0) * (k.quyDoi || 0);
+  const tra = rows.filter(r => r.amt > 0 && !laKhongGia(r)), sl = tra.reduce((s, r) => s + r.qty, 0) * (k.quyDoi || 0), tien = tra.reduce((s, r) => s + r.amt, 0), slTang = rows.filter(r => !(r.amt > 0) || laKhongGia(r)).reduce((s, r) => s + r.qty, 0) * (k.quyDoi || 0);   // v1.7.82: dòng KHÔNG TÍNH GIÁ không vào giá (như hàng tặng)
   const thamChieu = k.giaTC > 0 && k.quyDoi > 0 && !(sl > 0 && tien > 0);
   return {k, sl, tien, slTang, thamChieu, gia: thamChieu ? k.giaTC / k.quyDoi : sl > 0 ? tien / sl : null};
 }
