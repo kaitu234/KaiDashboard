@@ -3191,7 +3191,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.83';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.84';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3249,6 +3249,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.84', ngay:'27/10/2026', nd:['Thẻ "Lịch làm theo đợt" (tab Nhân sự): bỏ cột lương dự kiến, thay bằng cột Chuỗi chuyên cần — chuỗi hiện tại và ngày dự kiến đạt thưởng nếu mọi ca còn lại đều đúng giờ (chủ quán chốt 27/10/2026). Cùng ảnh lịch gửi nhóm và block lịch ở tab NhanVien của Sheet.']},
   {v:'v1.7.83', ngay:'26/10/2026', nd:['Dùng nội bộ (chủ quán duyệt 26/10, bot /dungnoibo, tab DungNoiBo): nguyên liệu dùng không bán (thử nghiệm, đổ bỏ, mời khách) được trừ ra khi tính hao hụt — kỳ kiểm xe: dự kiến = đầu kỳ + lấy kho − công thức − dùng nội bộ; đối chiếu tổng: dùng thật = tổng mua − xe − kho − dùng nội bộ. Kỳ kho không trừ. Bảng tab Hao hụt có cột "Dùng nội bộ".']},
   {v:'v1.7.82', ngay:'26/10/2026', nd:['Hàng bàn giao "KHÔNG TÍNH GIÁ" (chủ quán chốt 26/10, cùng bot khonggia-v1 và Sheet): dòng sổ chi có chú thích chứa "KHÔNG TÍNH GIÁ" vẫn cộng số lượng vào tồn kho / hao hụt, nhưng không vào giá mua — cacao giữ 160.000 đ/hũ (hũ HCN bàn giao 140.000 không kéo giá), đường cát theo giá mua 12/10.']},
   {v:'v1.7.81', ngay:'25/10/2026', nd:['Tab Nhân sự thêm thẻ "Lịch làm theo đợt" (cùng block lịch ở tab NhanVien của Sheet): các đợt làm việc liên tiếp của từng người, lưới T2–CN theo tuần có màu từng người, bảng ngày / giờ / lương dự kiến từ hôm nay tới hết lịch đã xếp; ngày chưa xếp báo đỏ. Quy tắc mới: mỗi ca 1 người (tab Ca = 1), chủ vào làm lúc nào cũng được. Bất biến 69. Nam Phạm nghỉ hẳn sau 01/11 nên lịch tháng 11 chỉ còn bơ và Như Quỳnh.']},
@@ -3735,9 +3736,9 @@ function tuKiem(){
     // 69. v1.7.80 — Lịch làm theo đợt: đợt = ngày liên tiếp của 1 người, tổng ngày/giờ/lương khớp block lịch ở tab NhanVien của Sheet
     { const dkL = (k, nv, tt) => ({k, ca:'S', id:nv, nv, tt:tt || 'OK'}), caL = [{ma:'S', bd:'05:30', kt:'10:30'}],
         dkT = [dkL('2026-11-07', 'bơ'), dkL('2026-11-08', 'bơ'), dkL('2026-11-09', 'bơ'), dkL('2026-11-10', 'Q'), dkL('2026-11-11', 'Q'), dkL('2026-11-14', 'bơ'), dkL('2026-11-12', 'N', 'HUY'), dkL('2026-10-01', 'bơ')],
-        rl = lichDotCore(dkT, caL, '2026-11-01', '2026-11-30', () => 25000), tb = rl.tong.find(t => t.nv === 'bơ');
+        rl = lichDotCore(dkT, caL, '2026-11-01', '2026-11-30', () => 25000, nv => nv === 'bơ' ? {chuoi:5, co:new Set()} : null), tb = rl.tong.find(t => t.nv === 'bơ');
       ok('Lịch làm theo đợt: bơ 7–9/11 là 1 đợt 3 ngày, 14/11 đợt riêng · bỏ ca HUY và ngày ngoài khoảng · 4 ngày × 5 giờ × 25.000 = 500.000',
-        rl.dots.length === 3 && rl.dots[0].nv === 'bơ' && rl.dots[0].n === 3 && rl.dots[2].tu === '2026-11-14' && !rl.byDay['2026-11-12'] && !rl.byDay['2026-10-01'] && tb.ngay === 4 && tb.gio === 20 && tb.luong === 500000,
+        rl.dots.length === 3 && rl.dots[0].nv === 'bơ' && rl.dots[0].n === 3 && rl.dots[2].tu === '2026-11-14' && !rl.byDay['2026-11-12'] && !rl.byDay['2026-10-01'] && tb.ngay === 4 && tb.gio === 20 && tb.luong === 500000 && tb.du.dat.join() === '2026-11-08' && tb.du.cuoi === 2,
         `đợt ${rl.dots.length} · bơ ${tb && tb.ngay} ngày ${tb && tb.luong}`); }
     // 42. Tab Doanh thu thuần: đọc ghi chú / chênh MoMo / mục tiêu tháng của tab Doanh thu theo TÊN cột (dời cột vẫn đúng); dòng trước tiêu đề và ô '-' bỏ qua
     const dsR = [['DOANH THU THEO NGÀY'], ['Tháng', 'x'], ['NGÀY', 'THỨ', 'TIỀN MẶT (= Trích)', 'CHUYỂN KHOẢN', 'Lệch', 'GHI CHÚ', 'CHÊNH MOMO − CK', 'THÁNG', 'TỔNG DOANH THU', 'MỤC TIÊU'],
@@ -4192,7 +4193,7 @@ function renderLich(){
 }
 /** v1.7.80 — Lịch làm theo đợt (cùng block lịch ở tab NhanVien của Sheet): dk = DangKyCa đã nhận; chỉ lấy ngày trong [tu, den].
  *  Trả { dots:[{nv, tu, den, n}] (đợt = các ngày liên tiếp của 1 người), byDay:{k:[nv]}, tong:[{nv, ngay, gio, luong}] }; giờ mỗi ca = (kết − bắt đầu) của ca; luongGio(nv) = lương/giờ (căn bản + thâm niên) */
-function lichDotCore(dk, caList, tu, den, luongGio){
+function lichDotCore(dk, caList, tu, den, luongGio, ccNow){
   const hm = g => +g.slice(0, 2) * 60 + +g.slice(3, 5), gioCa = ma => { const c = caList.find(x => x.ma === ma) || caList[0]; return c && c.bd && c.kt ? (hm(c.kt) - hm(c.bd)) / 60 : 5; };
   const byDay = {}, mine = {}, tong = {};
   dk.filter(x => x.tt === 'OK' && x.k >= tu && x.k <= den).forEach(x => {
@@ -4202,6 +4203,9 @@ function lichDotCore(dk, caList, tu, den, luongGio){
   const dots = [];
   Object.keys(mine).forEach(nv => { let cur = null; [...mine[nv]].sort().forEach(k => { if (cur && addDays(cur.den, 1) === k){ cur.den = k; cur.n++; } else dots.push(cur = {nv, tu:k, den:k, n:1}); }); });
   dots.sort((a, b) => a.tu.localeCompare(b.tu) || a.nv.localeCompare(b.nv, 'vi'));
+  // v1.7.84: chuỗi chuyên cần dự kiến — ccNow(nv) = {chuoi: số ca liên tiếp hiện tại, co: Set ngày đã có chấm công}; giả định mọi ca còn lại đều check-in đúng giờ; ngày không có lịch không làm đứt chuỗi
+  Object.values(tong).forEach(t => { const n = ccNow ? ccNow(t.nv) : null; if (!n) return; let c = n.chuoi || 0; const dat = [];
+    [...(mine[t.nv] || [])].sort().filter(k => !(n.co && n.co.has(k))).forEach(k => { if (++c >= CHUYEN_CAN.soCa){ dat.push(k); c = 0; } }); t.du = {nay:n.chuoi || 0, dat, cuoi:c}; });
   return {dots, byDay, tong:Object.values(tong).sort((a, b) => String(a.nv).localeCompare(String(b.nv), 'vi'))};
 }
 function renderLichDot(){
@@ -4210,7 +4214,8 @@ function renderLichDot(){
   const tk = today(), coLich = L.dk.filter(x => x.tt === 'OK' && x.k >= tk).map(x => x.k).sort();
   if (!coLich.length){ el.innerHTML = '<div class="muted">Chưa xếp ca nào từ hôm nay trở đi.</div>'; return; }
   const den = coLich[coLich.length - 1], luongMap = {}; (D.nhanVien || []).forEach(n => { luongMap[n.ten] = n.luongNay || n.luong; });
-  const R = lichDotCore(L.dk, L.ca, tk, den, nv => luongMap[nv]), ten = Object.keys(R.tong.reduce((o, t) => (o[t.nv] = 1, o), {}));
+  const ccNow = nv => { const o = Object.values(D.ccRes || {}).find(x => x.nv === nv); return {chuoi:o ? o.chuoi : 0, co:new Set(o ? o.ds.map(e => e.k) : [])}; };
+  const R = lichDotCore(L.dk, L.ca, tk, den, nv => luongMap[nv], ccNow), ten = Object.keys(R.tong.reduce((o, t) => (o[t.nv] = 1, o), {}));
   const MAU = ['#F4C04D', '#7DB7EA', '#93CF9F', '#E8A5A5', '#C9A8E0', '#9FD3D6'], mau = nv => MAU[Math.max(0, ten.indexOf(nv)) % MAU.length];
   const chip = nv => `<span style="display:inline-block;background:${mau(nv)};color:#5E3B25;border-radius:6px;padding:3px 8px;margin:1px 2px;font-weight:600">${esc(nv)}</span>`;
   const dots = R.dots.map(d => `<span style="display:inline-block;background:${mau(d.nv)};color:#5E3B25;border-radius:8px;padding:6px 10px;margin:3px;text-align:center;font-size:13px"><b>${esc(d.nv)}</b><br>${d.tu === d.den ? dShort(d.tu) : dShort(d.tu) + '–' + dShort(d.den)}<br><small>${d.n} ngày</small></span>`).join('');
@@ -4222,8 +4227,8 @@ function renderLichDot(){
   }
   const tg = R.tong.reduce((o, t) => ({ngay:o.ngay + t.ngay, gio:o.gio + t.gio, luong:o.luong + t.luong}), {ngay:0, gio:0, luong:0});
   el.innerHTML = `<div style="margin-bottom:10px"><b>Các đợt làm việc</b><br>${dots}</div><div class="tblwrap" style="max-height:none"><table class="lich">${grid}</tbody></table></div>
-    <div class="tblwrap" style="max-height:none;margin-top:10px"><table><thead><tr><th>Nhân viên</th><th class="r">Ngày</th><th class="r">Giờ</th><th class="r">Lương dự kiến</th></tr></thead><tbody>${R.tong.map(t => `<tr><td>${chip(t.nv)}</td><td class="r">${t.ngay}</td><td class="r">${fmt(t.gio)}h</td><td class="r">${fmt(Math.round(t.luong))} đ</td></tr>`).join('')}<tr><td><b>Tổng</b></td><td class="r"><b>${tg.ngay}</b></td><td class="r"><b>${fmt(tg.gio)}h</b></td><td class="r"><b>${fmt(Math.round(tg.luong))} đ</b></td></tr></tbody></table></div>
-    <p class="muted" style="margin:6px 0 0;font-size:12px">Lương dự kiến = số giờ ca × lương/giờ (căn bản + thâm niên); chưa gồm OT, chuyên cần, thưởng. Phụ cấp dậy sớm đã bỏ từ ca 25/10/2026.</p>`;
+    <div class="tblwrap" style="max-height:none;margin-top:10px"><table><thead><tr><th>Nhân viên</th><th class="r">Ngày</th><th class="r">Giờ</th><th>Chuỗi chuyên cần</th></tr></thead><tbody>${R.tong.map(t => `<tr><td>${chip(t.nv)}</td><td class="r">${t.ngay}</td><td class="r">${fmt(t.gio)}h</td><td>${t.du ? `<b>${t.du.nay}/${CHUYEN_CAN.soCa}</b> hiện tại → ${t.du.dat.length ? `dự kiến đạt <b>${t.du.dat.map(dShort).join(', ')}</b> (+${fmt(CHUYEN_CAN.tien)} đ mỗi lần)` : 'chưa đủ chuỗi trong lịch này'} · cuối lịch ${t.du.cuoi}/${CHUYEN_CAN.soCa}` : '—'}</td></tr>`).join('')}<tr><td><b>Tổng</b></td><td class="r"><b>${tg.ngay}</b></td><td class="r"><b>${fmt(tg.gio)}h</b></td><td></td></tr></tbody></table></div>
+    <p class="muted" style="margin:6px 0 0;font-size:12px">Chuỗi dự kiến tính nếu mọi ca còn lại đều check-in ≤ 05:30 (muộn ≤ 10 phút được miễn theo quy định); ngày không có lịch không làm đứt chuỗi.</p>`;
 }
 /** v1.7.8 — CHUYÊN CẦN (quy tắc bot chốt 12/10/2026, cùng thuật toán chuyenCanTatCa_ của bot): đủ `soCa` CA LIÊN TIẾP của người đó đều check-in ≤ `gio` → +`tien`, rồi đếm lại từ 0.
  *  Ngày không có lịch không làm đứt chuỗi; check-in sau `gio` hoặc VẮNG ca đã nhận (ngày đã qua, không có chấm công) → chuỗi về 0. Chủ quán không tính. Mỗi ngày lấy lần check-in sớm nhất.
