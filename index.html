@@ -3191,11 +3191,11 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.84';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.85';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
-  sd:{nguon:'Kai chốt 25ml cào bằng; hộp 1,284kg ≈ 988–1.000ml (chưa đo)', tin:2, cach:'Rót hết 1 hộp bằng ly đong 25ml, đếm số ly; /kiemkho sd'},
+  sd:{nguon:'Kai chốt 25ml cào bằng; hộp 1,284kg ≈ 1.000ml (chủ đo 31/10/2026)', tin:3, cach:'Rót hết 1 hộp bằng ly đong 25ml, đếm số ly; /kiemkho sd'},
   st:{nguon:'Bịch 220ml ghi trên bao bì; 40ml / 60ml theo thẻ HCN; 9.000 đ/bịch (sổ chi)', tin:3, cach:'Đã rõ; /kiemkho st định kỳ'},
   mt:{nguon:'Kai chốt 3g/ly; 435.000 đ / 500g (sổ chi)', tin:3, cach:'Cân 3 lần múc thực tế'},
   cc:{nguon:'Kai chốt: hũ 500 g; 7 g/ly từ 13/10/2026 (17/10 chủ chốt: từ 16/10 vẫn 7 g, không giảm xuống 4,9 g), 10 g tới hết 12/10 (lịch DINH_LUONG_CU); giá chỉ tính hũ mới 160.000 đ = 320 đ/g (Kho cột G: cacao|-cacao hu cu, bỏ hũ cũ 140.000)', tin:3, cach:'Cân 3 lần múc thực tế; /kiemxe cc so với số ước tính'},
@@ -3249,6 +3249,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.85', ngay:'31/10/2026', nd:['Kiểm chứng: sữa đặc hộp 1,284 kg ≈ 1.000 ml – chủ đo 31/10, độ tin cậy lên mức 3 (số tính vẫn 1 hộp = 1.000 ml như cũ).']},
   {v:'v1.7.84', ngay:'27/10/2026', nd:['Thẻ "Lịch làm theo đợt" (tab Nhân sự): bỏ cột lương dự kiến, thay bằng cột Chuỗi chuyên cần — chuỗi hiện tại và ngày dự kiến đạt thưởng nếu mọi ca còn lại đều đúng giờ (chủ quán chốt 27/10/2026). Cùng ảnh lịch gửi nhóm và block lịch ở tab NhanVien của Sheet.']},
   {v:'v1.7.83', ngay:'26/10/2026', nd:['Dùng nội bộ (chủ quán duyệt 26/10, bot /dungnoibo, tab DungNoiBo): nguyên liệu dùng không bán (thử nghiệm, đổ bỏ, mời khách) được trừ ra khi tính hao hụt — kỳ kiểm xe: dự kiến = đầu kỳ + lấy kho − công thức − dùng nội bộ; đối chiếu tổng: dùng thật = tổng mua − xe − kho − dùng nội bộ. Kỳ kho không trừ. Bảng tab Hao hụt có cột "Dùng nội bộ".']},
   {v:'v1.7.82', ngay:'26/10/2026', nd:['Hàng bàn giao "KHÔNG TÍNH GIÁ" (chủ quán chốt 26/10, cùng bot khonggia-v1 và Sheet): dòng sổ chi có chú thích chứa "KHÔNG TÍNH GIÁ" vẫn cộng số lượng vào tồn kho / hao hụt, nhưng không vào giá mua — cacao giữ 160.000 đ/hũ (hũ HCN bàn giao 140.000 không kéo giá), đường cát theo giá mua 12/10.']},
