@@ -1669,7 +1669,7 @@ function thamSoHoaVon(m){
 const coDinhCua = m => (D && D.coDinh || []).filter(x => x.tu <= m && (!x.den || m <= x.den));
 /** dòng sổ chi thuộc khoản cố định k (cùng hạng mục; khoản "Thuê vị trí…" nhận cả hạng mục điện, nước) */
 const laDongCoDinh = (r, k) => { const a = boDau(r.cat), b = boDau(k.cat.split('/')[0].trim()); return !!b && (a.startsWith(b) || (/^thue vi tri/.test(b) && /^dien, nuoc/.test(a))); };
-const laChiCoDinh = r => (D && D.coDinh || []).some(k => laDongCoDinh(r, k));
+const laChiCoDinh = r => coDinhCua(r.m || (r.k ? mkey(r.k) : '')).some(k => laDongCoDinh(r, k));   // v1.7.93: chỉ khoản đang áp dụng ở tháng của dòng (vd Phí đô thị T10, hạng mục Thuê vị trí, khi khoản thuê còn miễn → vào chi vận hành khác)
 /** tổng chi cố định 1 tháng (tạm tính theo tab); m trống = tháng ổn định (các khoản còn hiệu lực về sau) */
 function chiCoDinhThang(m){
   if (!D || !D.coDinh) return CHI_CO_DINH_THANG;
@@ -2302,7 +2302,7 @@ function renderTdKy(){
     <div class="kpi tgt"><span class="lb">Lãi sau lương</span><span class="v ${sauL != null && sauL < 0 ? 'dn' : 'up'}">${sauL == null ? '—' : fmt(sauL)}</span><span class="s">${P ? `lương ${fmt(P.luong)} · lãi vận hành ${fmt(P.laiVH)}${hvTxt(P, K.nd, 'vh')}` : 'chưa có đơn'}</span></div>
     <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${ss(A.ly, KT.A.ly)}${tb(A.ly)}</span></div>
     <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${ss(A.don, KT.A.don)}${huy ? ` · ${huy} đơn huỷ (${fmt(K.cancel.reduce((x, c) => x + c.tt, 0))} đ)` : ''}</span></div>
-    <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV ${fmtK(A.aov)} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
+    <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${dlt(A.aov, KT.A.aov)} vs ${Q.nhanT} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu</span><span class="v ${muc && A.ly >= muc ? 'up' : ''}">${muc ? pct(A.ly / muc) : '—'}</span>
       <div class="meter"><i style="width:${muc ? Math.min(100, A.ly / muc * 100) : 0}%"></i></div><span class="s">${fmt(A.ly)} / ${fmt(muc)} ly (${K.nd} ngày bán × ${S.tgt})</span></div>`;
 
@@ -2407,7 +2407,7 @@ function renderToday(){
     <div class="kpi tgt"><span class="lb">Lãi sau lương</span><span class="v ${sauLN != null && sauLN < 0 ? 'dn' : 'up'}">${sauLN == null ? '—' : fmt(sauLN)}</span><span class="s">${PN ? `lương ${fmt(PN.luong)}${PN.luongTam ? ' (tạm tính)' : ''} · lãi vận hành ${fmt(PN.laiVH)}${hvTxt(PN, 1, 'vh')}` : 'chưa có đơn'}</span></div>
     <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${cmpTxt(A.ly, W.ly, Y.ly, M && M.ly, T30.ly)}</span></div>
     <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${cmpTxt(A.don, W.don, Y.don, M && M.don, T30.don)}${nHuy ? ` · ${nHuy} đơn huỷ (${fmt(cancel.reduce((s, c) => s + c.tt, 0))} đ)` : ''}</span></div>
-    <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV ${fmtK(A.aov)} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN',{maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
+    <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${cmpTxt(A.aov, W.aov, Y.aov, M && M.aov, T30.don ? T30.dt / T30.don : null)} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN',{maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu ngày</span><span class="v ${A.ly >= S.tgt ? 'up' : ''}">${pct(A.ly / S.tgt)}</span>
       <div class="meter"><i style="width:${Math.min(100, A.ly / S.tgt * 100)}%"></i></div><span class="s">${fmt(A.ly)} / ${S.tgt} ly${A.ly < S.tgt ? ` · còn ${S.tgt - A.ly} ly` : ' · đã đạt'}</span></div>
 `;
@@ -2752,7 +2752,7 @@ const CHO_KEM_RE = /^(ly tra da|ly pha tra|tra sam dua|ly hong|xop tui tra)(?![a
 const laChoKem = r => CHO_KEM_RE.test(boDau(r.desc));   // hàng cho kèm (ly trà, trà sâm dứa…): tính riêng theo tiền chi thực tế, không hao hụt, không nằm trong giá vốn/ly
 const laDauTu = r => r.block === 'Đầu tư' || (r.block === 'Vận hành' && /nhượng quyền/i.test(r.desc));   // đầu tư không trừ vào lãi vận hành (phí NQ khấu hao riêng)
 const THANG_BO_QUA = '2026-10';   // chủ chốt 11/10: tháng khai trương bỏ qua chi vận hành hệ thống (trước là "Marketing khai trương", đổi tên 15/10) + hàng cho kèm mua trước khi bán; từ T11 hàng cho kèm tính theo kho thực
-const laBoQua = r => r.m === THANG_BO_QUA && (laChoKem(r) || /^marketing/.test(boDau(r.cat)));   // v1.7.61 (chủ quán 18/10): phí hệ thống 600.000 đ trả mỗi tháng → là chi vận hành, KHÔNG bỏ qua nữa; hàng cho kèm T10 vẫn bỏ qua
+const laBoQua = r => r.m === THANG_BO_QUA && laChoKem(r);   // v1.7.93: bỏ nhánh marketing (khoản marketing khai trương đã thành Vận hành hệ thống 18/10; nhánh cũ bỏ nhầm "Hoa tặng 20/10" 100.000 mà Sheet Tổng hợp vẫn tính)   // v1.7.61 (chủ quán 18/10): phí hệ thống 600.000 đ trả mỗi tháng → là chi vận hành, KHÔNG bỏ qua nữa; hàng cho kèm T10 vẫn bỏ qua
 /** v1.7.19 — dòng 0 đ có chữ "tặng" trong nội dung / chú thích = hàng tặng đã xác nhận (không còn nhắc ở Kiểm chứng) */
 const laTang = r => /(^|[^a-z])tang([^a-z]|$)/.test(boDau(r.desc + ' ' + (r.note || '')));
 /** v1.7.19 — "HĐ cũ" / "hóa đơn cũ" = hàng đã có trong kho, ghi sổ chi để đối chiếu công nợ, không cộng tồn kho; v1.7.20 — "Không còn dùng" = nguyên liệu đã bỏ khỏi công thức (đường chai → đường cát): không đưa vào cảnh báo "không vào PNL" */
@@ -3195,7 +3195,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.92';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.93';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3253,6 +3253,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.93', ngay:'03/11/2026', nd:['Tab Hôm nay: thẻ Giá TB / ly có AOV (tiền TB mỗi đơn) so với cùng thứ tuần trước, hôm qua, TB 30 ngày (chế độ ngày) hoặc kỳ trước (tuần / tháng).', 'Sửa lệch Sheet: "Hoa tặng 20/10" 100.000 (marketing) giờ tính vào vận hành T10 như Sheet Tổng hợp (trước bị bỏ qua nhầm theo luật marketing khai trương cũ) → vận hành T10 1.567.000, lãi T10 khớp Sheet.', 'Bảng Chi vận hành / tháng: "Phí đô thị tháng 10" 500.000 (hạng mục Thuê vị trí) hiện ở chi vận hành khác (trước bị ẩn vì trùng hạng mục khoản thuê cố định chỉ áp dụng từ T01/2027); TB chi vận hành dùng cho hoà vốn cũng tính khoản này.']},
   {v:'v1.7.92', ngay:'03/11/2026', nd:['Sửa lỗi tab Nhân sự trống (từ v1.7.87): bảng Hồ sơ nhân viên văng lỗi làm cả tab không hiện. Nhân viên cũ xuống cuối bảng đúng như ý.', 'Người thử việc: không bị tính vắng ở thẻ Chuyên cần (cùng bot); thẻ Lịch làm theo đợt ghi "Thử việc – chưa tính chuyên cần", chủ quán ghi không thưởng từ 01/11; chú thích theo luật trễ 1 lần/chuỗi.', 'Tự kiểm: bài 68 (chủ được muộn 3 lần/tháng) chuyển sang ngày 26–29/10 vì từ 01/11 không còn miễn muộn theo tháng.']},
   {v:'v1.7.91', ngay:'03/11/2026', nd:['Tab Mã món & order nhanh: ghi rõ đồng giá 15K tự bật T7 + CN từ 07/11 (T2–T6 giá menu; bot dongia-tuan-v1) và bảng giá hôm nay áp luật này. Phindi 4 vị đã về 20.000đ ở tab Menu (chủ chốt 02/11). Không đổi cách tính.']},
   {v:'v1.7.90', ngay:'03/11/2026', nd:['Bảng Hồ sơ nhân viên (tab Nhân sự) bổ sung đủ cột của tab NhanVien trong Sheet (chủ nhờ 03/11): STT, Telegram ID, Kỳ lương đang chạy, Lương tạm tính kỳ này (bot tamtinh-v1); người đang thử việc có nhãn 100k/ngày. Nhân viên cũ vẫn xuống cuối. Không đổi cách tính.']},
@@ -3745,6 +3746,10 @@ function tuKiem(){
       ok('Chủ quán cũng có chuyên cần: được muộn ≤10p 3 lần/tháng (lần 4 đứt) · nhân viên 2 lần · tắt chuGom thì chủ bị loại như trước',
         rc['1'].muonThang['2026-10'] === 3 && rc['1'].ds[3].tt === 'tre' && rc['2'].muonThang['2026-10'] === 2 && rc['2'].ds[2].tt === 'tre' && !rk['1'] && !!rk['2'],
         `chủ ${JSON.stringify(rc['1'].muonThang)} · nv ${JSON.stringify(rc['2'].muonThang)}`); }
+    // 73. v1.7.93 — T10 chỉ bỏ qua hàng cho kèm (marketing tính vào vận hành như Sheet); dòng thuộc hạng mục khoản cố định chưa áp dụng tháng đó không bị coi là cố định
+    { const bm = laBoQua({m:'2026-10', cat:'Marketing & khuyến mãi', desc:'Hoa tặng 20/10'}), bk = laBoQua({m:'2026-10', cat:'Ly, nắp, ống hút, túi, hộp, dụng cụ', desc:'Ly trà đá 300ml'}),
+        cdT10 = (D && D.coDinh || []).some(k => k.tu > '2026-10' && boDau(k.cat).startsWith('thue')) ? laChiCoDinh({m:'2026-10', k:'2026-10-30', cat:'Thuê vị trí / mặt bằng'}) : false;
+      ok('Marketing T10 (Hoa tặng 20/10) vào vận hành như Sheet, hàng cho kèm T10 vẫn bỏ qua; Phí đô thị T10 (hạng mục Thuê vị trí) là chi vận hành khác khi khoản thuê cố định chưa áp dụng', !bm && bk && !cdT10, `mk ${bm} · ck ${bk} · cd ${cdT10}`); }
     // 69. v1.7.80 — Lịch làm theo đợt: đợt = ngày liên tiếp của 1 người, tổng ngày/giờ/lương khớp block lịch ở tab NhanVien của Sheet
     { const dkL = (k, nv, tt) => ({k, ca:'S', id:nv, nv, tt:tt || 'OK'}), caL = [{ma:'S', bd:'05:30', kt:'10:30'}],
         dkT = [dkL('2026-11-07', 'bơ'), dkL('2026-11-08', 'bơ'), dkL('2026-11-09', 'bơ'), dkL('2026-11-10', 'Q'), dkL('2026-11-11', 'Q'), dkL('2026-11-14', 'bơ'), dkL('2026-11-12', 'N', 'HUY'), dkL('2026-10-01', 'bơ')],
