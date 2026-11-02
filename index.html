@@ -3195,7 +3195,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.90';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.91';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3253,6 +3253,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.91', ngay:'03/11/2026', nd:['Tab Mã món & order nhanh: ghi rõ đồng giá 15K tự bật T7 + CN từ 07/11 (T2–T6 giá menu; bot dongia-tuan-v1) và bảng giá hôm nay áp luật này. Phindi 4 vị đã về 20.000đ ở tab Menu (chủ chốt 02/11). Không đổi cách tính.']},
   {v:'v1.7.90', ngay:'03/11/2026', nd:['Bảng Hồ sơ nhân viên (tab Nhân sự) bổ sung đủ cột của tab NhanVien trong Sheet (chủ nhờ 03/11): STT, Telegram ID, Kỳ lương đang chạy, Lương tạm tính kỳ này (bot tamtinh-v1); người đang thử việc có nhãn 100k/ngày. Nhân viên cũ vẫn xuống cuối. Không đổi cách tính.']},
   {v:'v1.7.89', ngay:'03/11/2026', nd:['Rà soát đồng bộ với bot (phiên Lịch/Lương 03/11): (1) đồng giá 15K tự bật T7 + CN từ 07/11 (bot dongia-tuan-v1): nhịp dùng kho coi T7/CN là ngày khuyến mãi như bot, kiểm "đơn lệch giá menu" bỏ qua T7/CN và 2 ngày chủ bật tay 31/10–01/11; (2) phụ cấp ca 1 người bỏ từ 01/11: ô tick cột S từ ngày này không còn đếm (khớp bot); (3) người đang thử việc (chức vụ "Thử việc", 100.000đ/ngày) chưa tính chuyên cần ở thẻ Chuyên cần và bảng nhân viên. Tự kiểm: bất biến 72.']},
   {v:'v1.7.88', ngay:'03/11/2026', nd:['Chủ quán (Khoa Từ) không tính lương từ 01/11/2026 (chủ chốt 03/11, bot chukhongluong-v1): vẫn chấm công và ghi giờ làm, nhưng Tiền công của ca từ 01/11 = 0 (cột P ChamCong do bot ghi, dashboard đọc lại) và chuyên cần của chủ từ 01/11 không còn thưởng; ca trước 01/11 tính như cũ. Tự kiểm: bất biến 71.']},
@@ -4455,7 +4456,7 @@ function renderDtt(){
  * Tab hướng dẫn gõ order trên bot (bản gotat-v1 của bot, 15/10/2026): bảng mã món lấy từ tab Menu (cột F "Gõ tắt (cách nhau dấu phẩy)"), quy tắc mã, cách order nhanh, ví dụ, giá.
  * Giá trong đợt khai trương: đồng giá PROMO_GIA, riêng một số món — CÙNG số với KHUYEN_MAI.rieng của bot (0 = bán giá tab Menu); đổi bên bot thì đổi ở KM_RIENG. */
 const KM_RIENG = {mt:15000, mtm:17000, pdh:20000, pdc:20000, pdp:20000, pdch:20000};
-const giaDangBan = (ma, giaMenu, k) => !isPromo(k) ? giaMenu : (ma in KM_RIENG ? (KM_RIENG[ma] || giaMenu) : PROMO_GIA);
+const giaDangBan = (ma, giaMenu, k) => laCuoiTuanKM(k) ? DONG_GIA_TUAN.gia : !isPromo(k) ? giaMenu : (ma in KM_RIENG ? (KM_RIENG[ma] || giaMenu) : PROMO_GIA);
 /** Cột F tab Menu → danh sách cách gõ tắt (cách nhau dấu phẩy hoặc chấm phẩy) */
 const tatMon = v => txt(v).split(/[,;]/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
 const QO_VI_DU = [['2 muối ck', '2 cà phê muối, chuyển khoản'], ['bx muối 2', '2 bạc xỉu muối'], ['mt muối', '1 matcha latte muối'], ['sm2 dm', '2 cà phê sữa máy + 1 cà phê đen máy'], ['muối hết rồi', 'không thành đơn (bot không hiểu đây là đơn)']];
@@ -4477,7 +4478,7 @@ function renderQo(){
   const bat = rows.filter(r => r.ban).length, coTat = rows.filter(r => r.tat).length, nHoc = rows.reduce((t, r) => t + (r.hoc ? r.hoc.split(', ').length : 0), 0);
   $('qoMaNote').innerHTML = `${bat} món đang bán, ${coTat} món có cột Gõ tắt, bot đã tự học ${nHoc} cụm (cột "Bot đã học", viền đứt: nhân viên bấm cùng món 3 lần liền khi bot hỏi; tab GoTatHoc do bot ghi, chủ xoá bằng <code>/gotat xoa &lt;cụm&gt;</code>). Chủ điền hoặc sửa cách gõ tắt ở tab Menu (cột F, cách nhau dấu phẩy); bảng này tự cập nhật theo Sheet sau khi tải lại dữ liệu. Món không có gõ tắt vẫn gõ được bằng mã hoặc tên.`;
   table({id:'tQoVd', rows:QO_VI_DU.map(([go, kq], i) => ({i, go, kq})), sortDefault:{k:'i', d:1}, cols:[{k:'go', l:'Gõ', f:v => `<code>${esc(v)}</code>`}, {k:'kq', l:'Bot hiểu'}]});
-  $('qoGia').innerHTML = `<b>Đợt khai trương (tới hết ${dShort(PROMO.to)}):</b> đồng giá ${fmt(PROMO_GIA)}, riêng matcha latte ${fmt(KM_RIENG.mt)}, matcha latte muối ${fmt(KM_RIENG.mtm)}, Phindi 4 vị ${fmt(KM_RIENG.pdh)}. <b>Từ ${dShort(addDays(PROMO.to, 1))}:</b> bán đúng giá tab Menu. Bot tự áp giá theo ngày, nhân viên chỉ cần gõ món; muốn bật đồng giá bằng tay thì chủ dùng <code>/dongia</code> (tắt bằng <code>/dongia 0</code>).`;
+  $('qoGia').innerHTML = `<b>Đợt khai trương (tới hết ${dShort(PROMO.to)}):</b> đồng giá ${fmt(PROMO_GIA)}, riêng matcha latte ${fmt(KM_RIENG.mt)}, matcha latte muối ${fmt(KM_RIENG.mtm)}, Phindi 4 vị ${fmt(KM_RIENG.pdh)}. <b>Từ ${dShort(addDays(PROMO.to, 1))}:</b> bán đúng giá tab Menu. <b>Từ ${dShort(DONG_GIA_TUAN.tu)}:</b> T7 và CN tự đồng giá ${fmt(DONG_GIA_TUAN.gia)} cho mọi món, T2–T6 giá tab Menu. Bot tự áp giá theo ngày, nhân viên chỉ cần gõ món; muốn bật đồng giá bằng tay thì chủ dùng <code>/dongia</code> (tắt bằng <code>/dongia 0</code>).`;
 }
 
 /* ============ quy trình vận hành (v1.7.16) ============
