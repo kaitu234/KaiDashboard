@@ -1260,7 +1260,7 @@ html.mcap{background:var(--paper)}
     </div>
     <div class="kpis" id="hrKpis"></div>
     <div class="card">
-      <div class="ct">Nhân viên trong kỳ <span class="nt">· giờ &amp; tiền công từ ChamCong (đã gồm phụ cấp dậy sớm + ca 1 người; chuyên cần tính riêng ở bảng lương của bot) · ly trong ca = đơn nằm giữa giờ vào và giờ ra · ly/giờ = ly trong ca ÷ giờ làm · chủ quán: tính lương, không tính hiệu suất</span></div>
+      <div class="ct">Nhân viên trong kỳ <span class="nt">· giờ &amp; tiền công từ ChamCong (đã gồm phụ cấp dậy sớm; phụ cấp ca 1 người đã bỏ từ 01/11; chủ quán chỉ ghi giờ, không tính lương từ 01/11; thử việc 100.000đ/ngày; chuyên cần tính riêng ở bảng lương của bot) · ly trong ca = đơn nằm giữa giờ vào và giờ ra · ly/giờ = ly trong ca ÷ giờ làm · chủ quán: tính lương, không tính hiệu suất</span></div>
       <div class="g2">
         <div><div class="lbl">Tiền công theo người</div><div class="cw sm"><canvas id="cHrTien" aria-label="Tiền công theo người"></canvas></div></div>
         <div><div class="lbl">Giờ làm theo người</div><div class="cw sm"><canvas id="cHrGio" aria-label="Giờ làm theo người"></canvas></div></div>
@@ -1433,6 +1433,10 @@ const dongTieuDeQT = r => /^NGÀY$/i.test(txt(r[0]).trim()) && r.some(c => /ĐÃ
 /** v1.7.41 (Fable 5 V-06) — số ngày đã qua tính từ ngày mở bán `open` tới hôm nay `tk`; hôm nay chỉ tính khi đã có đơn (sáng sớm chưa bán thì chưa tính) */
 const ngayDaQua = (open, tk, coDonHomNay) => { const den = coDonHomNay ? tk : addDays(tk, -1); return den < open ? 0 : nDays(open, den); };
 const isPromo = k => k >= PROMO.from && k <= PROMO.to;
+/** v1.7.89 (bot dongia-tuan-v1, chủ chốt 02/11/2026): từ 07/11/2026 T7 + CN tự đồng giá 15K mọi món, T2–T6 giá menu — CÙNG luật DONG_GIA_TUAN của bot. KM_TAY = ngày chủ bật tay /dongia 15 trước đó (31/10–01/11). Dùng cho nhịp dùng kho và kiểm 'đơn lệch giá' */
+const DONG_GIA_TUAN = {tu:'2026-11-07', gia:15000, thu:[6, 0]}, KM_TAY = ['2026-10-31', '2026-11-01'];
+const laCuoiTuanKM = k => k >= DONG_GIA_TUAN.tu && DONG_GIA_TUAN.thu.includes(new Date(k + 'T12:00:00Z').getUTCDay());
+const laNgayKM = k => isPromo(k) || laCuoiTuanKM(k);
 const leOf = k => NGAY_LE[k] || NGAY_LE[k.slice(5)] || '';
 function rowsOf(wb, name){ return (wb.Sheets[name] || []).map(r => r.map(c => c === '' ? null : c)); }
 /** v1.7.32 — ô tick của Sheet (true / 'TRUE' / 1) → boolean; ChamCong cột Q dậy sớm (bot ghi) · S ca 1 người (chủ tick) · T cho bù chuyên cần (chủ tick) */
@@ -1460,7 +1464,7 @@ function parseWorkbook(wb){
   // ChamCong: Ngày · NV · ID · Giờ vào · Giờ ra · Số giờ · … · Ghi chú(I) · … · Lương/giờ(N) · Phụ cấp(O) · Tiền công(P)
   rowsOf(wb, 'ChamCong').slice(1).forEach(r => { const k = dayKey(r[0]); const vao = toDate(r[3]); if (!k || !vao) return;
     const ra = toDate(r[4]); D.cong.push({k, nv:txt(r[1]), id:txt(r[2]), vao, ra, gio: num(r[5]) || (ra ? (ra - vao)/36e5 : 0), note:txt(r[8]),
-      luongGio:num(r[13]), tien: r[15] == null ? null : num(r[15]), cc:(m => m ? +m[1].replace(/\./g, '') : 0)(/\+\s*([\d.]+)\s*đ/.exec(txt(r[17]))), som:tick(r[16]), mot:tick(r[18]), bu:tick(r[19])}); });
+      luongGio:num(r[13]), tien: r[15] == null ? null : num(r[15]), cc:(m => m ? +m[1].replace(/\./g, '') : 0)(/\+\s*([\d.]+)\s*đ/.exec(txt(r[17]))), som:tick(r[16]), mot:tick(r[18]) && k < '2026-11-01', bu:tick(r[19])}); });
   // Cùng Telegram ID nhưng tên khác (tên Telegram trước khi /themnv) → gộp về tên mới nhất
   const tenMoi = {}, alias = {};
   D.cong.forEach(c => { if (c.id) tenMoi[c.id] = c.nv; });
@@ -1715,7 +1719,7 @@ const KHO_DU_KHONG_MUA = 30;   // chủ chốt 25/10/2026: hàng còn đủ > 30
 function tinhKhoCore(src){
   const tk = src.today, tu7 = src.first > addDays(tk, -6) ? src.first : addDays(tk, -6), lay = src.layKho || [], nowMs = src.now != null ? src.now : Date.now();
   // v1.7.69 (chủ chốt 19/10/2026 'gối đầu last 7 day', bot nhip7-v1): nhịp dùng = TB 7 NGÀY BÁN GIÁ THƯỜNG gần nhất (bỏ ngày đồng giá 10K); chưa đủ 3 ngày thường → 7 ngày lịch như cũ
-  const laKM = src.laKM || isPromo, ngayTh = [...new Set(src.orders.filter(o => o.k <= tk && !laKM(o.k)).map(o => o.k))].sort().slice(-7), theoTh = ngayTh.length >= 3, coNgay = new Set(ngayTh);
+  const laKM = src.laKM || laNgayKM, ngayTh = [...new Set(src.orders.filter(o => o.k <= tk && !laKM(o.k)).map(o => o.k))].sort().slice(-7), theoTh = ngayTh.length >= 3, coNgay = new Set(ngayTh);
   const trongCua = k => theoTh ? coNgay.has(k) : k >= tu7 && k <= tk, nd7 = theoTh ? ngayTh.length : tu7 <= tk ? nDays(tu7, tk) : 0;
   const layTong = (ma, tu, den) => lay.reduce((s, x) => x.ma === ma && (!tu || x.luc > tu) && (!den || x.luc <= den) ? s + x.sl : s, 0);
   return src.khoAll.filter(k => k.quyDoi > 0 || k.theoDoi).map(k => {
@@ -3191,7 +3195,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.88';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.89';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3249,6 +3253,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.89', ngay:'03/11/2026', nd:['Rà soát đồng bộ với bot (phiên Lịch/Lương 03/11): (1) đồng giá 15K tự bật T7 + CN từ 07/11 (bot dongia-tuan-v1): nhịp dùng kho coi T7/CN là ngày khuyến mãi như bot, kiểm "đơn lệch giá menu" bỏ qua T7/CN và 2 ngày chủ bật tay 31/10–01/11; (2) phụ cấp ca 1 người bỏ từ 01/11: ô tick cột S từ ngày này không còn đếm (khớp bot); (3) người đang thử việc (chức vụ "Thử việc", 100.000đ/ngày) chưa tính chuyên cần ở thẻ Chuyên cần và bảng nhân viên. Tự kiểm: bất biến 72.']},
   {v:'v1.7.88', ngay:'03/11/2026', nd:['Chủ quán (Khoa Từ) không tính lương từ 01/11/2026 (chủ chốt 03/11, bot chukhongluong-v1): vẫn chấm công và ghi giờ làm, nhưng Tiền công của ca từ 01/11 = 0 (cột P ChamCong do bot ghi, dashboard đọc lại) và chuyên cần của chủ từ 01/11 không còn thưởng; ca trước 01/11 tính như cũ. Tự kiểm: bất biến 71.']},
   {v:'v1.7.87', ngay:'02/11/2026', nd:['Nhân viên cũ gom vào tab NhanVien (bot nvcu-vt-v1 @193, chủ quán chốt 02/11): hàng có Vai trò "cu" (chức vụ Nhân viên cũ) hiện ở cuối bảng Hồ sơ nhân viên với nhãn Nhân viên cũ; vẫn tính lương các ngày đã check-in như trước. Tab NhanVienCu đã bỏ.']},
   {v:'v1.7.86', ngay:'02/11/2026', nd:['Chính sách từ 01/11/2026 (chủ quán chốt 02/11, bot cs11-v1 @188): có lại phụ cấp dậy sớm 10k cho ca check-in hết phút 05:30 (trước 05:31; bot tính vào Tiền công, 25–31/10 vẫn không có). Chuyên cần: check-in hết phút 05:30; mỗi chuỗi được trễ 1 lần mà không đứt chuỗi (ca trễ không đếm, chip vàng "trễ (miễn)"), trễ lần 2 trong chuỗi hoặc vắng → về 0; bỏ luật miễn muộn ≤10 phút theo tháng cho ca từ 01/11. Tự kiểm: bất biến 70.']},
@@ -3449,7 +3454,7 @@ function kiemData(){
   add('Đơn gần nhất', !dn ? 2 : (Date.now() - dn.getTime()) / 36e5 > 30 ? 1 : 0, dn ? `Lúc ${p2(dn.getHours())}:${p2(dn.getMinutes())} ${dShort(dk(dn))}` : 'Chưa có đơn', 'Quán nghỉ thì bỏ qua');
   const lạ = [...new Set(D.orders.filter(o => !D.menu[o.mon]).map(o => o.mon))];
   add('Món bán nhưng không có trong tab Menu', lạ.length ? 2 : 0, lạ.length ? lạ.join(', ') : 'Khớp hết', 'Thêm món vào tab Menu');
-  const lech = D.orders.filter(o => !isPromo(o.k) && D.menu[o.mon] && D.menu[o.mon].gia && o.gia !== D.menu[o.mon].gia);
+  const lech = D.orders.filter(o => !laNgayKM(o.k) && !KM_TAY.includes(o.k) && D.menu[o.mon] && D.menu[o.mon].gia && o.gia !== D.menu[o.mon].gia);
   add('Đơn lệch giá menu ngoài đợt khuyến mãi', lech.length ? 1 : 0, lech.length ? `${lech.length} dòng (vd ${lech[0].mon} ${fmt(lech[0].gia)} ≠ ${fmt(D.menu[lech[0].mon].gia)})` : 'Không có', 'Kiểm tra giá nhập hoặc cập nhật Menu');
   const xau = D.orders.filter(o => !(o.sl > 0) || !(o.gia >= 0) || Math.abs(o.sl * o.gia - o.tt) > 1);
   add('Dòng đơn sai số học (SL ≤ 0 hoặc SL × giá ≠ thành tiền)', xau.length ? 2 : 0, xau.length ? `${xau.length} dòng, ví dụ mã ${xau[0].id}` : 'Không có', 'Sửa trong tab DonHang');
@@ -3894,6 +3899,8 @@ function tuKiem(){
     // 71. v1.7.88 — chủ quán từ 01/11/2026 không còn thưởng chuyên cần (bot chukhongluong-v1); nhân viên vẫn có
     { const C11 = Object.assign({}, CHUYEN_CAN, {quenTu:null}), k11 = d => `2026-11-${String(d).padStart(2, '0')}`, dd = (d, id, chu) => ({k:k11(d), nv:chu ? 'Chủ' : 'An', id, vao:new Date(k11(d) + 'T05:20:00'), chu}), cs = [1, 2, 3, 4, 5, 6, 7].flatMap(d => [dd(d, 'c', true), dd(d, 'n', false)]), r = chuyenCanCore(cs, [], x => !!x.chu, C11);
       ok('Chủ quán từ 01/11/2026: đủ 7 ca vẫn không có thưởng chuyên cần · nhân viên cùng chuỗi vẫn có', r.c.thuong.length === 0 && r.c.chuoi === 0 && r.n.thuong.length === 1, `chủ ${r.c.thuong.length} · nv ${r.n.thuong.length}`); }
+    // 72. v1.7.89 — đồng giá cuối tuần: T7/CN từ 07/11/2026 là ngày KM (07/11 T7, 08/11 CN), T2–T6 không; trước 07/11 không
+    ok('Đồng giá cuối tuần (bot dongia-tuan-v1): 07/11 T7 + 08/11 CN là ngày KM · 09/11 T2 và 06/11 T6 không · 31/10 T7 chưa (chưa có luật tuần)', laNgayKM('2026-11-07') && laNgayKM('2026-11-08') && !laNgayKM('2026-11-09') && !laNgayKM('2026-11-06') && !laNgayKM('2026-10-31'));
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -4281,7 +4288,8 @@ function renderChuyenCan(){
   rule.innerHTML = `<b>Quy tắc:</b> đủ <b>${CC.soCa} ca liên tiếp</b> check-in trước <b>${CC.gio}</b> → <b>+${fmt(CC.tien)} đ</b>, rồi đếm lại từ 0. Ngày không có lịch làm không làm đứt chuỗi; check-in sau ${CC.gio} hoặc vắng ca đã nhận → chuỗi về 0, <b>trừ</b> từ ${dShort(CC.moiTu)}: mỗi tháng được muộn tối đa <b>${CC.muonThang} lần${CC.bo ? ` (từ ${dShort(CC.bo)}; trước đó ${CC.muonThangCu} lần)` : ''}, mỗi lần ≤ ${CC.muonPhut} phút</b> (check-in đến ${p2(Math.floor((+CC.gio.slice(0, 2) * 60 + +CC.gio.slice(3, 5) + CC.muonPhut) / 60))}:${p2((+CC.gio.slice(3, 5) + CC.muonPhut) % 60)}) mà vẫn giữ chuỗi (ca đi trễ mà chủ tick "Cho bù chuyên cần" ở ChamCong cột T thì vẫn tính đúng giờ; ca vắng thì không cứu được). <b>Từ ${dShort(CC.t11)}:</b> check-in tính hết phút ${CC.gio}; mỗi chuỗi được trễ <b>1 lần</b> mà chuỗi vẫn giữ (ca trễ không được đếm), trễ lần 2 trong cùng chuỗi hoặc vắng → về 0; không còn miễn muộn theo tháng. Phụ cấp dậy sớm 10k có lại từ ${dShort(CC.t11)} (check-in hết phút 05:30, bot tính). Chủ quán cũng tính chuyên cần. Tiền cộng vào kỳ lương có ngày của ca thứ ${CC.soCa} (thưởng, tính ở bảng lương của bot, chưa nằm trong cột Tiền công bên dưới).${D.lich ? '' : ' <span class="muted">(Chưa có dữ liệu lịch làm nên chưa tính được ca vắng.)</span>'}`;
   const laChuFn = x => !!(x.chu || (D.chuTen && D.chuTen.has(x.nv)));
   const loiTh = {}; (D.thuongPhat || []).forEach(x => { if (x.loai === 'PHAT' && x.tien < 0 && !/^Điều chỉnh:/i.test(x.lyDo || '')){ const m = x.k.slice(0, 7), o = loiTh[x.id] = loiTh[x.id] || {}; o[m] = (o[m] || 0) + 1; } });   // lỗi bị phạt tiền theo tháng (khoản 0đ = quên check-in/out còn trong 3 lần miễn không tính)
-  const res = D.ccRes = chuyenCanCore(D.cong, D.lich ? D.lich.dk.filter(x => x.tt === 'OK' && x.k < tk) : [], laChuFn, CC, loiTh);   // D.ccRes: bảng "Nhân viên trong kỳ" dùng lại để hiện số lần chuyên cần đạt trong kỳ
+  const thuViecId = new Set((D.nhanVien || []).filter(n => /^thu viec$/i.test(String(n.chucVu || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').trim())).map(n => n.id));   // v1.7.89 (bot thuviec-v1): đang thử việc → 100k/ngày, chưa tính chuyên cần
+  const res = D.ccRes = chuyenCanCore(D.cong.filter(c => !thuViecId.has(c.id)), D.lich ? D.lich.dk.filter(x => x.tt === 'OK' && x.k < tk) : [], laChuFn, CC, loiTh);   // D.ccRes: bảng "Nhân viên trong kỳ" dùng lại để hiện số lần chuyên cần đạt trong kỳ
   Object.values(res).forEach(o => { if (D.nhanNv && D.tenTrung.includes(o.nv) && o.id && !/^n:/.test(o.id)) o.nv = D.nhanNv({id:o.id, nv:o.nv}); });   // v1.7.42 (Fable 5 T-02): trùng tên → nhãn kèm 4 số cuối ID
   const ds = Object.values(res).sort((a, b) => b.chuoi - a.chuoi || (b.thuong.length - a.thuong.length) || String(a.nv).localeCompare(String(b.nv), 'vi'));
   if (!ds.length){ $('tCc').innerHTML = '<div class="muted">Chưa có chấm công của nhân viên nào.</div>'; return; }
