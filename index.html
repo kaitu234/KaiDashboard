@@ -37,13 +37,13 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#17100B; --surface:#241911; --surface-2:#2C2016; --ink:#F2E6D5; --muted:#B39E89; --line:#3D2E22;
   --brand:#E3C39A; --brand-ink:#241911; --beige:#3A2B1E; --caramel:#D49B5C;
-  --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#6F5D4D;
+  --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#A08B76;
   --good:#7DCB98; --good-bg:#17301F; --warn:#E3B95B; --warn-bg:#3A2E14; --bad:#F08A7C; --bad-bg:#3B1F1A;
   --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --paper:#2C2016; --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c-khac:#6F5D4D; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#17100B; --surface:#241911; --surface-2:#2C2016; --ink:#F2E6D5; --muted:#B39E89; --line:#3D2E22;
   --brand:#E3C39A; --brand-ink:#241911; --beige:#3A2B1E; --caramel:#D49B5C;
-  --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#6F5D4D;
+  --s1:#C97A45; --s2:#2A9DB5; --s3:#B88A22; --ghost:#A08B76;
   --good:#7DCB98; --good-bg:#17301F; --warn:#E3B95B; --warn-bg:#3A2E14; --bad:#F08A7C; --bad-bg:#3B1F1A;
   --heat:201,122,69; --panel:#0F0A06; --panel-line:#3D2E22; --panel-mute:#B39E89; --paper:#2C2016; --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c-khac:#6F5D4D; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
 *{box-sizing:border-box}
@@ -132,8 +132,11 @@ details.guide p{margin:4px 0;max-width:110ch}
 @media (max-width:899px){.tdmg{grid-template-columns:minmax(0,1fr)}.tdside{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:10px}}
 .kvnote{grid-column:1/-1;font-size:11.5px;line-height:1.55;color:var(--muted)}
 @media (max-width:560px){#tdKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#tdKpis{grid-template-columns:repeat(4,minmax(0,1fr))}   /* v1.7.99: 8 thẻ = 2 hàng × 4, không còn 4 ô trống */
+@media (min-width:900px){#perfKpis{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px + var(--fbarH,0px));z-index:4;background:var(--bg);padding:6px 0;margin:-6px 0}
+  #perfKpis .kpi{padding:8px 12px} #perfKpis .kpi .v{font-size:22px}}   /* v1.7.99: hàng số Hiệu suất ghim khi cuộn để so với khung giờ */
 @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:560px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.kpis,#tdKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .kpi{border-radius:8px;padding:10px 12px;display:grid;gap:2px;align-content:start;min-width:0;background:var(--surface);border:1px solid var(--line)}
 .kpi.main{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
 .kpi.tgt{border:1px solid var(--caramel);background:var(--surface-2)}
@@ -1371,7 +1374,8 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const txt = v => v == null ? '' : String(v).trim();
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 /** v1.7.22 — đường "mờ" của ngày / kỳ so sánh trên biểu đồ ly theo giờ: cùng màu đường chính nhưng nhạt (hex #rrggbb → rgba) */
-const mauMo = (c, a = .38) => { const m = /^#([0-9a-f]{6})$/i.exec(String(c).trim()); if (!m) return c; const v = parseInt(m[1], 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
+const laToi = () => { const t = document.documentElement.dataset.theme; return t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches); };   // v1.7.99
+const mauMo = (c, a = laToi() ? .68 : .38) => { const m = /^#([0-9a-f]{6})$/i.exec(String(c).trim()); if (!m) return c; const v = parseInt(m[1], 16); return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`; };
 /** Số ly mỗi giờ của một danh sách đơn (đơn không có giờ không tính) */
 const lyTheoGio = (list, hrs) => hrs.map(h => list.filter(o => o.h === h).reduce((s, o) => s + o.sl, 0));
 /** v1.7.30 — trung bình các NGÀY BÁN trong `soNgay` ngày liền trước ngày k (k-1 … k-soNgay), mỗi ngày chỉ cộng đơn tới cùng giờ nowMin (đơn không có giờ vẫn tính) để so công bằng với hôm nay đang bán dở.
@@ -3224,7 +3228,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.98';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.99';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3282,6 +3286,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.99', ngay:'03/11/2026', nd:['Chế độ Tối dễ nhìn hơn: đường nét đứt / đường mờ so sánh (cùng thứ tuần trước, hôm qua, kỳ trước) đậm hơn, màu "ghost" sáng hơn; Tổng quan gộp thẻ Thu hồi vốn vào thẻ Lãi vận hành (kèm ngày hoàn vốn dự kiến) nên hết mảng trống; tab Hôm nay 8 thẻ xếp 2 hàng × 4.', 'Tab Hiệu suất: hàng số (doanh thu, ly, đơn, AOV, giờ công, ly / giờ công) ghim ngay dưới thanh lọc khi cuộn (máy tính) để so với khung giờ.']},
   {v:'v1.7.98', ngay:'03/11/2026', nd:['Bộ lọc Kỳ xem làm giống thanh tab Hôm nay: Ngày / Tuần / Tháng / Khoảng / Tất cả + ô "Xem ngày khác" + ◀ Hôm trước · Hôm nay · Hôm sau ▶ (đổi thành Tuần / Tháng trước · này · sau theo kiểu đang chọn). Khoảng thì hiện Từ ngày / Đến ngày.', 'Tab Hiệu suất: thêm hàng số của kỳ đang xem — doanh thu, số ly, số đơn, giá TB / AOV, giờ công, ly / giờ công, so với hôm trước / tuần trước / cùng kỳ tháng trước.']},
   {v:'v1.7.97', ngay:'03/11/2026', nd:['Bộ lọc Kỳ xem có nút ◀ / ▶ (như Hôm trước / Hôm sau ở tab Hôm nay): xem 1 ngày thì lùi / tới từng ngày, xem theo tháng thì từng tháng, 7 ngày hoặc khoảng tự chọn thì lùi / tới đúng bằng độ dài kỳ. Dùng được ở Hiệu suất, Bán hàng, Món, PNL, Nhân sự…']},
   {v:'v1.7.96', ngay:'03/11/2026', nd:['Bộ lọc Kỳ xem: nút "Tháng này" thành ô chọn tháng — chọn Tháng này hoặc tháng cũ (T10/2026…), lọc đủ cả tháng đó cho mọi tab theo kỳ.']},
@@ -4661,8 +4666,8 @@ function renderOv(){
     + pk(`Doanh thu ${mlabel(tk.slice(0,7))}`, fmtM(ntM.tt), `${fmt(MT.ly)} ly · TB ${el ? fmt(MT.ly / el) : '—'} ly/ngày<br>${nguonTxt(ntM, ntM.chuaChot ? ntM.chuaChot + ' ngày chưa chốt, theo đơn bot' : 'đã chốt ca')}<br>dự phóng cả tháng ${fmt(run)} ly`)
     + pk('%Hoà vốn tháng · giá đang bán', pct(beThuc.vanHanh && lyNgayTT != null ? lyNgayTT / beThuc.vanHanh : null), `${fmt(lyNgayTT)} / ${fmt(beThuc.vanHanh)} ly/ngày`)
     + pk('Quỹ còn lại', fmtM(FIN.cash), `💵 mặt ${fmtM(FIN.tm)} · 🏦 CK ${fmtM(FIN.ck)}<br>${FIN.tongNo ? `🧾 công nợ chưa trả <span class="dn">${fmtM(FIN.tongNo)}</span> · ${traHetTxt(FIN.cash - FIN.tongNo)}<br>` : ''}${FIN.capitalIn ? pct(FIN.cash / FIN.capitalIn, 1) + ' vốn góp · ' : ''}tiền thực thu`)
-    + pk('Lãi vận hành ước tính', FIN.lai == null ? 'chưa có số thật' : `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, FIN.lai == null ? 'chưa có giá vốn/ly' : `từ khi mở bán, đã trừ giá vốn, lương, chi vận hành${FIN.thv ? `<br>thu hồi vốn đầu tư ${FIN.thv.pctTxt}` : ''}`)
-    + (FIN.thv ? pk('Thu hồi vốn đầu tư', FIN.thv.pctTxt, FIN.thv.sub) : '');
+    + pk('Lãi vận hành ước tính', FIN.lai == null ? 'chưa có số thật' : `<span class="${FIN.lai < 0 ? 'dn' : 'up'}">${fmtM(FIN.lai)}</span>`, FIN.lai == null ? 'chưa có giá vốn/ly' : `từ khi mở bán, đã trừ giá vốn, lương, chi vận hành${FIN.thv ? `<br>thu hồi vốn đầu tư <b>${FIN.thv.pctTxt}</b> · ${FIN.thv.ngay === 0 ? 'đã hoàn vốn' : FIN.thv.ngay ? `dự kiến hoàn vốn ~${dShort(addDays(today(), FIN.thv.ngay))}/${addDays(today(), FIN.thv.ngay).slice(0, 4)}` : 'chưa ước được ngày hoàn vốn'}` : ''}`)
+    ;   // v1.7.99: thẻ Thu hồi vốn gộp vào Lãi vận hành (7 thẻ / 6 cột để lại mảng trống)
   // Cần chú ý: việc vận hành (kho, xe, chốt ca, két) lên trước việc sổ sách trong cùng mức; chỉ hiện 4 dòng đầu, dòng chi tiết cắt 1 dòng (bấm để mở)
   const lop = {bad:'bad', warn:'warn', good:'ok'}, thuTu = {bad:0, warn:1, good:2}, uuTien = {Kho:0, Xe:1, 'Kiểm xe':2, 'Lịch ca':3, 'Chưa chốt ca':4, 'Két thiếu':5, 'Kiểm kho':6};
   const alLich = lichCanhBao(), alGoc = FIN.alerts.filter(a => a[0] !== 'good' || !alLich.length), alAll = alGoc.concat(alLich);   // dòng "Ổn" chỉ giữ khi không có cảnh báo nào khác
@@ -5214,6 +5219,7 @@ function fillOptions(){
 document.querySelectorAll('#gKy button').forEach(b => b.onclick = () => { if (!D) return; const k = b.dataset.gky;   // v1.7.98: Ngày / Tuần / Tháng / Khoảng / Tất cả
   if (k !== 'khoang' && k !== 'tatca' && S.gKy === 'khoang') S.gMoc = S.to < today() ? S.to : '';
   S.gKy = k; gKyTinh(); syncFilters(); render(); });
+try { new ResizeObserver(() => document.documentElement.style.setProperty('--fbarH', $('fbar').offsetHeight + 'px')).observe($('fbar')); } catch(e){}   // v1.7.99: chỗ ghim hàng số Hiệu suất
 $('gPrev').onclick = () => { if (!D) return; gDoi(-1); syncFilters(); render(); };
 $('gNext').onclick = () => { if (!D) return; gDoi(1); syncFilters(); render(); };
 $('gNow').onclick = () => { if (!D) return; S.gMoc = ''; gKyTinh(); syncFilters(); render(); };
