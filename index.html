@@ -2979,12 +2979,12 @@ function tinhPnl(from, to){
   let luong = 0, luongTam = false, luongSoChi = 0;
   ngay.forEach(k => { const x = luongNgayPnl(k); luong += x.luong; luongTam = luongTam || x.tam; if (x.soChi) luongSoChi += x.luong; });
   const chiTat = D.chi.filter(r => r.k >= from && r.k <= to && dayOk(r.k)), chi = chiTat.filter(r => !laBoQua(r)), boQuaMk = chiTat.filter(r => laBoQua(r) && !laChoKem(r)).reduce((s, r) => s + r.amt, 0), boQuaCK = chiTat.filter(r => laBoQua(r) && laChoKem(r)).reduce((s, r) => s + r.amt, 0);
-  const choKem = chi.filter(laChoKem).reduce((s, r) => s + r.amt, 0), vh = {};
+  const choKem = chi.filter(laChoKem).reduce((s, r) => s + r.amt, 0), vh = {}; let vhGian = 0;   // v1.7.123: phần khoản cả tháng chưa tới ngày (Thu chi trừ đủ khi ghi sổ, PNL giãn theo ngày)
   // v1.7.64 (chủ quán 19/10: xem ngày / tuần thiếu 600.000 + 159.000): chi vận hành của tháng chia đều cho các ngày của tháng đó (tháng đang chạy: chia cho số ngày đã qua) → xem 1 ngày / tuần cũng gánh phần mình; cộng cả tháng (tới hôm nay) vẫn đủ
   { const tkV = today(); [...new Set(ngay.map(mkey))].forEach(m => { const dau = m + '-01', cuoi = m + '-' + p2(ngayTrongThang(m)), het = cuoi < tkV ? cuoi : tkV; if (het < dau) return;
       const nM = rangeDays(dau, het).length, nKy = ngay.filter(k => mkey(k) === m && k <= het).length; if (!nKy) return;
       const nCaThang = ngayTrongThang(m), nKyCa = ngay.filter(k => mkey(k) === m).length;
-      D.chi.filter(r => r.m === m && dayOk(r.k) && !laBoQua(r) && !laChoKem(r) && !laDauTu(r) && r.block !== 'Giá vốn' && r.block !== 'Nhân sự' && r.block !== '?').forEach(r => vh[r.cat] = (vh[r.cat] || 0) + (laChiCaThang(r) ? r.amt * nKyCa / nCaThang : r.amt * nKy / nM)); }); }
+      D.chi.filter(r => r.m === m && dayOk(r.k) && !laBoQua(r) && !laChoKem(r) && !laDauTu(r) && r.block !== 'Giá vốn' && r.block !== 'Nhân sự' && r.block !== '?').forEach(r => vh[r.cat] = (vh[r.cat] || 0) + (laChiCaThang(r) ? (vhGian += r.amt * (nKy / nM - nKyCa / nCaThang), r.amt * nKyCa / nCaThang) : r.amt * nKy / nM)); }); }
   // v1.7.61 — chi cố định theo tab Chi cố định: tháng nào sổ chi đã có dòng cùng hạng mục thì dùng số thật (đã nằm trong vh), chưa có thì tạm tính theo số ngày
   let coDinhUoc = 0, mienPhi = false; const coDinhTam = {};
   [...new Set(ngay.map(mkey))].forEach(m => {
@@ -2994,7 +2994,7 @@ function tinhPnl(from, to){
   });
   const vhTong = Object.values(vh).reduce((s, x) => s + x, 0) + coDinhUoc, khauHao = khauHaoNgay(ngay);
   const gv = gvNL + gvBB + gvKhac, laiGop = A.dt - gv, laiVH = laiGop - choKem - luong - vhTong;
-  return {L, A, G, ngay, nl, day, mon, chuaCT, thieu, gvNL, gvBB, gvKhac, gv, dt:A.dt, laiGop, choKem, luong, luongTam, luongSoChi, vh, coDinhUoc, coDinhTam, mienPhi, vhTong, laiVH, khauHao, laiRong:laiVH,   /* v1.7.58: lãi không trừ khấu hao — laiRong giữ tên, = laiVH; khauHao chỉ để tham khảo */ choDi, cogs, gvM, boQuaMk, boQuaCK, khongGiaVon};
+  return {L, A, G, ngay, nl, day, mon, chuaCT, thieu, gvNL, gvBB, gvKhac, gv, dt:A.dt, laiGop, choKem, luong, luongTam, luongSoChi, vh, coDinhUoc, coDinhTam, mienPhi, vhTong, vhGian, laiVH, khauHao, laiRong:laiVH,   /* v1.7.58: lãi không trừ khấu hao — laiRong giữ tên, = laiVH; khauHao chỉ để tham khảo */ choDi, cogs, gvM, boQuaMk, boQuaCK, khongGiaVon};
 }
 /** v1.3 — Dòng sổ chi khối Giá vốn KHÔNG vào PNL (PNL tính giá vốn theo công thức × ly, không theo tiền mua), chỉ để minh bạch, không đổi số:
  *  (a) không khớp nguyên liệu nào trong tab Kho (dụng cụ…); (b) khớp nguyên liệu nhưng nguyên liệu đó không nằm trong công thức nào (vd cà phê bột, kem muối). */
@@ -3685,7 +3685,7 @@ function tuKiem(){
     const PA = tinhPnl(tuAll, denAll), cogsNow = cogsO();
     renderFin();   // luôn tính lại FIN theo dữ liệu hiện tại (tránh so với FIN cũ sau khi nạp lại)
     const dLuong = PA.luongTam && FIN.luongBot != null ? PA.luong - FIN.luongBot - (FIN.luongSo || 0) : 0;   // v1.7.55: Thu chi = sổ chi Nhân sự (trong chi khác) + bot kỳ chưa chốt   // có ca chưa ra: PNL ước tính lương ca đang mở, Thu chi chỉ có lương đã chốt → trừ đúng phần chênh lương này
-    const lechCho = cogsNow == null || FIN.lai == null || FIN.gvBan == null ? null : Math.abs((FIN.lai - PA.laiVH) - dLuong - (FIN.chenhKet || 0) - ((PA.gv - FIN.gvBan) + PA.coDinhUoc));   // v1.7.45: Thu chi cũng tính giá vốn theo ngày bán   // Thu chi dùng tiền thực thu (± chênh két), PNL dùng đơn bot
+    const lechCho = cogsNow == null || FIN.lai == null || FIN.gvBan == null ? null : Math.abs((FIN.lai - PA.laiVH) - dLuong - (FIN.chenhKet || 0) - ((PA.gv - FIN.gvBan) + PA.coDinhUoc - PA.vhGian));   // v1.7.123: − phần khoản cả tháng PNL chưa giãn tới   // v1.7.45: Thu chi cũng tính giá vốn theo ngày bán   // Thu chi dùng tiền thực thu (± chênh két), PNL dùng đơn bot
     ok('Thu chi vs PNL (cùng phạm vi): lãi vận hành lệch đúng bằng chênh két (thực thu vs đơn bot) + chi cố định ước tính — giá vốn cả hai theo ngày bán (v1.7.45), không trừ 2 lần hàng cho kèm', lechCho == null ? true : lechCho <= 1, lechCho == null ? 'chưa có ô giá vốn' : `Thu chi ${fmt(FIN.lai)} vs PNL ${fmt(PA.laiVH)} · lệch ngoài giải thích ${fmt(lechCho)}${dLuong ? ' · đã trừ chênh lương ca đang mở ' + fmt(dLuong) : ''}${FIN.chenhKet ? ' · đã trừ chênh két ' + fmt(FIN.chenhKet) : ''}`);
     // 17. Tồn kho tính tại chỗ khớp 5 ca biết trước
     const kk = {ma:'x', ten:'X', dvTinh:'g', dv:'kg', quyDoi:10, hangMuc:'', noiDung:'x', giaTC:0}, ct = {m1:{x:2}};
