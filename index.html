@@ -3279,7 +3279,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.121';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.122';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3337,6 +3337,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.122', ngay:'03/11/2026', nd:['Tài liệu › Thẻ thành viên: để cả 2 bản — bản cũ (nâu, logo giữa) là bản dùng, bản sang (khung chỉ mảnh, MEMBER) để dự phòng; mỗi bản có ảnh 2 mặt + PDF in 2 mặt.']},
   {v:'v1.7.121', ngay:'03/11/2026', nd:['Thẻ thành viên thiết kế lại cho sang hơn (chủ quán duyệt 03/11): mặt trước nền nâu, khung chỉ mảnh, logo ngang, chữ MEMBER giãn rộng, ly in chìm; mặt sau nền kem, −2K lớn + quyền lợi, dòng điền tên / SĐT — Tài liệu đã thay ảnh 2 mặt và PDF in 2 mặt (90 × 54 mm, tràn 2 mm, phá vector)']},
   {v:'v1.7.120', ngay:'03/11/2026', nd:['Standee vòm chốt dán 3 sticker tròn Ø 10 cm (chủ quán 03/11): +5K size lớn bên trái nhãn “Giá chỉ từ 15K”, mua 5 tặng 1 món tự chọn bên phải, thân thiết −2K cạnh BEST SELLER — Tài liệu có ảnh vị trí dán + PDF A4 bộ dán standee (3 loại)', 'Bỏ sticker “Mua 3 tặng 1 cà phê đen / sữa” (không dán) và 2 PDF A4 cũ có sticker này']},
   {v:'v1.7.119', ngay:'03/11/2026', nd:['Tài liệu: thêm sticker tròn Ø 10 cm “Mua 3 tặng 1 cà phê đen / sữa” (3 ly trong cùng 1 đơn, chủ quán 03/11) + PDF A4 in đủ bộ 4 loại sticker tròn (+5K, mua 5 tặng 1, thân thiết −2K, mua 3 tặng 1)']},
@@ -4498,7 +4499,8 @@ function renderAiLam(){
 const TAI_LIEU = [
   {nhom:'Pha chế & bán hàng', ten:'Công thức pha chế', mo:'Định lượng từng món, sơ chế (shot máy, nước đường, kem muối) · in A4', ngay:'31/10/2026', anh:'cong-thuc-pha-che.png', file:[['PDF in A4', 'cong-thuc-pha-che.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Mã món gõ tắt', mo:'Mã món và cách gõ đơn nhanh trên bot · in A5', ngay:'15/10/2026', anh:'ma-mon-go-tat.png', file:[['PDF in A5', 'ma-mon-go-tat.pdf']]},
-  {nhom:'Pha chế & bán hàng', ten:'Thẻ thành viên', mo:'Một hạng duy nhất · giảm 2.000đ mỗi ly từ T2 đến T6 (T7, CN đồng giá không áp dụng) · 90 × 54 mm in 2 mặt', ngay:'03/11/2026', anh:'the-thanh-vien.png', file:[['PDF in 2 mặt (tràn 2 mm)', 'the-thanh-vien_in-2-mat.pdf'], ['Mặt trước', 'the-thanh-vien_mat-truoc.png'], ['Mặt sau', 'the-thanh-vien_mat-sau.png']]},
+  {nhom:'Pha chế & bán hàng', ten:'Thẻ thành viên · bản dùng', mo:'Bản chủ chọn in · Một hạng duy nhất · giảm 2.000đ mỗi ly từ T2 đến T6 (T7, CN đồng giá không áp dụng) · 90 × 54 mm in 2 mặt', ngay:'03/11/2026', anh:'the-thanh-vien.png', file:[['PDF in 2 mặt (tràn 2 mm)', 'the-thanh-vien_in-2-mat.pdf'], ['Mặt trước', 'the-thanh-vien_mat-truoc.png'], ['Mặt sau', 'the-thanh-vien_mat-sau.png']]},
+  {nhom:'Pha chế & bán hàng', ten:'Thẻ thành viên · bản sang (dự phòng)', mo:'Mặt trước nâu khung chỉ mảnh, chữ MEMBER, ly in chìm · cùng ưu đãi −2.000đ/ly T2–T6 · 90 × 54 mm in 2 mặt', ngay:'03/11/2026', anh:'the-thanh-vien-ban-sang.png', file:[['PDF in 2 mặt (tràn 2 mm)', 'the-thanh-vien-ban-sang_in-2-mat.pdf'], ['Mặt trước', 'the-thanh-vien-ban-sang_mat-truoc.png'], ['Mặt sau', 'the-thanh-vien-ban-sang_mat-sau.png']]},   // v1.7.122
   {nhom:'Pha chế & bán hàng', ten:'Sticker tròn: thân thiết −2K', mo:'Ø 10 cm dán standee vòm cạnh BEST SELLER · khách hàng thân thiết giảm 2K mỗi ly, T2–T6 (trừ T7, CN)', ngay:'03/11/2026', anh:'sticker-than-thiet-2K.png', file:[['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf'], ['PDF A4 (−2K & +5K)', 'sticker-tron_A4.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Sticker tròn: size lớn +5K', mo:'Ø 10 cm dán standee vòm bên trái nhãn “Giá chỉ từ 15K” · size L 500 ml thêm 5K', ngay:'03/11/2026', anh:'sticker-size-lon-5K.png', file:[['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf'], ['PDF A4 (−2K & +5K)', 'sticker-tron_A4.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Sticker tròn: mua 5 tặng 1', mo:'Ø 10 cm dán standee vòm bên phải nhãn “Giá chỉ từ 15K” · mua 5 ly trong cùng 1 đơn tặng 1 món tự chọn', ngay:'03/11/2026', anh:'sticker-mua-5-tang-1.png', file:[['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf']]},
