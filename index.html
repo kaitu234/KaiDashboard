@@ -1449,7 +1449,8 @@ const DONG_GIA_TUAN = {tu:'2026-11-07', gia:15000, thu:[6, 0]}, KM_TAY = ['2026-
 const laCuoiTuanKM = k => k >= DONG_GIA_TUAN.tu && DONG_GIA_TUAN.thu.includes(new Date(k + 'T12:00:00Z').getUTCDay());
 const laNgayKM = k => isPromo(k) || laCuoiTuanKM(k);
 const leOf = k => NGAY_LE[k] || NGAY_LE[k.slice(5)] || '';
-function rowsOf(wb, name){ return (wb.Sheets[name] || []).map(r => r.map(c => c === '' ? null : c)); }
+function rowsOf(wb, name){ const v = wb.Sheets[name] || [], w = v.reduce((m, r) => Math.max(m, r.length), 0);   // v1.7.103: API cắt ô rỗng cuối dòng → bù lại null cho đủ cột
+  return v.map(r => Array.from({length:w}, (_, i) => r[i] === '' || r[i] === undefined ? null : r[i])); }
 /** v1.7.32 — ô tick của Sheet (true / 'TRUE' / 1) → boolean; ChamCong cột Q dậy sớm (bot ghi) · S ca 1 người (chủ tick) · T cho bù chuyên cần (chủ tick) */
 const tick = v => v === true || /^(true|1)$/i.test(String(v == null ? '' : v));
 /** v1.7.32 — phụ cấp: sao từ bot GIO_SOM.tien (dậy sớm: check-in ≤ 05:45 tới 15/10, ≤ 05:35 16–24/10, bỏ 25–31/10, có lại ≤ 05:30 từ 01/11/2026 – bot cs11-v1) và PC_MOT_NGUOI.tien (ca 1 người, chủ tick) — đổi bên bot thì đổi cả ở đây. Đã nằm trong cột Tiền công của ChamCong; chỉ để hiện số tiền từng khoản */
@@ -3228,7 +3229,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.102';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.103';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3286,6 +3287,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.103', ngay:'03/11/2026', nd:['Chuẩn bị gói dữ liệu gọn hơn: đọc được dòng bị cắt ô rỗng cuối (API mới bỏ dòng thừa, ngày tương lai của tab Doanh thu) — tải nhanh hơn khoảng 1/3 dung lượng.']},
   {v:'v1.7.102', ngay:'03/11/2026', nd:['Mở dashboard nhanh hơn: hiện ngay số liệu lần trước lưu trên máy (ghi "Đang cập nhật… đang hiện số lúc …"), số mới từ Sheet về sau 2–3 giây thì tự thay.']},
   {v:'v1.7.101', ngay:'03/11/2026', nd:['Hiệu suất: hàng số ghim sát ngay dưới thanh lọc (đo vị trí thật), chỉ ghim khi màn hình cao ≥ 700 px.']},
   {v:'v1.7.100', ngay:'03/11/2026', nd:['Tự kiểm: bài đường mờ theo chế độ Sáng / Tối (0,38 / 0,68).']},
