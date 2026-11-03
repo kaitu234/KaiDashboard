@@ -109,10 +109,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .presets{display:flex;gap:3px;flex-wrap:wrap}
 .presets button{border:1px solid var(--line);background:var(--surface-2);font-size:12px;padding:5px 9px;border-radius:5px;cursor:pointer;white-space:nowrap}
 .presets button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
-.presets select.pThang{border:1px solid var(--line);background:var(--surface-2);color:inherit;font:inherit;font-size:13px;font-weight:600;text-transform:uppercase;padding:4px 6px;border-radius:5px;cursor:pointer;flex:none}   /* v1.7.96: chọn tháng (cả tháng cũ) */
-.presets button[data-nav]:disabled{opacity:.4;cursor:default}
-.presets select.pThang.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
-.presets select.pThang option{background:var(--surface);color:var(--ink);text-transform:none}
+#gNav button:disabled{opacity:.4;cursor:default}
 .clr{margin-left:auto;font-size:12px;color:var(--bad);background:none;border:0;cursor:pointer;text-decoration:underline;padding:6px 0}
 .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px}
 .chip{display:inline-flex;align-items:center;gap:6px;background:var(--beige);border:1px solid var(--line);padding:3px 4px 3px 10px;border-radius:99px}
@@ -608,13 +605,13 @@ html.mcap{background:var(--paper)}
 
   <div class="fbar" id="fbar">
     <div class="fi fi-ky"><label>Kỳ xem</label>
-      <div class="presets" id="presets">
-        <button data-nav="-1" id="kyTruoc" title="Lùi 1 kỳ">◀ <span>Hôm trước</span></button><button data-p="today">Hôm nay</button><button data-p="yday">Hôm qua</button><button data-p="7d">7 ngày</button><select id="pThang" class="pThang" aria-label="Chọn tháng"><option value="" hidden>Theo tháng</option><option value="mtd">Tháng này</option></select><button data-p="all">Tất cả</button><button data-nav="1" id="kySau" title="Tới 1 kỳ"><span>Hôm sau</span> ▶</button>
-      </div>
+      <div class="presets" id="gKy" role="group" aria-label="Xem theo"><button data-gky="ngay">Ngày</button><button data-gky="tuan">Tuần</button><button data-gky="thang">Tháng</button><button data-gky="khoang">Khoảng</button><button data-gky="tatca">Tất cả</button></div>
     </div>
+    <div class="fi" id="gPickW"><label for="gPick" id="gPickL">Xem ngày khác</label><input type="date" id="gPick"></div>
+    <div class="fi fi-ky" id="gNavW"><label>&nbsp;</label><div class="presets" id="gNav"><button id="gPrev">◀ Hôm trước</button><button id="gNow">Hôm nay</button><button id="gNext">Hôm sau ▶</button></div></div>
     <button class="lnk ftog" id="fTog" aria-expanded="false">Bộ lọc ▾</button>
-    <div class="fi"><label for="dFrom">Từ ngày</label><input type="date" id="dFrom"></div>
-    <div class="fi"><label for="dTo">Đến ngày</label><input type="date" id="dTo"></div>
+    <div class="fi" id="gTuW"><label for="dFrom">Từ ngày</label><input type="date" id="dFrom"></div>
+    <div class="fi" id="gDenW"><label for="dTo">Đến ngày</label><input type="date" id="dTo"></div>
     <div class="fi"><label for="fNv">Nhân viên</label><select id="fNv"><option value="">Tất cả</option></select></div>
     <div class="fi"><label for="fPt">Thanh toán</label><select id="fPt"><option value="">Tất cả</option><option value="TM">💵 Tiền mặt</option><option value="CK">🏦 Chuyển khoản</option></select></div>
     <div class="fi"><label for="fMon">Món</label><select id="fMon"><option value="">Tất cả</option></select></div>
@@ -1041,6 +1038,7 @@ html.mcap{background:var(--paper)}
   <div class="view" id="v-perf" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục tab Hiệu suất"></nav>
     <div class="cmt" id="perfNote"></div>
+    <div class="kpis" id="perfKpis"></div>
     <div class="card" id="sec-perf-fc">
       <div class="ct">Dự báo ngày mai <span class="nt">· cùng thứ 4 tuần gần nhất (thiếu thì TB 7 ngày) · điều chỉnh khuyến mãi, mưa khi đủ dữ liệu</span></div>
       <div class="kv" id="perfFc"></div>
@@ -1627,31 +1625,40 @@ const VIEW_INFO = {
 };
 /** Đường mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn): TẠM TẮT 16/10/2026 theo chủ quán — chỉ vẽ số liệu thật. Bật lại = true (và trả chữ "vạch / chấm = mục tiêu" vào tiêu đề 2 biểu đồ). */
 const HIEN_LINE_MUC_TIEU = false;
-const S = {view:'ov', tdK:'', preset:'mtd', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:80,   // mục tiêu ly/ngày: 80 (chủ quán chốt 16/10/2026)
+const S = {view:'ov', tdK:'', preset:'mtd', gKy:'thang', gMoc:'', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:80,   // mục tiêu ly/ngày: 80 (chủ quán chốt 16/10/2026)
   sort:{}, open:new Set(), finMonth:'all'};
 try { const t = +localStorage.getItem('kai_tgt2'); if (t > 0) S.tgt = t; } catch(e){}   // khoá mới 'kai_tgt2': bỏ mục tiêu 60 cũ còn lưu trong trình duyệt
 try { const v = localStorage.getItem('kai_view'); if (v) S.view = v; } catch(e){}
 $('fTgt').value = S.tgt;
 
-function setPreset(p){
-  S.preset = p; const t = today();
-  const last = D ? (D.last > t ? D.last : t) : t;
-  if (p === 'today'){ S.from = S.to = t; }
-  else if (p === 'yday'){ S.from = S.to = addDays(t, -1); }
-  else if (p === '7d'){ S.to = t; S.from = addDays(t, -6); }
-  else if (p === 'mtd'){ S.to = t; S.from = t.slice(0,8) + '01'; }
-  else if (/^m:\d{4}-\d{2}$/.test(p)){ const m = p.slice(2); S.from = m + '-01'; S.to = `${m}-${p2(ngayTrongThang(m))}`; if (S.to > t) S.to = t; }   // v1.7.96: tháng cũ chọn ở ô Tháng
-  else { S.from = D ? D.first : t; S.to = last; }
+/** v1.7.98 — Kỳ xem chung kiểu tab Hôm nay: S.gKy ngay · tuan · thang · khoang · tatca + S.gMoc (ngày mốc, trống = hôm nay) → S.from / S.to.
+ *  setPreset(p) giữ cho code cũ: today · yday · 7d · mtd · m:yyyy-mm · all */
+function gKyTinh(){
+  const t = today(), moc = S.gMoc && S.gMoc < t ? S.gMoc : t;
+  if (S.gKy === 'ngay'){ S.from = S.to = moc; S.preset = moc === t ? 'today' : moc === addDays(t, -1) ? 'yday' : ''; }
+  else if (S.gKy === 'tuan'){ const K = kyBaoCao('tuanNay', moc); S.from = K.tu; S.to = K.den > t ? t : K.den; S.preset = ''; }
+  else if (S.gKy === 'thang'){ const m = moc.slice(0, 7), c = cuoiThang(m); S.from = m + '-01'; S.to = c > t ? t : c; S.preset = m === t.slice(0, 7) ? 'mtd' : 'm:' + m; }
+  else if (S.gKy === 'tatca'){ S.from = D ? D.first : t; S.to = D ? (D.last > t ? D.last : t) : t; S.preset = 'all'; }
+  else S.preset = '';
 }
-/** v1.7.97 — ◀ / ▶ của bộ lọc Kỳ xem: kiểu kỳ đang xem (ngay · thang · ky · tatca) và dời 1 kỳ (như nút Hôm trước / Hôm sau ở tab Hôm nay) */
-function kieuKy(){ if (S.preset === 'all') return 'tatca'; if (S.from === S.to) return 'ngay';
-  return S.preset === 'mtd' || /^m:/.test(S.preset || '') || (S.from.slice(8) === '01' && S.from.slice(0, 7) === S.to.slice(0, 7) && (S.to === `${S.to.slice(0, 7)}-${p2(ngayTrongThang(S.to.slice(0, 7)))}` || S.to === today())) ? 'thang' : 'ky'; }
-function doiKy(n){
-  const t = today(), kk = kieuKy(); if (kk === 'tatca') return;
-  if (kk === 'ngay'){ const k = addDays(S.from, n); if (k > t || (D && k < D.first)) return; S.from = S.to = k; S.preset = k === t ? 'today' : k === addDays(t, -1) ? 'yday' : ''; return; }
-  if (kk === 'thang'){ const m = mkey(addDays(S.from.slice(0, 7) + '-15', n * 30)); if (m > t.slice(0, 7) || (D && m < D.first.slice(0, 7))) return; setPreset(m === t.slice(0, 7) ? 'mtd' : 'm:' + m); return; }
-  const L = nDays(S.from, S.to), f = addDays(S.from, n * L), to = addDays(S.to, n * L); if (f > t || (D && to < D.first)) return;
-  S.from = f; S.to = to > t ? t : to; S.preset = S.to === t && L === 7 && S.from === addDays(t, -6) ? '7d' : ''; }
+function setPreset(p){
+  const t = today();
+  if (p === 'today' || p === 'yday'){ S.gKy = 'ngay'; S.gMoc = p === 'yday' ? addDays(t, -1) : ''; }
+  else if (p === '7d'){ S.gKy = 'khoang'; S.from = addDays(t, -6); S.to = t; }
+  else if (p === 'mtd'){ S.gKy = 'thang'; S.gMoc = ''; }
+  else if (/^m:\d{4}-\d{2}$/.test(p)){ S.gKy = 'thang'; S.gMoc = p.slice(2) + '-01'; }
+  else S.gKy = 'tatca';
+  gKyTinh(); if (p === '7d') S.preset = '7d';
+}
+/** ◀ / ▶: ngày ±1 · tuần ±7 · tháng ±1 tháng; không quá hôm nay, không lùi trước ngày bán đầu tiên */
+function gDoi(n){
+  const t = today(), moc = S.gMoc || t;
+  const v = S.gKy === 'ngay' ? addDays(moc, n) : S.gKy === 'tuan' ? addDays(moc, 7 * n) : S.gKy === 'thang' ? mkey(addDays(moc.slice(0, 7) + '-15', 30 * n)) + '-01' : null;
+  if (!v) return;
+  const dau = S.gKy === 'tuan' ? kyBaoCao('tuanNay', v).tu : S.gKy === 'thang' ? v : v, cuoi = S.gKy === 'tuan' ? kyBaoCao('tuanNay', v).den : S.gKy === 'thang' ? cuoiThang(v.slice(0, 7)) : v;
+  if (dau > t || (D && cuoi < D.first)) return;
+  S.gMoc = v >= t ? '' : v; gKyTinh();
+}
 const dayOk = k => !S.day || (S.day === 'promo' ? (k >= PROMO.from && k <= PROMO.to) : S.day === 'wkend' ? [0,6].includes(fromKey(k).getDay()) : [1,2,3,4,5].includes(fromKey(k).getDay()));
 /** Lọc đơn. skip: tập các chiều bỏ qua (vd 'date' để tính WoW) */
 function sel(skip = new Set(), from = S.from, to = S.to){
@@ -3217,7 +3224,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.97';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.98';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3275,6 +3282,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.98', ngay:'03/11/2026', nd:['Bộ lọc Kỳ xem làm giống thanh tab Hôm nay: Ngày / Tuần / Tháng / Khoảng / Tất cả + ô "Xem ngày khác" + ◀ Hôm trước · Hôm nay · Hôm sau ▶ (đổi thành Tuần / Tháng trước · này · sau theo kiểu đang chọn). Khoảng thì hiện Từ ngày / Đến ngày.', 'Tab Hiệu suất: thêm hàng số của kỳ đang xem — doanh thu, số ly, số đơn, giá TB / AOV, giờ công, ly / giờ công, so với hôm trước / tuần trước / cùng kỳ tháng trước.']},
   {v:'v1.7.97', ngay:'03/11/2026', nd:['Bộ lọc Kỳ xem có nút ◀ / ▶ (như Hôm trước / Hôm sau ở tab Hôm nay): xem 1 ngày thì lùi / tới từng ngày, xem theo tháng thì từng tháng, 7 ngày hoặc khoảng tự chọn thì lùi / tới đúng bằng độ dài kỳ. Dùng được ở Hiệu suất, Bán hàng, Món, PNL, Nhân sự…']},
   {v:'v1.7.96', ngay:'03/11/2026', nd:['Bộ lọc Kỳ xem: nút "Tháng này" thành ô chọn tháng — chọn Tháng này hoặc tháng cũ (T10/2026…), lọc đủ cả tháng đó cho mọi tab theo kỳ.']},
   {v:'v1.7.95', ngay:'03/11/2026', nd:['Tab Nhân sự: thẻ mới "Ai làm ngày nào" — chọn tháng (cả tháng cũ), lưới lịch T2–CN ghi người làm + giờ vào–ra từ chấm công, ngày có lịch mà không chấm công hiện ✗; bảng tổng ngày / ca / giờ / tiền công theo người.']},
@@ -3776,16 +3784,14 @@ function tuKiem(){
     { const bm = laBoQua({m:'2026-10', cat:'Marketing & khuyến mãi', desc:'Hoa tặng 20/10'}), bk = laBoQua({m:'2026-10', cat:'Ly, nắp, ống hút, túi, hộp, dụng cụ', desc:'Ly trà đá 300ml'}),
         cdT10 = (D && D.coDinh || []).some(k => k.tu > '2026-10' && boDau(k.cat).startsWith('thue')) ? laChiCoDinh({m:'2026-10', k:'2026-10-30', cat:'Thuê vị trí / mặt bằng'}) : false;
       ok('Marketing T10 (Hoa tặng 20/10) vào vận hành như Sheet, hàng cho kèm T10 vẫn bỏ qua; Phí đô thị T10 (hạng mục Thuê vị trí) là chi vận hành khác khi khoản thuê cố định chưa áp dụng', !bm && bk && !cdT10, `mk ${bm} · ck ${bk} · cd ${cdT10}`); }
-    // 74. v1.7.96 — ô chọn tháng: 'm:yyyy-mm' lọc đủ tháng đó (tháng có 30/31/28 ngày)
-    { const keep = [S.preset, S.from, S.to]; setPreset('m:2026-10'); const a = [S.from, S.to]; setPreset('m:2027-02'); const b = [S.from, S.to]; [S.preset, S.from, S.to] = keep;
-      ok('Ô chọn tháng: T10/2026 = 01/10–31/10, T02/2027 = 01/02–28/02 (tháng chưa hết thì tới hôm nay)', a.join() === '2026-10-01,2026-10-31' && b[0] === '2027-02-01' && (b[1] === '2027-02-28' || b[1] === today()), a.join() + ' · ' + b.join()); }
-    // 75. v1.7.97 — ◀ / ▶ Kỳ xem: ngày lùi 1 ngày, tháng lùi 1 tháng (đủ tháng), khoảng N ngày lùi N ngày
-    { const keep = [S.preset, S.from, S.to], o = [];
-      S.preset = ''; S.from = S.to = '2026-10-20'; doiKy(-1); o.push(S.from + '|' + kieuKy());
-      setPreset('m:2026-11'); S.to = '2026-11-30'; doiKy(-1); o.push(S.from + '~' + S.to + '|' + S.preset);
-      S.preset = ''; S.from = '2026-10-21'; S.to = '2026-10-27'; doiKy(-1); o.push(S.from + '~' + S.to);
-      [S.preset, S.from, S.to] = keep;
-      ok('◀ Kỳ xem: 20/10 → 19/10 · T11 → T10 (01–31/10) · 21–27/10 → 14–20/10', o.join(',') === '2026-10-19|ngay,2026-10-01~2026-10-31|m:2026-10,2026-10-14~2026-10-20', o.join(' · ')); }
+    // 74–75. v1.7.98 — Kỳ xem: tháng cũ đủ tháng; ◀ ngày / tuần / tháng
+    { const keep = [S.gKy, S.gMoc, S.preset, S.from, S.to], o = [];
+      setPreset('m:2026-10'); o.push(S.from + '~' + S.to);
+      S.gKy = 'ngay'; S.gMoc = '2026-10-20'; gKyTinh(); gDoi(-1); o.push(S.from);
+      S.gKy = 'tuan'; S.gMoc = '2026-10-22'; gKyTinh(); o.push(S.from + '~' + S.to); gDoi(-1); o.push(S.from);
+      S.gKy = 'thang'; S.gMoc = '2026-11-02'; gKyTinh(); gDoi(-1); o.push(S.from + '~' + S.to + '|' + S.preset);
+      [S.gKy, S.gMoc, S.preset, S.from, S.to] = keep;
+      ok('Kỳ xem: T10 = 01–31/10 · ◀ ngày 20/10 → 19/10 · tuần chứa 22/10 = T2 19/10–CN 25/10, ◀ → 12/10 · ◀ tháng T11 → T10 đủ tháng', o.join(',') === '2026-10-01~2026-10-31,2026-10-19,2026-10-19~2026-10-25,2026-10-12,2026-10-01~2026-10-31|m:2026-10', o.join(' · ')); }
     // 69. v1.7.80 — Lịch làm theo đợt: đợt = ngày liên tiếp của 1 người, tổng ngày/giờ/lương khớp block lịch ở tab NhanVien của Sheet
     { const dkL = (k, nv, tt) => ({k, ca:'S', id:nv, nv, tt:tt || 'OK'}), caL = [{ma:'S', bd:'05:30', kt:'10:30'}],
         dkT = [dkL('2026-11-07', 'bơ'), dkL('2026-11-08', 'bơ'), dkL('2026-11-09', 'bơ'), dkL('2026-11-10', 'Q'), dkL('2026-11-11', 'Q'), dkL('2026-11-14', 'bơ'), dkL('2026-11-12', 'N', 'HUY'), dkL('2026-10-01', 'bơ')],
@@ -4850,6 +4856,18 @@ function duBaoNgayMai(aspDuPhong){
 function renderPerf(){
   const L = sel(), A = agg(L), G = giaNL(), cogs = cogsO(), hm = m => `${p2(Math.floor(m / 60))}:${p2(m % 60)}`;   // v1.3: chưa tính được giá vốn/ly bình quân → null
   const ngayKy = [...new Set(L.map(o => o.k))].sort();
+  { // v1.7.98 (chủ nhờ 03/11): số bán của kỳ đang xem, so kỳ trước cùng độ dài (tháng: cùng số ngày đầu tháng trước)
+    const n = nDays(S.from, S.to), m0 = S.from.slice(0, 7), thang = S.gKy === 'thang', pmm = thang ? mkey(addDays(m0 + '-01', -1)) : '';
+    const pf = thang ? pmm + '-01' : addDays(S.from, -n), pt = thang ? (n >= ngayTrongThang(pmm) ? cuoiThang(pmm) : `${pmm}-${p2(Math.min(n, ngayTrongThang(pmm)))}`) : addDays(S.from, -1);
+    const B = agg(sel(new Set(), pf, pt)), nhan = S.gKy === 'ngay' ? 'hôm trước' : S.gKy === 'tuan' ? 'tuần trước' : thang ? 'cùng kỳ tháng trước' : `${n} ngày trước đó`;
+    const gioCong = (a, b) => D.cong.filter(c => c.k >= a && c.k <= b && dayOk(c.k) && (!S.nv || c.nv === S.nv)).reduce((x, c) => x + (c.gio || 0), 0), gA = gioCong(S.from, S.to), gB = gioCong(pf, pt);
+    const ss = (a, b) => `${dlt(a, b)} vs ${nhan}`, f1 = v => v == null ? '—' : (+v).toLocaleString('vi-VN', {maximumFractionDigits:1});
+    $('perfKpis').innerHTML = `<div class="kpi main"><span class="lb">Doanh thu (đơn bot)</span><span class="v">${fmt(A.dt)}</span><span class="s">${ss(A.dt, B.dt)}${A.nd > 1 ? ` · TB ${fmt(A.dt / A.nd)}/ngày bán` : ''}</span></div>
+      <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${ss(A.ly, B.ly)}${A.nd > 1 ? ` · TB ${f1(A.ly / A.nd)}/ngày bán` : ''}</span></div>
+      <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${ss(A.don, B.don)} · ${A.don ? f1(A.ly / A.don) : '—'} ly/đơn</span></div>
+      <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${ss(A.aov, B.aov)}</span></div>
+      <div class="kpi main"><span class="lb">Giờ công</span><span class="v">${f1(gA)}</span><span class="s">${ss(gA, gB)} · từ chấm công (cả chủ)</span></div>
+      <div class="kpi main"><span class="lb">Ly / giờ công</span><span class="v">${gA ? f1(A.ly / gA) : '—'}</span><span class="s">${ss(gA ? A.ly / gA : null, gB ? B.ly / gB : null)}</span></div>`; }
   $('perfNote').innerHTML = `Kỳ đang lọc có <b>${ngayKy.length} ngày bán</b>. ${ngayKy.length < 14 ? 'Khung giờ, dự báo và so sánh khuyến mãi sẽ đáng tin hơn khi có 2–3 tuần dữ liệu; ô "—" là chưa đủ dữ liệu.' : ''}`;
 
   /* 1 · Dự báo ngày mai (dùng toàn bộ lịch sử, không theo bộ lọc) */
@@ -5086,7 +5104,7 @@ function renderBc(){
   const soHuy = new Set(K.cancel.map(c => c.id)).size;
   $('bcHuyTxt').textContent = soHuy ? `${soHuy} đơn huỷ · ${fmt(K.cancel.reduce((s, c) => s + c.tt, 0))} đ · bằng ${pct(soHuy / Math.max(K.A.don + soHuy, 1), 1)} số đơn đã ghi.` : (K.nd ? 'Không có đơn huỷ.' : '');
   // "Xem chi tiết →": mở đúng tab, đặt sẵn kỳ đang xem (bộ lọc chung), bỏ lọc nhân viên / món / thanh toán
-  document.querySelectorAll('#v-bc [data-bcgo]').forEach(a => a.onclick = e => { e.preventDefault(); S.preset = ''; S.from = K.tu; S.to = K.denThuc; S.nv = ''; S.pt = ''; S.mon = ''; S.day = ''; S.hour = null; syncFilters(); setView(a.dataset.bcgo); window.scrollTo(0, 0); });
+  document.querySelectorAll('#v-bc [data-bcgo]').forEach(a => a.onclick = e => { e.preventDefault(); S.preset = ''; S.gKy = 'khoang'; S.from = K.tu; S.to = K.denThuc; S.nv = ''; S.pt = ''; S.mon = ''; S.day = ''; S.hour = null; syncFilters(); setView(a.dataset.bcgo); window.scrollTo(0, 0); });
 }
 function nangCapThe(root){
   if (!root) return;
@@ -5142,11 +5160,12 @@ document.addEventListener('click', e => { const a = e.target.closest('.jnav a');
 /* ============ glue ============ */
 function syncFilters(){
   $('dFrom').value = S.from; $('dTo').value = S.to; $('fNv').value = S.nv; $('fPt').value = S.pt; $('fMon').value = S.mon; $('fDay').value = S.day;
-  document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === S.preset));
-  { const kk = kieuKy(), t = today(), nh = kk === 'ngay' ? ['Hôm trước', 'Hôm sau'] : kk === 'thang' ? ['Tháng trước', 'Tháng sau'] : ['Kỳ trước', 'Kỳ sau'], a = $('kyTruoc'), b = $('kySau');
-    if (a && b){ a.querySelector('span').textContent = nh[0]; b.querySelector('span').textContent = nh[1];
-      a.disabled = kk === 'tatca' || !!(D && S.from <= D.first); b.disabled = kk === 'tatca' || (kk === 'thang' ? S.from.slice(0, 7) >= t.slice(0, 7) : S.to >= t); } }   // v1.7.97
-  const pt = $('pThang'), laThang = S.preset === 'mtd' || /^m:/.test(S.preset || ''); if (pt){ pt.value = laThang ? S.preset : ''; pt.classList.toggle('on', laThang); }
+  document.querySelectorAll('#gKy button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.gky === S.gKy)));   // v1.7.98
+  { const ky = S.gKy, kk = ky === 'khoang' || ky === 'tatca', t = today(), ten = {ngay:['Hôm trước', 'Hôm nay', 'Hôm sau'], tuan:['Tuần trước', 'Tuần này', 'Tuần sau'], thang:['Tháng trước', 'Tháng này', 'Tháng sau']}[kk ? 'ngay' : ky];
+    $('gPickW').hidden = kk; $('gNavW').hidden = kk; $('gTuW').hidden = ky !== 'khoang'; $('gDenW').hidden = ky !== 'khoang';
+    $('gPrev').textContent = '◀ ' + ten[0]; $('gNow').textContent = ten[1]; $('gNext').textContent = ten[2] + ' ▶';
+    $('gPickL').textContent = ky === 'ngay' ? 'Xem ngày khác' : ky === 'tuan' ? 'Chọn 1 ngày trong tuần' : 'Chọn 1 ngày trong tháng'; $('gPick').value = S.gMoc || t;
+    $('gNext').disabled = S.to >= t; $('gPrev').disabled = !!(D && S.from <= D.first); $('gNow').disabled = !S.gMoc; }
 }
 function renderChips(){
   const c = [];
@@ -5186,19 +5205,21 @@ function render(){
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
-  { const pt = $('pThang'), tm = today().slice(0, 7), ms = []; if (pt && D.first){ for (let m = D.first.slice(0, 7); m < tm; m = mkey(addDays(m + '-28', 7))) ms.unshift(m);
-      pt.innerHTML = '<option value="" hidden>Theo tháng</option><option value="mtd">Tháng này</option>' + ms.map(m => `<option value="m:${m}">${mlabel(m)}</option>`).join(''); } }
   const keep = (id, list) => { const s = $(id), v = s.value; s.innerHTML = '<option value="">Tất cả</option>' + list.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join(''); s.value = list.includes(v) ? v : ''; };
   keep('fNv', D.nvs);
   const lyMon = {}; D.orders.forEach(o => lyMon[o.mon] = (lyMon[o.mon] || 0) + o.sl);
   keep('fMon', D.mons.slice().sort((a, b) => (lyMon[b] || 0) - (lyMon[a] || 0)));
 }
 
-document.querySelectorAll('#presets button[data-p]').forEach(b => b.onclick = () => { if (!D) return; setPreset(b.dataset.p); syncFilters(); render(); });
-document.querySelectorAll('#presets button[data-nav]').forEach(b => b.onclick = () => { if (!D) return; doiKy(+b.dataset.nav); syncFilters(); render(); });   // v1.7.97
-$('pThang').onchange = () => { if (!D || !$('pThang').value) return; setPreset($('pThang').value); syncFilters(); render(); };
-$('dFrom').onchange = () => { S.preset = ''; S.from = $('dFrom').value || S.from; if (S.to < S.from) S.to = S.from; syncFilters(); render(); };
-$('dTo').onchange = () => { S.preset = ''; S.to = $('dTo').value || S.to; if (S.to < S.from) S.from = S.to; syncFilters(); render(); };
+document.querySelectorAll('#gKy button').forEach(b => b.onclick = () => { if (!D) return; const k = b.dataset.gky;   // v1.7.98: Ngày / Tuần / Tháng / Khoảng / Tất cả
+  if (k !== 'khoang' && k !== 'tatca' && S.gKy === 'khoang') S.gMoc = S.to < today() ? S.to : '';
+  S.gKy = k; gKyTinh(); syncFilters(); render(); });
+$('gPrev').onclick = () => { if (!D) return; gDoi(-1); syncFilters(); render(); };
+$('gNext').onclick = () => { if (!D) return; gDoi(1); syncFilters(); render(); };
+$('gNow').onclick = () => { if (!D) return; S.gMoc = ''; gKyTinh(); syncFilters(); render(); };
+$('gPick').onchange = () => { if (!D) return; const v = $('gPick').value; S.gMoc = v && v < today() ? (D.first && v < D.first ? D.first : v) : ''; gKyTinh(); syncFilters(); render(); };
+$('dFrom').onchange = () => { S.preset = ''; S.gKy = 'khoang'; S.from = $('dFrom').value || S.from; if (S.to < S.from) S.to = S.from; syncFilters(); render(); };
+$('dTo').onchange = () => { S.preset = ''; S.gKy = 'khoang'; S.to = $('dTo').value || S.to; if (S.to < S.from) S.from = S.to; syncFilters(); render(); };
 [['fNv', 'nv'], ['fPt', 'pt'], ['fMon', 'mon'], ['fDay', 'day']].forEach(([id, k]) => $(id).onchange = () => { S[k] = $(id).value; render(); });
 $('fTgt').oninput = () => { const v = +$('fTgt').value; if (v > 0){ S.tgt = v; try { localStorage.setItem('kai_tgt2', v); } catch(e){} render(); } };
 $('clearAll').onclick = () => { S.nv = S.pt = S.mon = S.day = ''; S.hour = null; S.open.clear(); setPreset('mtd'); syncFilters(); render(); };
