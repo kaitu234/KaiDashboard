@@ -133,7 +133,7 @@ details.guide p{margin:4px 0;max-width:110ch}
 .kvnote{grid-column:1/-1;font-size:11.5px;line-height:1.55;color:var(--muted)}
 @media (max-width:560px){#tdKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #tdKpis{grid-template-columns:repeat(4,minmax(0,1fr))}   /* v1.7.99: 8 thẻ = 2 hàng × 4, không còn 4 ô trống */
-@media (min-width:900px){#perfKpis{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px + var(--fbarH,0px));z-index:4;background:var(--bg);padding:6px 0;margin:-6px 0}
+@media (min-width:900px) and (min-height:700px){#perfKpis{position:sticky;top:var(--perfTop,0px);z-index:4;background:var(--bg);padding:6px 0;margin:-6px 0}
   #perfKpis .kpi{padding:8px 12px} #perfKpis .kpi .v{font-size:22px}}   /* v1.7.99: hàng số Hiệu suất ghim khi cuộn để so với khung giờ */
 @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:560px){.kpis,#tdKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -3228,7 +3228,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.100';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.101';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3286,6 +3286,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.101', ngay:'03/11/2026', nd:['Hiệu suất: hàng số ghim sát ngay dưới thanh lọc (đo vị trí thật), chỉ ghim khi màn hình cao ≥ 700 px.']},
   {v:'v1.7.100', ngay:'03/11/2026', nd:['Tự kiểm: bài đường mờ theo chế độ Sáng / Tối (0,38 / 0,68).']},
   {v:'v1.7.99', ngay:'03/11/2026', nd:['Chế độ Tối dễ nhìn hơn: đường nét đứt / đường mờ so sánh (cùng thứ tuần trước, hôm qua, kỳ trước) đậm hơn, màu "ghost" sáng hơn; Tổng quan gộp thẻ Thu hồi vốn vào thẻ Lãi vận hành (kèm ngày hoàn vốn dự kiến) nên hết mảng trống; tab Hôm nay 8 thẻ xếp 2 hàng × 4.', 'Tab Hiệu suất: hàng số (doanh thu, ly, đơn, AOV, giờ công, ly / giờ công) ghim ngay dưới thanh lọc khi cuộn (máy tính) để so với khung giờ.']},
   {v:'v1.7.98', ngay:'03/11/2026', nd:['Bộ lọc Kỳ xem làm giống thanh tab Hôm nay: Ngày / Tuần / Tháng / Khoảng / Tất cả + ô "Xem ngày khác" + ◀ Hôm trước · Hôm nay · Hôm sau ▶ (đổi thành Tuần / Tháng trước · này · sau theo kiểu đang chọn). Khoảng thì hiện Từ ngày / Đến ngày.', 'Tab Hiệu suất: thêm hàng số của kỳ đang xem — doanh thu, số ly, số đơn, giá TB / AOV, giờ công, ly / giờ công, so với hôm trước / tuần trước / cùng kỳ tháng trước.']},
@@ -5220,7 +5221,7 @@ function fillOptions(){
 document.querySelectorAll('#gKy button').forEach(b => b.onclick = () => { if (!D) return; const k = b.dataset.gky;   // v1.7.98: Ngày / Tuần / Tháng / Khoảng / Tất cả
   if (k !== 'khoang' && k !== 'tatca' && S.gKy === 'khoang') S.gMoc = S.to < today() ? S.to : '';
   S.gKy = k; gKyTinh(); syncFilters(); render(); });
-try { new ResizeObserver(() => document.documentElement.style.setProperty('--fbarH', $('fbar').offsetHeight + 'px')).observe($('fbar')); } catch(e){}   // v1.7.99: chỗ ghim hàng số Hiệu suất
+try { const fb = $('fbar'), dat = () => document.documentElement.style.setProperty('--perfTop', ((parseFloat(getComputedStyle(fb).top) || 0) + fb.offsetHeight) + 'px'); new ResizeObserver(dat).observe(fb); addEventListener('resize', dat); } catch(e){}   // v1.7.99: chỗ ghim hàng số Hiệu suất
 $('gPrev').onclick = () => { if (!D) return; gDoi(-1); syncFilters(); render(); };
 $('gNext').onclick = () => { if (!D) return; gDoi(1); syncFilters(); render(); };
 $('gNow').onclick = () => { if (!D) return; S.gMoc = ''; gKyTinh(); syncFilters(); render(); };
