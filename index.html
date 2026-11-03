@@ -3679,8 +3679,6 @@ function tuKiem(){
       return {m, ok: gan(a + b, c) && gan(c, so + bot), ct:`${mlabel(m)} ${fmt(a)} + ${fmt(b)} = ${fmt(c)} = sổ chi ${fmt(so)} + tạm ${fmt(bot)}`}; });
     const pb1 = phanBoLuong(2e6, {a:1, b:3}), pb2 = phanBoLuong(2e6, {a:0, b:0});
     ok('Lương: kỳ con cộng lại = cả tháng = sổ chi Nhân sự (phân về ngày) + tiền công bot của ngày chưa chốt kỳ; phân bổ mẫu 2.000.000 theo 1:3 → 500.000/1.500.000, không có bot → chia đều', l13.every(x => x.ok) && gan(pb1.a, 5e5) && gan(pb1.b, 15e5) && gan(pb2.a, 1e6), l13.map(x => (x.ok ? '✔ ' : '✖ ') + x.ct).join(' · ') || 'không có tháng');
-    // v1.7.125: quỹ tiền dashboard = 3 ô tổng tab Quỹ tiền của Sheet (cùng logic, lệch = API thiếu cột / cách tính khác — vd 03/11 API chưa gửi cột M Trả bằng: khoản TM bị coi là CK, dòng PB trừ tiền 2 lần)
-    if (D.qtSheet) ok('Quỹ tiền: mặt · CK · tổng dashboard = tab Quỹ tiền của Sheet', Math.abs(FIN.tm - D.qtSheet.tm) <= 1 && Math.abs(FIN.ck - D.qtSheet.ck) <= 1 && Math.abs(FIN.cash - D.qtSheet.tong) <= 1, `dashboard ${fmt(FIN.tm)} · ${fmt(FIN.ck)} · ${fmt(FIN.cash)} vs Sheet ${fmt(D.qtSheet.tm)} · ${fmt(D.qtSheet.ck)} · ${fmt(D.qtSheet.tong)}`);
     // 14. Hàng tặng 0 đ không kéo giá xuống (ca biết trước: 5 kg tặng + 5 kg 1.200.000 → 240 đ/g; chỉ tặng → tham chiếu 240; chỉ mua → 240)
     const kx = {ma:'x', quyDoi:1000, giaTC:240000, dvTinh:'g'};
     const g1 = giaMua(kx, [{qty:5, amt:0}, {qty:5, amt:1200000}]), g2 = giaMua(kx, [{qty:5, amt:0}]), g3 = giaMua(kx, [{qty:5, amt:1200000}]), g4 = giaMua(Object.assign({}, kx, {giaTC:0}), [{qty:5, amt:0}]);
@@ -3691,6 +3689,8 @@ function tuKiem(){
     const tuAll = [D.first, ...D.chi.map(r => r.k), ...D.cong.map(c => c.k)].filter(Boolean).sort()[0], denAll = [today(), ...D.orders.map(o => o.k), ...D.chi.map(r => r.k)].sort().pop();
     const PA = tinhPnl(tuAll, denAll), cogsNow = cogsO();
     renderFin();   // luôn tính lại FIN theo dữ liệu hiện tại (tránh so với FIN cũ sau khi nạp lại)
+    // v1.7.125: quỹ tiền dashboard = 3 ô tổng tab Quỹ tiền của Sheet (cùng logic, lệch = API thiếu cột / cách tính khác — vd 03/11 API chưa gửi cột M Trả bằng: khoản TM bị coi là CK, dòng PB trừ tiền 2 lần)
+    if (D.qtSheet) ok('Quỹ tiền: mặt · CK · tổng dashboard = tab Quỹ tiền của Sheet', Math.abs(FIN.tm - D.qtSheet.tm) <= 1 && Math.abs(FIN.ck - D.qtSheet.ck) <= 1 && Math.abs(FIN.cash - D.qtSheet.tong) <= 1, `dashboard ${fmt(FIN.tm)} · ${fmt(FIN.ck)} · ${fmt(FIN.cash)} vs Sheet ${fmt(D.qtSheet.tm)} · ${fmt(D.qtSheet.ck)} · ${fmt(D.qtSheet.tong)}`);
     const dLuong = PA.luongTam && FIN.luongBot != null ? PA.luong - FIN.luongBot - (FIN.luongSo || 0) : 0;   // v1.7.55: Thu chi = sổ chi Nhân sự (trong chi khác) + bot kỳ chưa chốt   // có ca chưa ra: PNL ước tính lương ca đang mở, Thu chi chỉ có lương đã chốt → trừ đúng phần chênh lương này
     const vhThangSau = D.chi.filter(r => r.m > mkey(today()) && r.block === 'Vận hành' && !laDauTu(r) && !laChoKem(r)).reduce((s, r) => s + r.amt, 0);   // v1.7.123: dòng phân bổ tháng sau (phí đô thị T12, T1…): Thu chi / Sheet Tổng hợp tính vào tháng đó, PNL chưa tới tháng thì chưa giãn
     const lechCho = cogsNow == null || FIN.lai == null || FIN.gvBan == null ? null : Math.abs((FIN.lai - PA.laiVH) - dLuong - (FIN.chenhKet || 0) - ((PA.gv - FIN.gvBan) + PA.coDinhUoc - PA.vhGian) + vhThangSau);   // v1.7.123: − phần khoản cả tháng PNL chưa giãn tới   // v1.7.45: Thu chi cũng tính giá vốn theo ngày bán   // Thu chi dùng tiền thực thu (± chênh két), PNL dùng đơn bot
