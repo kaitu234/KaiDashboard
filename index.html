@@ -1394,10 +1394,11 @@ function laiNgay(k){
 const THU = ['CN','T2','T3','T4','T5','T6','T7'];
 
 const $ = id => document.getElementById(id);
-const fmt = n => (n == null || !isFinite(n)) ? '—' : Math.round(n).toLocaleString('vi-VN');
+const fmt = n => (n == null || !isFinite(n)) ? '—' : (Math.round(n) || 0).toLocaleString('vi-VN').replace(/^-/, '−');   // v1.7.125: || 0 bỏ "-0"; số âm dùng dấu − (U+2212) như các cột hụt/dư, không lẫn gạch nối
 const fmtM = n => (n == null || !isFinite(n)) ? '—' : fmt(n);   // in đủ số, không viết tắt (Khoa chốt 11/10/2026)
 const fmtK = n => (n == null || !isFinite(n)) ? '—' : fmt(n);
-const pct = (n, d=0) => (n == null || !isFinite(n)) ? '—' : (n*100).toLocaleString('vi-VN',{maximumFractionDigits:d})+'%';
+const pct = (n, d=0) => { if (n == null || !isFinite(n)) return '—'; const r = Math.round(n * 100 * 10 ** d) / 10 ** d || 0; return (r < 0 ? '−' : '') + Math.abs(r).toLocaleString('vi-VN', {maximumFractionDigits:d}) + '%'; };   // v1.7.125: làm tròn trước (hết "-0%"), số âm dùng dấu − như các cột khác
+const pctS = (n, d=0) => { const t = pct(n, d); return n > 0 && /[1-9]/.test(t) ? '+' + t : t; };   // có dấu + khi dương (bỏ +0%)
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const txt = v => v == null ? '' : String(v).trim();
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -1599,6 +1600,8 @@ function parseWorkbook(wb){
     if (num(r[2])) D.tienMat.push({k:dk(d), tm:num(r[2])}); });   // v1.7.34: cột C "Tiền mặt" của Sheet = Trích tiền mặt (cột N) nếu chủ nhập, chưa nhập thì số tm lúc chốt ca (khi chốt đủ tm + ck) — một nguồn chung với Quỹ tiền   // v1.7.6: cột N "Trích tiền mặt" = phần doanh thu ngày đó giữ lại thành tiền mặt (còn lại tính là tiền CK)
   // v1.7.14 — tab Quỹ tiền: bảng theo ngày có cột "ĐÃ CHUYỂN TM VÀO QUỸ CK" (ô tick) → ngày đã tick = phần tiền mặt giữ lại của ngày đó đã chuyển sang CK
   const qr = rowsOf(wb, 'Quỹ tiền'), qh = qr.findIndex(dongTieuDeQT), qi = qh >= 0 ? qr[qh].findIndex(c => /ĐÃ CHUYỂN TM/i.test(txt(c))) : -1;   // v1.7.42 (Fable 5 N-01): tiêu đề = dòng có ô A "NGÀY" (ô hướng dẫn A2 cũng chứa chữ ĐÃ CHUYỂN TM nên trước đây bị nhận nhầm, tick cột G không được đọc)
+  // v1.7.125 — 3 ô tổng của Sheet (dòng dưới tiêu đề 💵 TIỀN MẶT · 🏦 TIỀN CK · TỔNG CÒN LẠI) → bất biến so với quỹ dashboard tính
+  { const i = qr.findIndex(r => /TIỀN MẶT/.test(txt(r[0])) && /TIỀN CK/.test(txt(r[2]))); D.qtSheet = i >= 0 && qr[i + 1] ? {tm:num(qr[i + 1][0]), ck:num(qr[i + 1][2]), tong:num(qr[i + 1][4])} : null; }
   // v1.7.51 — bảng "ĐỔI TIỀN MẶT → CK" (tab Quỹ tiền, cột L:N, tiêu đề "SỐ TIỀN ĐỔI"): chủ nộp tiền mặt vào tài khoản → trừ tiền mặt, cộng CK (mọi dòng, không theo mốc ngày — cùng Sheet)
   D.doiTM = []; { let hi = -1, ci = -1; qr.some((r, i) => { const j = r.findIndex(c => /SỐ TIỀN ĐỔI/i.test(txt(c))); if (j >= 0){ hi = i; ci = j; return true; } return false; });
     if (ci >= 0) qr.slice(hi + 1).forEach(r => { const v = num(r[ci]); if (v) D.doiTM.push({k: dayKey(r[ci - 1]) || '', tien:v, note:txt(r[ci + 1])}); }); }
@@ -2544,7 +2547,7 @@ function renderToday(){
     const peak = hrs[hv.indexOf(Math.max(...hv))], top1 = rows.slice().sort((a, b) => b.ly - a.ly)[0];
     const lastO = L.reduce((a, o) => (o.min ?? -1) > (a.min ?? -1) ? o : a, L[0]);
     c.push(`<b>📌 ${isToday ? 'Tới ' + p2(now.getHours()) + ':' + p2(now.getMinutes()) : 'Cả ngày'}</b>: ${fmt(A.ly)} ly · ${fmt(A.dt)} đ.`);
-    if (hasW) c.push(`So với ${thu(addDays(k, -7))} tuần trước cùng giờ: <b class="${A.ly >= W.ly ? 'up' : 'dn'}">${A.ly >= W.ly ? '+' : ''}${A.ly - W.ly} ly</b>.`);
+    if (hasW) c.push(`So với ${thu(addDays(k, -7))} tuần trước cùng giờ: <b class="${A.ly >= W.ly ? 'up' : 'dn'}">${A.ly > W.ly ? '+' : ''}${fmt(A.ly - W.ly)} ly</b>.`);
     c.push(`Giờ đông nhất <b>${p2(peak)}h</b> (${Math.max(...hv)} ly). Món bán nhiều nhất: <b>${esc(top1.mon)}</b> (${top1.ly} ly).`);
     if (isToday && nowMin < shiftE){ const need = Math.max(0, S.tgt - A.ly), left = (shiftE - nowMin) / 60;
       c.push(need ? `Cần thêm <b>${need} ly</b> trong ${left.toLocaleString('vi-VN', {maximumFractionDigits:1})} giờ còn lại (≈ ${Math.ceil(need / Math.max(left, .25))} ly/giờ) để đạt mục tiêu.` : '<span class="up">Đã đạt mục tiêu ngày.</span>'); }
@@ -3282,7 +3285,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.124';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.125';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3340,6 +3343,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.125', ngay:'03/11/2026', nd:['Quét lại: số âm làm tròn về 0 không còn hiện "−0 chai" / "-0%"; % âm dùng dấu − như cột khác (tab Hao hụt…).', 'Tự kiểm mới: quỹ tiền (mặt · CK · tổng) phải khớp 3 ô tổng tab Quỹ tiền của Sheet — bắt được lệch 800.000 do API chưa gửi cột M "Trả bằng" của sổ chi (sửa ở Apps Script).']},
   {v:'v1.7.124', ngay:'03/11/2026', nd:['Tài liệu › Standee vòm: ảnh chính đổi sang bản đã dán 3 sticker (+5K, mua 5 tặng 1, thân thiết −2K); bản chưa dán và PDF in vẫn tải được.']},
   {v:'v1.7.123', ngay:'03/11/2026', nd:['Chi vận hành theo ngày: khoản của cả tháng (phí đô thị phân bổ, khoản cố định, dòng ghi "tháng MM/YYYY") chia cho đủ số ngày của tháng — trước chia cho số ngày đã qua nên đầu tháng 1 ngày gánh 88.889 đ phí đô thị (đúng ra 266.667 ÷ 30 = 8.889 đ). Khoản chi lẻ khác giữ cách cũ.']},
   {v:'v1.7.122', ngay:'03/11/2026', nd:['Tài liệu › Thẻ thành viên: để cả 2 bản — bản cũ (nâu, logo giữa) là bản dùng, bản sang (khung chỉ mảnh, MEMBER) để dự phòng; mỗi bản có ảnh 2 mặt + PDF in 2 mặt.']},
@@ -3675,6 +3679,8 @@ function tuKiem(){
       return {m, ok: gan(a + b, c) && gan(c, so + bot), ct:`${mlabel(m)} ${fmt(a)} + ${fmt(b)} = ${fmt(c)} = sổ chi ${fmt(so)} + tạm ${fmt(bot)}`}; });
     const pb1 = phanBoLuong(2e6, {a:1, b:3}), pb2 = phanBoLuong(2e6, {a:0, b:0});
     ok('Lương: kỳ con cộng lại = cả tháng = sổ chi Nhân sự (phân về ngày) + tiền công bot của ngày chưa chốt kỳ; phân bổ mẫu 2.000.000 theo 1:3 → 500.000/1.500.000, không có bot → chia đều', l13.every(x => x.ok) && gan(pb1.a, 5e5) && gan(pb1.b, 15e5) && gan(pb2.a, 1e6), l13.map(x => (x.ok ? '✔ ' : '✖ ') + x.ct).join(' · ') || 'không có tháng');
+    // v1.7.125: quỹ tiền dashboard = 3 ô tổng tab Quỹ tiền của Sheet (cùng logic, lệch = API thiếu cột / cách tính khác — vd 03/11 API chưa gửi cột M Trả bằng: khoản TM bị coi là CK, dòng PB trừ tiền 2 lần)
+    if (D.qtSheet) ok('Quỹ tiền: mặt · CK · tổng dashboard = tab Quỹ tiền của Sheet', Math.abs(FIN.tm - D.qtSheet.tm) <= 1 && Math.abs(FIN.ck - D.qtSheet.ck) <= 1 && Math.abs(FIN.cash - D.qtSheet.tong) <= 1, `dashboard ${fmt(FIN.tm)} · ${fmt(FIN.ck)} · ${fmt(FIN.cash)} vs Sheet ${fmt(D.qtSheet.tm)} · ${fmt(D.qtSheet.ck)} · ${fmt(D.qtSheet.tong)}`);
     // 14. Hàng tặng 0 đ không kéo giá xuống (ca biết trước: 5 kg tặng + 5 kg 1.200.000 → 240 đ/g; chỉ tặng → tham chiếu 240; chỉ mua → 240)
     const kx = {ma:'x', quyDoi:1000, giaTC:240000, dvTinh:'g'};
     const g1 = giaMua(kx, [{qty:5, amt:0}, {qty:5, amt:1200000}]), g2 = giaMua(kx, [{qty:5, amt:0}]), g3 = giaMua(kx, [{qty:5, amt:1200000}]), g4 = giaMua(Object.assign({}, kx, {giaTC:0}), [{qty:5, amt:0}]);
@@ -4215,7 +4221,7 @@ function renderTb(){
 }
 function renderHh(){
   const G = giaNL(), H = haoHutNay();
-  const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})}${dv ? ' ' + esc(dv) : ''}`, soD = (v, dv) => v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${so(Math.abs(v), dv)}`;
+  const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})}${dv ? ' ' + esc(dv) : ''}`, soD = (v, dv) => { if (v == null) return '—'; const r = Math.round(v * 100) / 100 || 0; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${so(Math.abs(r), dv)}`; };   // v1.7.125: hết "−0 chai"
   const luc = t => t ? `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}` : '—';
   const MUC = {bad:['bad', 'Đáng lo'], warn:['warn', 'Cần xem'], good:['good', 'Bình thường'], du:['neu', 'Dùng ít hơn CT']}, pill = m => MUC[m] ? `<span class="pill ${MUC[m][0]}">${MUC[m][1]}</span>` : '<span class="muted">—</span>';
   const tienF = v => v == null ? '<span class="muted">chưa có giá</span>' : v === 0 ? '0' : `<span class="${v > 0 ? 'dn' : 'up'}">${v > 0 ? '−' : '+'}${fmt(Math.abs(v))}</span>`;
@@ -4224,7 +4230,7 @@ function renderHh(){
   table({id:'tHhTong', rows:H.tong.map(r => Object.assign({}, r, {s: r.ty == null ? -9 : r.ty})), sortDefault:{k:'s', d:-1}, cols:[{k:'ten', l:'Nguyên liệu'},
     {k:'tongMua', l:'Tổng mua', r:1, f:(v, r) => so(v, r.dv)}, {k:'xe', l:'Tồn xe + kho (đếm)', r:1, f:(v, r) => r.thieu ? `<span class="muted">${esc(r.thieu)}</span>` : `${so(r.xe + r.kho, r.dv)} <span class="muted">(xe ${so(r.xe)} · kho ${so(r.kho)})</span>`},
     {k:'dungThat', l:'Dùng thật (đã trừ dùng nội bộ)', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv) + (r.nb ? ` <span class="muted" title="/dungnoibo: thử nghiệm, đổ bỏ, mời khách">(nội bộ ${so(r.nb)})</span>` : '')}, {k:'dung', l:'Theo công thức', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv)},
-    {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'s', l:'% so với CT', r:1, f:(v, r) => r.ty == null ? '—' : `${r.ty > 0 ? '+' : ''}${pct(r.ty, 1)}`},
+    {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'s', l:'% so với CT', r:1, f:(v, r) => r.ty == null ? '—' : pctS(r.ty, 1)},
     {k:'tien', l:'Tiền (đ)', r:1, f:(v, r) => r.thieu ? '—' : tienF(v)}, {k:'muc', l:'Mức', f:pill}, {k:'den', l:'Tính tới', f:(v, r) => r.thieu ? '—' : luc(v)}]});
   $('hhTongNote').innerHTML = `Kho không tiêu hao, chỉ nhận hàng mua và xuất ra xe, nên phần dùng nhiều hơn công thức nằm ở xe (pha chế, đổ bỏ, làm lại) hoặc ở hàng lấy kho mà không báo. Mục "chưa đếm xe / kho" sẽ có số khi đếm đủ (Chủ nhật nhân viên đếm đủ mọi mục ở xe). Hàng cho kèm (ly trà, bịch đựng đá, trà sâm dứa) không có định lượng trong CongThuc nên không đối chiếu ở đây. Dư nhiều (dùng ít hơn công thức) thường là định lượng trong CongThuc cao hơn thực tế, nên sửa CongThuc chứ không phải thất thoát.`;
   /* 2 · kỳ kiểm xe */
@@ -4232,7 +4238,7 @@ function renderHh(){
   table({id:'tHhXe', rows:xeRows, sortDefault:{k:'t', d:-1}, cols:[{k:'t', l:'Kỳ', f:(v, r) => `${luc(r.tu)} → ${luc(r.den)}`}, {k:'ten', l:'Nguyên liệu'},
     {k:'dauKy', l:'Đầu kỳ', r:1, f:(v, r) => so(v, r.dv)}, {k:'lay', l:'+ Lấy từ kho', r:1, f:(v, r) => v ? so(v, r.dv) : '—'}, {k:'dung', l:'− Dùng theo CT', r:1, f:(v, r) => so(v, r.dv)}, {k:'nb', l:'− Dùng nội bộ', r:1, f:(v, r) => v ? so(v, r.dv) : '—'},
     {k:'duKien', l:'= Dự kiến', r:1, f:(v, r) => so(v, r.dv)}, {k:'dem', l:'Đếm được', r:1, f:(v, r) => so(v, r.dv)},
-    {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'ty', l:'% so với CT', r:1, f:v => `${v > 0 ? '+' : ''}${pct(v, 1)}`},
+    {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'ty', l:'% so với CT', r:1, f:v => pctS(v, 1)},
     {k:'tien', l:'Tiền (đ)', r:1, f:tienF}, {k:'muc', l:'Mức', f:pill}, {k:'nv', l:'Người đứng ca', f:v => esc(v.join(', ')) || '<span class="muted">—</span>'}]});
   if (!H.xe.length) $('tHhXe').querySelector('tbody').innerHTML = '<tr><td colspan="12" class="muted" style="text-align:center;padding:14px">Chưa có 2 lần kiểm xe liên tiếp (cách ≥ 6 giờ, giữa hai lần có bán món dùng nguyên liệu đó). Nhân viên gõ <b>/kiemxe</b> cuối mỗi ngày.</td></tr>';
   /* 3 · theo người đứng ca */
