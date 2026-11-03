@@ -683,6 +683,7 @@ html.mcap{background:var(--paper)}
     <div class="card" id="sec-ov-thang">
       <div class="ct">Tổng hợp theo tháng <span class="nt">· như Sheet Tổng hợp: doanh thu, giá vốn, nhân sự, vận hành, lãi, đầu tư, vốn góp, dòng tiền, tiền cuối tháng, lãi cộng dồn, % thu hồi vốn · chi tiết tab Thu chi</span></div>
       <div class="tblwrap"><table id="tOvThang"></table></div>
+      <a href="#" class="lnk" id="ovThangXem" style="font-size:12px">Bảng đủ cột (giá vốn, nhân sự, vận hành, đầu tư, dòng tiền…) ở tab Thu chi →</a>
       <div class="muted" id="ovThangNote" style="font-size:12px;margin-top:6px"></div>
     </div>
     <div class="card" id="sec-ov-14d">
@@ -879,10 +880,8 @@ html.mcap{background:var(--paper)}
           <span class="nt">· dòng Vận hành có chữ "nhượng quyền" được tính là Đầu tư (cùng quy tắc PNL)</span></div>
         <div class="g2">
           <div><div class="lbl">Cơ cấu chi theo khối</div><div class="cw sm"><canvas id="cFinPie" aria-label="Tỉ trọng chi theo khối"></canvas></div><div class="legend" id="lgFinPie"></div></div>
-          <div><div class="lbl">Thanh tỉ trọng</div><div class="stack" id="stack"></div></div>
+          <div><div class="lbl">10 hạng mục chi nhiều nhất</div><div class="cw"><canvas id="cCat" aria-label="Chi theo hạng mục"></canvas></div></div>
         </div>
-        <div class="legend" id="lgStack"></div>
-        <div class="cw"><canvas id="cCat" aria-label="Chi theo hạng mục"></canvas></div>
       </div>
       <div class="card">
         <div class="ct">Vốn góp &amp; chi theo người <span class="nt">· như Tổng hợp mục 3 · đã chi gồm cả khoản chưa trả</span></div>
@@ -2707,12 +2706,15 @@ function renderFin(){
   /* biểu đồ theo tháng (chuyển từ Tổng quan): chỉ các tháng đã có số */
   { const s1 = css('--s1'), s2 = css('--s2');
   const mr = mRows.filter(r => !r.empty);
+  // v1.7.105: cột Doanh thu cạnh cột Chi hoạt động (giá vốn theo ly bán · nhân sự · vận hành xếp chồng, cùng bảng Kết quả tháng) + đường Lãi; đầu tư không vẽ (cột T10 vọt lên làm bẹt tháng khác)
+  const FT = m => (FIN_THANG || []).find(x => x.m === m) || {}, cG = css('--c1'), cN = css('--c3'), cV = css('--c2'), sb = (c, st) => Object.assign(barStyle(c), {stack:st, borderRadius:0, borderColor:css('--surface'), borderWidth:{top:2}});
   mk('cOvMonth', {type:'bar', data:{labels:mr.map(r => mlabel(r.m)), datasets:[
-      Object.assign({label:'Doanh thu', data:mr.map(r => r.rev)}, barStyle(s1)), Object.assign({label:'Chi', data:mr.map(r => r.chi)}, barStyle(css('--ghost'))),
-      {type:'line', label:'Quỹ cuối tháng', data:mr.map(r => r.run), borderColor:s2, backgroundColor:s2, borderWidth:2, pointRadius:3}]},
-    options:{scales:{y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
+      Object.assign({label:'Doanh thu', data:mr.map(r => FT(r.m).rev ?? r.rev)}, barStyle(s1), {stack:'dt'}),
+      Object.assign({label:'Giá vốn (theo ly bán)', data:mr.map(r => Math.round(FT(r.m).gv || 0))}, sb(cG, 'chi')), Object.assign({label:'Nhân sự', data:mr.map(r => Math.round(FT(r.m).ns || 0))}, sb(cN, 'chi')), Object.assign({label:'Vận hành', data:mr.map(r => Math.round(FT(r.m).vh || 0))}, sb(cV, 'chi')),
+      {type:'line', label:'Lãi', data:mr.map(r => Math.round(FT(r.m).lai || 0)), borderColor:s2, backgroundColor:s2, borderWidth:2, pointRadius:4, stack:'lai'}]},
+    options:{scales:{x:{stacked:true}, y:{stacked:false, beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
       plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} đ`}}}}});
-  $('lgOvMonth').innerHTML = `<span><i style="background:${s1}"></i>Doanh thu</span><span><i style="background:${css('--ghost')}"></i>Chi (sổ tháng)</span><span><i style="background:${s2}"></i>Quỹ cuối tháng</span>`;
+  $('lgOvMonth').innerHTML = `<span><i style="background:${s1}"></i>Doanh thu</span><span><i style="background:${cG}"></i>Giá vốn</span><span><i style="background:${cN}"></i>Nhân sự</span><span><i style="background:${cV}"></i>Vận hành</span><span><i style="background:${s2}"></i>Lãi</span> <span class="muted">· chi đầu tư không vẽ (xem bảng)</span>`;
   }
 
   renderChiVanHanh();
@@ -2742,8 +2744,6 @@ function renderFin(){
   D.chi.forEach(r => { const b = blockOf(r); blocks[b] = (blocks[b] || 0) + r.amt;
     const cn = isFr(r) ? 'Phí + cọc nhượng quyền' : r.cat; (cats[cn] ??= {amt:0, b}).amt += r.amt; });
   const order = Object.entries(blocks).filter(([, a]) => a).sort((a, b) => b[1] - a[1]);
-  $('stack').innerHTML = order.map(([b, a]) => `<span title="${esc(b)}: ${fmt(a)} đ" style="width:${a / total * 100}%;background:${COL[b] || COL['Khác']}"></span>`).join('');
-  $('lgStack').innerHTML = '';   // chú thích (số + %) nằm dưới biểu đồ tròn
   veTron('cFinPie', 'lgFinPie', order.map(([label, v]) => ({label, v})), fmtK, x => COL[x.label] || COL['Khác']);
   const cl = Object.entries(cats).filter(([, c]) => c.amt).sort((a, b) => b[1].amt - a[1].amt).slice(0, 10);
   mk('cCat', {type:'bar', data:{labels:cl.map(([n]) => n.length > 22 ? n.slice(0, 21) + '…' : n), datasets:[Object.assign({label:'Chi', data:cl.map(([, c]) => c.amt),
@@ -3236,7 +3236,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.104';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.105';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3294,6 +3294,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.105', ngay:'03/11/2026', nd:['Tổng quan: biểu đồ 14 ngày có đường mốc hoà vốn (nét đứt), cột dưới mốc tô nhạt, ghi số ngày đạt mốc; bảng Tổng hợp theo tháng gọn còn 4 cột (doanh thu, lãi, tiền cuối tháng, % thu hồi vốn) — bảng đủ cột ở Thu chi.', 'Thu chi: biểu đồ theo tháng = cột Doanh thu cạnh cột Chi hoạt động (giá vốn · nhân sự · vận hành xếp chồng) + đường Lãi, không vẽ chi đầu tư nên tháng nào cũng so được; thẻ Chi theo khối bỏ thanh tỉ trọng (trùng biểu đồ tròn), đưa 10 hạng mục chi nhiều nhất lên cạnh.']},
   {v:'v1.7.104', ngay:'03/11/2026', nd:['Khuyến mãi theo chính sách mới: ngày đồng giá 15K (T7/CN từ 07/11 + 31/10, 01/11 bật tay) tách riêng khỏi "giá thường". Giá thường (dùng cho mốc hoà vốn) chỉ tính ngày không khuyến mãi.', 'Tab Món: thẻ "Khuyến mãi vs giá thường" và "Khuyến mãi theo món" so 3 loại ngày (10K · 15K · giá thường).', 'Bộ lọc Loại ngày thêm: Ngày giá thường · Mọi ngày khuyến mãi · Đồng giá 15K. Nhãn 15K trên bảng ngày.', 'Dự báo ngày mai biết ngày mai là T7/CN đồng giá (giá 15K, nhân tỉ lệ ly khi đã có ngày 15K để so); Kế hoạch dự phóng tính T7/CN bán 15K.']},
   {v:'v1.7.103', ngay:'03/11/2026', nd:['Chuẩn bị gói dữ liệu gọn hơn: đọc được dòng bị cắt ô rỗng cuối (API mới bỏ dòng thừa, ngày tương lai của tab Doanh thu) — tải nhanh hơn khoảng 1/3 dung lượng.']},
   {v:'v1.7.102', ngay:'03/11/2026', nd:['Mở dashboard nhanh hơn: hiện ngay số liệu lần trước lưu trên máy (ghi "Đang cập nhật… đang hiện số lúc …"), số mới từ Sheet về sau 2–3 giây thì tự thay.']},
@@ -4649,7 +4650,11 @@ function renderQuyTrinh(){
 let FIN = null;
 function renderOv(){
   renderFin();   // tính quỹ, lãi, cảnh báo (vẽ luôn vào tab Thu chi đang ẩn) → FIN
-  veTongHopThang('tOvThang');   // v1.7.62
+  { // v1.7.105: Tổng quan chỉ giữ 4 cột chính (bảng đủ cột ở Thu chi, tránh trùng)
+    const R0 = FIN_THANG, last = R0[R0.length - 1] || {}, sum = k => R0.reduce((a, r) => a + (r[k] || 0), 0), am = v => v < 0 ? 'dn' : '';
+    table({id:'tOvThang', rows:R0, sortDefault:{k:'m', d:1}, total:{rev:sum('rev'), lai:sum('lai'), quy:last.quy, thv:last.thv}, cols:[{k:'m', l:'Tháng', f:v => mlabel(v)}, {k:'rev', l:'Doanh thu (thực thu)', r:1, f:fmt},
+      {k:'lai', l:'Lãi', r:1, f:fmt, cls:am}, {k:'quy', l:'Tiền cuối tháng', r:1, f:fmt, cls:am}, {k:'thv', l:'% thu hồi vốn', r:1, f:v => pct(v, 1)}]});
+    $('ovThangXem').onclick = e => { e.preventDefault(); setView('fin'); setTimeout(() => { const c = $('tMonth').closest('.card'); if (c) c.scrollIntoView({behavior:'smooth', block:'start'}); }, 60); }; }
   $('ovThangNote').innerHTML = `Quỹ hiện tại ${fmtM(FIN.cash)} (💵 ${fmtM(FIN.tm)} · 🏦 ${fmtM(FIN.ck)})${FIN.tongNo ? ` · công nợ chưa trả ${fmtM(FIN.tongNo)} · ${traHetTxt(FIN.cash - FIN.tongNo)}` : ''}${FIN.thv ? ` · thu hồi vốn đầu tư ${FIN.thv.pctTxt}` : ''}. Giá vốn theo ly bán (định lượng đúng ngày), không theo lần nhập hàng.`;
   const tk = today(), m0 = tk.slice(0,8) + '01', mDays = new Date(+tk.slice(0,4), +tk.slice(5,7), 0).getDate(), mEnd = tk.slice(0,8) + p2(mDays);
   const MT = agg(D.orders.filter(o => o.k >= m0 && o.k <= tk)), TD = agg(D.orders.filter(o => o.k === tk));
@@ -4699,11 +4704,13 @@ function renderOv(){
   const d14 = []; for (let i = 13; i >= 0; i--) if (!D.first || addDays(tk, -i) >= D.first) d14.push(addDays(tk, -i));   // chưa đủ 14 ngày từ ngày bán đầu thì chỉ vẽ các ngày đã bán
   const by = groupBy(D.orders, o => o.k), s1 = css('--s1'), s2 = css('--s2'), nD = d14.length;
   const dt14 = d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.tt, 0)), ly14 = d14.map(k => (by.get(k) || []).reduce((s, o) => s + o.sl, 0));
+  const moc = beThuc && beThuc.vanHanh ? Math.round(beThuc.vanHanh) : null, s1Mo = mauMo(s1, laToi() ? .45 : .35), datMoc = ly14.filter(v => moc && v >= moc).length, coBan = ly14.filter(v => v > 0).length;   // v1.7.105
   mk('cOv14', {type:'bar', data:{labels:d14.map(k => `${thu(k)} ${dShort(k)}`).concat(F ? ['Mai (dự kiến)'] : []), datasets:[
-      Object.assign({label:'Ly', data:ly14.concat(F ? [F.du] : [])}, barStyle(s1), F ? {backgroundColor:ly14.map(() => s1).concat([s2])} : {})]},
+      Object.assign({label:'Ly', data:ly14.concat(F ? [F.du] : [])}, barStyle(s1), {backgroundColor:ly14.map(v => !moc || v >= moc ? s1 : s1Mo).concat(F ? [s2] : [])}),
+      ...(moc ? [{type:'line', label:'Mốc hoà vốn', data:Array(nD + (F ? 1 : 0)).fill(moc), borderColor:css('--bad'), borderDash:[6, 4], borderWidth:2, pointRadius:0, pointHoverRadius:0, nhan:false}] : [])]},
     options:{scales:{x:{grid:{display:false}, ticks:{maxRotation:0, autoSkipPadding:8}}, y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5}}},
       plugins:{tooltip:{callbacks:{label:c => c.dataIndex >= nD ? ` Dự kiến ${c.raw} ly (${fmt(F.lo)}–${fmt(F.hi)})` : ` ${c.raw} ly`, footer:it => it[0].dataIndex >= nD ? `Doanh thu dự kiến ${fmt(F.du * F.gia)} đ` : `Doanh thu ${fmt(dt14[it[0].dataIndex])} đ`}}}}});
-  $('ov14Lg').innerHTML = F ? `<span><i style="background:${s1}"></i>Số ly thực tế</span><span><i style="background:${s2}"></i>Mai ${dShort(F.mai)}: dự kiến <b class="num">${fmt(F.du)} ly</b></span>` : '';
+  $('ov14Lg').innerHTML = (moc ? `<span><i style="background:${s1}"></i>Đạt mốc</span><span><i style="background:${s1Mo}"></i>Dưới mốc</span><span><i style="background:${css('--bad')}"></i>Mốc hoà vốn ${fmt(moc)} ly/ngày · đạt ${datMoc}/${coBan} ngày bán</span>` : '') + (F ? `<span><i style="background:${s2}"></i>Mai ${dShort(F.mai)}: dự kiến <b class="num">${fmt(F.du)} ly</b></span>` : '');
 }
 
 /* ============ render: món ============ */
