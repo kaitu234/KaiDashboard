@@ -3282,7 +3282,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.123';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.124';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3340,6 +3340,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.124', ngay:'03/11/2026', nd:['Tài liệu › Standee vòm: ảnh chính đổi sang bản đã dán 3 sticker (+5K, mua 5 tặng 1, thân thiết −2K); bản chưa dán và PDF in vẫn tải được.']},
   {v:'v1.7.123', ngay:'03/11/2026', nd:['Chi vận hành theo ngày: khoản của cả tháng (phí đô thị phân bổ, khoản cố định, dòng ghi "tháng MM/YYYY") chia cho đủ số ngày của tháng — trước chia cho số ngày đã qua nên đầu tháng 1 ngày gánh 88.889 đ phí đô thị (đúng ra 266.667 ÷ 30 = 8.889 đ). Khoản chi lẻ khác giữ cách cũ.']},
   {v:'v1.7.122', ngay:'03/11/2026', nd:['Tài liệu › Thẻ thành viên: để cả 2 bản — bản cũ (nâu, logo giữa) là bản dùng, bản sang (khung chỉ mảnh, MEMBER) để dự phòng; mỗi bản có ảnh 2 mặt + PDF in 2 mặt.']},
   {v:'v1.7.121', ngay:'03/11/2026', nd:['Thẻ thành viên thiết kế lại cho sang hơn (chủ quán duyệt 03/11): mặt trước nền nâu, khung chỉ mảnh, logo ngang, chữ MEMBER giãn rộng, ly in chìm; mặt sau nền kem, −2K lớn + quyền lợi, dòng điền tên / SĐT — Tài liệu đã thay ảnh 2 mặt và PDF in 2 mặt (90 × 54 mm, tràn 2 mm, phá vector)']},
@@ -4511,7 +4512,7 @@ const TAI_LIEU = [
   {nhom:'Pha chế & bán hàng', ten:'Sticker tròn: mua 5 tặng 1', mo:'Ø 10 cm dán standee vòm bên phải nhãn “Giá chỉ từ 15K” · mua 5 ly trong cùng 1 đơn tặng 1 món tự chọn', ngay:'03/11/2026', anh:'sticker-mua-5-tang-1.png', file:[['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Tờ dán đồng giá 15K', mo:'Cuối tuần T7, CN đồng giá 15K · tờ dán 40 × 45 cm lên bảng giá', ngay:'02/11/2026', anh:'to-dan-dong-gia-15K.png', file:[['PDF khổ A2', 'to-dan-dong-gia-15K.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Menu có ảnh', mo:'4 nhóm Cà phê · Cacao · Phindi · Matcha, size M / L, ảnh ly thật', ngay:'24/10/2026', anh:'menu-co-anh.png'},
-  {nhom:'Pha chế & bán hàng', ten:'Standee vòm ảnh thật', mo:'Standee cắt vòm 59,8 × 101,4 cm, giá chỉ từ 15K · file in có lề 3 mm', ngay:'24/10/2026', anh:'standee-vom.png', file:[['PDF in (10 MB)', 'standee-vom_598x1014mm.pdf'], ['Vị trí dán 3 sticker', 'standee-vom_dan-3-sticker.png'], ['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf']]},
+  {nhom:'Pha chế & bán hàng', ten:'Standee vòm ảnh thật · đã dán sticker', mo:'Standee cắt vòm 59,8 × 101,4 cm, giá chỉ từ 15K · dán 3 sticker Ø 10 cm: +5K size lớn (trái nhãn 15K), mua 5 tặng 1 (phải nhãn 15K), thân thiết −2K (cạnh BEST SELLER) · file in có lề 3 mm', ngay:'03/11/2026', anh:'standee-vom_dan-3-sticker.png', file:[['Ảnh đã dán sticker', 'standee-vom_dan-3-sticker.png'], ['PDF in standee (10 MB, chưa dán)', 'standee-vom_598x1014mm.pdf'], ['Ảnh standee chưa dán', 'standee-vom.png'], ['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf']]},
   {nhom:'Ấn phẩm xe', ten:'Setup mẫu', mo:'Xe 100 × 60 × 92 cm gắn khung biển tên, bảng 3 món, menu treo hông, QR, dù kẹp xe', ngay:'03/10/2026', anh:'setup-mau.png'},
   {nhom:'Ấn phẩm xe', ten:'Xe, dù và bảng', mo:'Mô phỏng xe Take-away Inox kèm dù đứng, bảng giá và bảng cà phê muối · tỉ lệ thật', ngay:'03/10/2026', anh:'xe-du-va-bang.png'},
   {nhom:'Ấn phẩm xe', ten:'Mô phỏng kiosk & dù', mo:'Kiosk theo brand guideline bản nâu – trắng – be, dù sọc nâu be, bảng vẫy', ngay:'03/10/2026', anh:'mo-phong-kiosk-du.png'},
