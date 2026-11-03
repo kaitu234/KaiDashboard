@@ -1736,6 +1736,8 @@ function thamSoHoaVon(m){
 const coDinhCua = m => (D && D.coDinh || []).filter(x => x.tu <= m && (!x.den || m <= x.den));
 /** dòng sổ chi thuộc khoản cố định k (cùng hạng mục; khoản "Thuê vị trí…" nhận cả hạng mục điện, nước) */
 const laDongCoDinh = (r, k) => { const a = boDau(r.cat), b = boDau(k.cat.split('/')[0].trim()); return !!b && (a.startsWith(b) || (/^thue vi tri/.test(b) && /^dien, nuoc/.test(a))); };
+/** v1.7.123 (chủ 03/11: "phí đô thị 1 ngày chưa tới 10k") — khoản của CẢ THÁNG (dòng phân bổ / ghi "tháng MM/YYYY" / khoản cố định) chia cho đủ số ngày của tháng như chi cố định tạm tính, không chia cho số ngày đã qua (đầu tháng 266.667 ÷ 3 ngày = 88.889/ngày là sai) */
+const laChiCaThang = r => /phân bổ|tháng\s*\d{1,2}\s*\/\s*\d{4}/i.test(r.desc || '') || laChiCoDinh(r);
 const laChiCoDinh = r => coDinhCua(r.m || (r.k ? mkey(r.k) : '')).some(k => laDongCoDinh(r, k));   // v1.7.93: chỉ khoản đang áp dụng ở tháng của dòng (vd Phí đô thị T10, hạng mục Thuê vị trí, khi khoản thuê còn miễn → vào chi vận hành khác)
 /** tổng chi cố định 1 tháng (tạm tính theo tab); m trống = tháng ổn định (các khoản còn hiệu lực về sau) */
 function chiCoDinhThang(m){
@@ -2981,7 +2983,8 @@ function tinhPnl(from, to){
   // v1.7.64 (chủ quán 19/10: xem ngày / tuần thiếu 600.000 + 159.000): chi vận hành của tháng chia đều cho các ngày của tháng đó (tháng đang chạy: chia cho số ngày đã qua) → xem 1 ngày / tuần cũng gánh phần mình; cộng cả tháng (tới hôm nay) vẫn đủ
   { const tkV = today(); [...new Set(ngay.map(mkey))].forEach(m => { const dau = m + '-01', cuoi = m + '-' + p2(ngayTrongThang(m)), het = cuoi < tkV ? cuoi : tkV; if (het < dau) return;
       const nM = rangeDays(dau, het).length, nKy = ngay.filter(k => mkey(k) === m && k <= het).length; if (!nKy) return;
-      D.chi.filter(r => r.m === m && dayOk(r.k) && !laBoQua(r) && !laChoKem(r) && !laDauTu(r) && r.block !== 'Giá vốn' && r.block !== 'Nhân sự' && r.block !== '?').forEach(r => vh[r.cat] = (vh[r.cat] || 0) + r.amt * nKy / nM); }); }
+      const nCaThang = ngayTrongThang(m), nKyCa = ngay.filter(k => mkey(k) === m).length;
+      D.chi.filter(r => r.m === m && dayOk(r.k) && !laBoQua(r) && !laChoKem(r) && !laDauTu(r) && r.block !== 'Giá vốn' && r.block !== 'Nhân sự' && r.block !== '?').forEach(r => vh[r.cat] = (vh[r.cat] || 0) + (laChiCaThang(r) ? r.amt * nKyCa / nCaThang : r.amt * nKy / nM)); }); }
   // v1.7.61 — chi cố định theo tab Chi cố định: tháng nào sổ chi đã có dòng cùng hạng mục thì dùng số thật (đã nằm trong vh), chưa có thì tạm tính theo số ngày
   let coDinhUoc = 0, mienPhi = false; const coDinhTam = {};
   [...new Set(ngay.map(mkey))].forEach(m => {
@@ -3279,7 +3282,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.122';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.123';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3337,6 +3340,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.123', ngay:'03/11/2026', nd:['Chi vận hành theo ngày: khoản của cả tháng (phí đô thị phân bổ, khoản cố định, dòng ghi "tháng MM/YYYY") chia cho đủ số ngày của tháng — trước chia cho số ngày đã qua nên đầu tháng 1 ngày gánh 88.889 đ phí đô thị (đúng ra 266.667 ÷ 30 = 8.889 đ). Khoản chi lẻ khác giữ cách cũ.']},
   {v:'v1.7.122', ngay:'03/11/2026', nd:['Tài liệu › Thẻ thành viên: để cả 2 bản — bản cũ (nâu, logo giữa) là bản dùng, bản sang (khung chỉ mảnh, MEMBER) để dự phòng; mỗi bản có ảnh 2 mặt + PDF in 2 mặt.']},
   {v:'v1.7.121', ngay:'03/11/2026', nd:['Thẻ thành viên thiết kế lại cho sang hơn (chủ quán duyệt 03/11): mặt trước nền nâu, khung chỉ mảnh, logo ngang, chữ MEMBER giãn rộng, ly in chìm; mặt sau nền kem, −2K lớn + quyền lợi, dòng điền tên / SĐT — Tài liệu đã thay ảnh 2 mặt và PDF in 2 mặt (90 × 54 mm, tràn 2 mm, phá vector)']},
   {v:'v1.7.120', ngay:'03/11/2026', nd:['Standee vòm chốt dán 3 sticker tròn Ø 10 cm (chủ quán 03/11): +5K size lớn bên trái nhãn “Giá chỉ từ 15K”, mua 5 tặng 1 món tự chọn bên phải, thân thiết −2K cạnh BEST SELLER — Tài liệu có ảnh vị trí dán + PDF A4 bộ dán standee (3 loại)', 'Bỏ sticker “Mua 3 tặng 1 cà phê đen / sữa” (không dán) và 2 PDF A4 cũ có sticker này']},
