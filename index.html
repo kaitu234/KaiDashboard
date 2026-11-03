@@ -568,10 +568,10 @@ html.mcap{background:var(--paper)}
     <div class="sgrp">Tiền &amp; kho</div>
     <button role="tab" id="tab-fin" aria-selected="false" data-v="fin"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2"/></svg><span class="nm">Thu chi<small>quỹ · lãi · sổ chi</small></span></button>
     <button role="tab" id="tab-kho" aria-selected="false" data-v="kho"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span class="nm">Kho<small>nguyên liệu · vật tư</small></span></button>
-    <button role="tab" id="tab-tb" aria-selected="false" data-v="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5h8v2M3 12h18"/></svg><span class="nm">Thiết bị<small>combo xe · mua thêm</small></span></button>
+    <button role="tab" id="tab-tb" aria-selected="false" data-v="tb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5h8v2M3 12h18"/></svg><span class="nm">Thiết bị<small>combo xe · mua thêm</small></span></button>
     <button role="tab" id="tab-hh" aria-selected="false" data-v="hh"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg><span class="nm">Hao hụt<small>thực vs công thức · thất thoát</small></span></button>
     <div class="sgrp">Về dashboard</div>
-    <button role="tab" id="tab-new" aria-selected="false" data-v="new"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v4h1"/></svg><span class="nm">Có gì mới<small>bản mới · còn treo</small></span></button>
+    <button role="tab" id="tab-new" aria-selected="false" data-v="new" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v4h1"/></svg><span class="nm">Có gì mới<small>bản mới · còn treo</small></span></button>
   </nav>
   <div class="sfoot" id="sfoot">
     <button class="reload" id="refresh" data-reload disabled title="Đọc lại Google Sheet ngay"><span class="ic" aria-hidden="true">⟳</span><span>Tải lại dữ liệu</span></button>
@@ -580,6 +580,7 @@ html.mcap{background:var(--paper)}
       <button class="lnk" id="themeBtn" title="Đổi giao diện sáng / tối">🌓 Tự động</button>
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
       <button class="lnk" id="openSheet" aria-haspopup="dialog">🔒 Mở sheet</button>
+      <button class="lnk" id="newBtn" title="Có gì mới · việc còn treo">🆕 Có gì mới</button>
       <button class="lnk" id="logoutBtn" title="Quên mật khẩu trên máy này">Đăng xuất</button>
     </div>
     <p id="layoutInfo" style="opacity:.8"></p>
@@ -899,12 +900,10 @@ html.mcap{background:var(--paper)}
       <div class="ct">Chi từ két qua bot <span class="nt">· tab ChiPhi (lệnh /chiphi) · khoản mới tự vào sổ Chi tháng; khoản cũ cột "Sổ chi" trống thì cần nhập lại</span></div>
       <div class="tblwrap" style="max-height:260px"><table id="tBotChi"></table></div>
     </div>
-  </div>
-
-  <!-- ================= THIẾT BỊ (v1.7.61) ================= -->
-  <div class="view" id="v-tb" hidden style="display:grid;gap:12px">
-    <nav class="jnav" aria-label="Mục lục tab Thiết bị"></nav>
-    <div class="kpis" id="tbKpis"></div>
+    <div class="card" id="sec-fin-tb">   <!-- v1.7.107: gộp từ tab Thiết bị -->
+      <div class="ct">Thiết bị (đầu tư) <span class="nt">· combo xe quầy theo phiếu giao hàng + thiết bị mua thêm từ sổ chi (trước là tab Thiết bị)</span></div>
+      <div class="kpis" id="tbKpis"></div>
+    </div>
     <div class="card" id="sec-tb-combo">
       <div class="ct">Combo xe quầy Hương Cao Nguyên <span class="nt">· theo phiếu giao hàng, đã gồm trong phí nhượng quyền · tình trạng nhập ở tab Thiết bị của Sheet</span></div>
       <div class="tblwrap" style="max-height:520px"><table id="tTbCombo"></table></div>
@@ -913,6 +912,11 @@ html.mcap{background:var(--paper)}
       <div class="ct">Thiết bị mua thêm <span class="nt">· tự lấy từ sổ Chi tháng, hạng mục Trang thiết bị</span></div>
       <div class="tblwrap" style="max-height:420px"><table id="tTbMua"></table></div>
     </div>
+  </div>
+
+  <!-- ================= THIẾT BỊ (v1.7.61) ================= -->
+  <div class="view" id="v-tb" hidden style="display:grid;gap:12px">
+    <nav class="jnav" aria-label="Mục lục tab Thiết bị"></nav>
   </div>
 
   <!-- ================= KHO ================= -->
@@ -3236,7 +3240,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.106';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.107';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3294,6 +3298,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.107', ngay:'03/11/2026', nd:['Gộp tab: Thiết bị chuyển thành mục "Thiết bị (đầu tư)" cuối tab Thu chi; tab Có gì mới bỏ khỏi danh sách (mở bằng nút phiên bản ở thanh bên / menu ⋯).']},
   {v:'v1.7.106', ngay:'03/11/2026', nd:['Thu chi: biểu đồ tháng xếp chồng đúng giá vốn / nhân sự / vận hành; số trên cột chỉ ghi doanh thu.']},
   {v:'v1.7.105', ngay:'03/11/2026', nd:['Tổng quan: biểu đồ 14 ngày có đường mốc hoà vốn (nét đứt), cột dưới mốc tô nhạt, ghi số ngày đạt mốc; bảng Tổng hợp theo tháng gọn còn 4 cột (doanh thu, lãi, tiền cuối tháng, % thu hồi vốn) — bảng đủ cột ở Thu chi.', 'Thu chi: biểu đồ theo tháng = cột Doanh thu cạnh cột Chi hoạt động (giá vốn · nhân sự · vận hành xếp chồng) + đường Lãi, không vẽ chi đầu tư nên tháng nào cũng so được; thẻ Chi theo khối bỏ thanh tỉ trọng (trùng biểu đồ tròn), đưa 10 hạng mục chi nhiều nhất lên cạnh.']},
   {v:'v1.7.104', ngay:'03/11/2026', nd:['Khuyến mãi theo chính sách mới: ngày đồng giá 15K (T7/CN từ 07/11 + 31/10, 01/11 bật tay) tách riêng khỏi "giá thường". Giá thường (dùng cho mốc hoà vốn) chỉ tính ngày không khuyến mãi.', 'Tab Món: thẻ "Khuyến mãi vs giá thường" và "Khuyến mãi theo món" so 3 loại ngày (10K · 15K · giá thường).', 'Bộ lọc Loại ngày thêm: Ngày giá thường · Mọi ngày khuyến mãi · Đồng giá 15K. Nhãn 15K trên bảng ngày.', 'Dự báo ngày mai biết ngày mai là T7/CN đồng giá (giá 15K, nhân tỉ lệ ly khi đã có ngày 15K để so); Kế hoạch dự phóng tính T7/CN bán 15K.']},
@@ -3476,6 +3481,7 @@ const BACKLOG = [
 let DATA_AT = null;   // giờ server đọc sheet (res.at) – để kiểm độ mới
 $('verChip').textContent = 'Bản ' + BAN_DASH + ' · có gì mới'; $('kcVerNt').textContent = '· bản hiện hành ' + BAN_DASH;
 $('verChip').onclick = () => { setView('new'); window.scrollTo(0, 0); };
+$('newBtn').onclick = () => { setView('new'); window.scrollTo(0, 0); };   // v1.7.107: tab Có gì mới ẩn khỏi danh sách
 $('verChip').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('verChip').click(); } };
 /** Tab "Có gì mới": bảng phiên bản (Bản · Ngày · Nội dung chính) + Còn treo */
 function renderNew(){
@@ -5210,6 +5216,7 @@ function renderChips(){
   $('chips').querySelectorAll('button').forEach(b => b.onclick = () => { const k = b.dataset.k; if (k === 'hour') S.hour = null; else S[k] = ''; syncFilters(); render(); });
 }
 function setView(v){
+  if (v === 'tb'){ v = 'fin'; setTimeout(() => { const c = $('sec-fin-tb'); if (c) c.scrollIntoView({block:'start'}); }, 80); }   // v1.7.107: tab Thiết bị gộp vào Thu chi
   S.view = v; try { localStorage.setItem('kai_view', v); } catch(e){}
   if (!VIEWS.includes(v)) v = S.view = 'ov';
   const info = VIEW_INFO[v]; $('mTitle').textContent = info[0]; $('mTopT').textContent = info[0]; syncBnav(v); $('mSub').innerHTML = info[1]; document.title = `${info[0]} · Kai Café`;
@@ -5234,7 +5241,7 @@ function render(){
     : S.view === 'bc' ? (K => `${dShort(K.tu)}/${K.tu.slice(0,4)} → ${dShort(K.den)}/${K.den.slice(0,4)}`)(kyBaoCao(S.bcKy, today()))   // v1.7.43
     : ['ov', 'fin', 'kho', 'tb', 'hh', 'plan', 'kc', 'new', 'qo'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips(); demLoc();
-  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:renderFin, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, hr:renderHr})[S.view]();
+  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:() => { renderFin(); renderTb(); }, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, hr:renderHr})[S.view]();
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
@@ -5501,7 +5508,7 @@ function syncBnav(v){
 }
 function demTopH(){ const sd = document.querySelector('.side'); if (sd) document.documentElement.style.setProperty('--topH', sd.offsetHeight + 'px'); }
 function khoiTaoDiDong(){
-  const ds = [...document.querySelectorAll('.side .tabs > *')].map(el => el.classList.contains('sgrp') ? {nhom:el.textContent.trim()} : {v:el.dataset.v,
+  const ds = [...document.querySelectorAll('.side .tabs > *')].filter(el => !el.hidden).map(el => el.classList.contains('sgrp') ? {nhom:el.textContent.trim()} : {v:el.dataset.v,
     ic:((el.querySelector('svg.ic') || {}).outerHTML || '').replace('class="ic"', 'class="bic"'), ten:[...(el.querySelector('.nm') || {childNodes:[]}).childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim(), mo:(el.querySelector('small') || {}).textContent || ''});
   const tab = v => ds.find(x => x.v === v);
   $('bnav').innerHTML = BNAV_CHINH.map(v => { const t = tab(v); return t ? `<button type="button" data-v="${v}">${t.ic}<span>${esc(t.ten)}</span></button>` : ''; }).join('')
