@@ -3285,7 +3285,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.125';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.126';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3343,6 +3343,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.126', ngay:'04/11/2026', nd:['Tài liệu: thẻ thành viên (cả 2 bản) mặt sau ghi giờ mở cửa từ 5:30 như standee (trước ghi 6:00) — ảnh 2 mặt + PDF in 2 mặt làm lại; bỏ ảnh Mô phỏng kiosk & dù (quán không dùng kiosk).']},
   {v:'v1.7.125', ngay:'03/11/2026', nd:['Quét lại: số âm làm tròn về 0 không còn hiện "−0 chai" / "-0%"; % âm dùng dấu − như cột khác (tab Hao hụt…).', 'Tự kiểm mới: quỹ tiền (mặt · CK · tổng) phải khớp 3 ô tổng tab Quỹ tiền của Sheet — bắt được lệch 800.000 do API chưa gửi cột M "Trả bằng" của sổ chi (sửa ở Apps Script).']},
   {v:'v1.7.124', ngay:'03/11/2026', nd:['Tài liệu › Standee vòm: ảnh chính đổi sang bản đã dán 3 sticker (+5K, mua 5 tặng 1, thân thiết −2K); bản chưa dán và PDF in vẫn tải được.']},
   {v:'v1.7.123', ngay:'03/11/2026', nd:['Chi vận hành theo ngày: khoản của cả tháng (phí đô thị phân bổ, khoản cố định, dòng ghi "tháng MM/YYYY") chia cho đủ số ngày của tháng — trước chia cho số ngày đã qua nên đầu tháng 1 ngày gánh 88.889 đ phí đô thị (đúng ra 266.667 ÷ 30 = 8.889 đ). Khoản chi lẻ khác giữ cách cũ.']},
@@ -4521,7 +4522,6 @@ const TAI_LIEU = [
   {nhom:'Pha chế & bán hàng', ten:'Standee vòm ảnh thật · đã dán sticker', mo:'Standee cắt vòm 59,8 × 101,4 cm, giá chỉ từ 15K · dán 3 sticker Ø 10 cm: +5K size lớn (trái nhãn 15K), mua 5 tặng 1 (phải nhãn 15K), thân thiết −2K (cạnh BEST SELLER) · file in có lề 3 mm', ngay:'03/11/2026', anh:'standee-vom_dan-3-sticker.png', file:[['Ảnh đã dán sticker', 'standee-vom_dan-3-sticker.png'], ['PDF in standee (10 MB, chưa dán)', 'standee-vom_598x1014mm.pdf'], ['Ảnh standee chưa dán', 'standee-vom.png'], ['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf']]},
   {nhom:'Ấn phẩm xe', ten:'Setup mẫu', mo:'Xe 100 × 60 × 92 cm gắn khung biển tên, bảng 3 món, menu treo hông, QR, dù kẹp xe', ngay:'03/10/2026', anh:'setup-mau.png'},
   {nhom:'Ấn phẩm xe', ten:'Xe, dù và bảng', mo:'Mô phỏng xe Take-away Inox kèm dù đứng, bảng giá và bảng cà phê muối · tỉ lệ thật', ngay:'03/10/2026', anh:'xe-du-va-bang.png'},
-  {nhom:'Ấn phẩm xe', ten:'Mô phỏng kiosk & dù', mo:'Kiosk theo brand guideline bản nâu – trắng – be, dù sọc nâu be, bảng vẫy', ngay:'03/10/2026', anh:'mo-phong-kiosk-du.png'},
   {nhom:'Ấn phẩm xe', ten:'Bảng 3 món trên mặt bàn', mo:'Cà phê muối 18K · Bạc xỉu 18K · Cà phê sữa máy 17K', ngay:'03/10/2026', anh:'bang-3-mon-mat-ban.png'},
   {nhom:'Ấn phẩm xe', ten:'Bao bì', mo:'Ly nhựa + tem tròn (2 phiên bản nâu / be), túi giấy đựng ly', ngay:'03/10/2026', anh:'bao-bi.png'},
   {nhom:'Ấn phẩm xe', ten:'Xe: mặt trước & mặt hông', mo:'Bản vẽ phẳng gửi nhà in · mặt ốp trước ~88 × 66 cm, mặt hông ~48 × 66 cm (đo lại khi in)', ngay:'03/10/2026', anh:'xe-mat-truoc-mat-hong.png'},
