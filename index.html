@@ -2655,7 +2655,7 @@ function renderFin(){
   // Lãi vận hành ước tính: giá vốn theo LY ĐÃ BÁN (không theo lần nhập hàng, vì mua 2.000 ly 1 lần sẽ làm tháng đầu âm ảo). v1.3: chưa tính được giá vốn/ly bình quân → chưa có số thật
   const cogs = cogsO(), lyBan = D.orders.reduce((s, o) => s + o.sl, 0), gvBan = giaVonTheoNgayBan(D.orders);   // v1.7.45 (V-01b): giá vốn theo ngày bán như PNL
   // v1.3: hàng cho kèm (laChoKem) không nằm trong "chi khác" nữa — trước đây dòng cho kèm ghi khối Vận hành bị trừ 2 lần (chi khác + choKem)
-  const chiKhac = D.chi.filter(r => !['Đầu tư', 'Giá vốn', '?'].includes(blockOf(r)) && !laBoQua(r) && !laChoKem(r) && !r.tamLuong).reduce((s, r) => s + r.amt, 0);   // v1.7.54: dòng lương tạm tính của bot không cộng (phần tạm đã tính từ ChamCong)
+  const chiKhac = D.chi.filter(r => !['Đầu tư', 'Giá vốn', '?'].includes(blockOf(r)) && !laBoQua(r) && !laChoKem(r) && !r.tamLuong && !(r.m > mkey(today()))).reduce((s, r) => s + r.amt, 0);   // v1.7.123: dòng phân bổ của tháng sau (phí đô thị T12, T1…) chưa vào lãi tới hôm nay   // v1.7.54: dòng lương tạm tính của bot không cộng (phần tạm đã tính từ ChamCong)
   // v1.7.51 (chủ quán 18/10): lương = sổ chi Nhân sự (đã nằm trong chiKhac, mỗi kỳ đã chốt 1 dòng / người) + tiền công bot + thưởng/phạt chỉ của (ID, ngày) CHƯA thuộc kỳ đã chốt (tab LuongDaChot) — bỏ luật nsSo theo tháng; cùng Sheet N15
   const tpBot = (D.thuongPhat || []).filter(x => !daChotLuong(x.id, x.k)).reduce((s, x) => s + x.tien, 0);
   const congTam = D.cong.filter(c => !daChotLuong(c.id, c.k)), luongBot = congTam.reduce((s, c) => s + (c.tien || 0) + (c.cc || 0), 0) + tpBot;
