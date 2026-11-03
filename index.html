@@ -367,6 +367,18 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .side .bv{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .side .updchip{background:var(--surface);border-color:var(--brand);font-size:10.5px}
 .side #verChip{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin:5px 0 6px;padding:3px 11px;border-radius:99px;background:var(--brand);color:var(--brand-ink);font-weight:700;letter-spacing:.04em;text-decoration:none!important;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:filter .15s}   /* v1.7.108: chip phiên bản nổi bật */
+.tlh{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;margin:14px 0 8px;color:var(--brand)}   /* v1.7.110: tab Tài liệu */
+.tlg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.tlc{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.tlc .th{display:block;aspect-ratio:4/3;background:var(--surface-2);overflow:hidden;border-bottom:1px solid var(--line)}
+.tlc .th img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .2s}
+.tlc a.th:hover img{transform:scale(1.03)}
+.tlc .bd{padding:10px 12px 12px;display:grid;gap:4px;font-size:12.5px;line-height:1.45}
+.tlc .bd .tt{font-family:var(--f-display);font-weight:700;font-size:16px;letter-spacing:.03em;text-transform:uppercase}
+.tlc .act{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tlc .act a{font-size:11.5px;font-weight:600;border:1px solid var(--brand);color:var(--brand);border-radius:99px;padding:3px 10px;text-decoration:none}
+.tlc .act a:first-child{background:var(--brand);color:var(--brand-ink)}
+.tlc.cho .th{display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:12px}
 .side #verChip:hover,.side #verChip:focus-visible{filter:brightness(1.12)}
 .side .tabs{display:flex;flex-direction:column;gap:0;background:none;padding:0;border-radius:0;overflow:visible}
 .sgrp{font-family:var(--f-body);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:0 18px;margin:14px 0 4px}
@@ -572,7 +584,8 @@ html.mcap{background:var(--paper)}
     <button role="tab" id="tab-kho" aria-selected="false" data-v="kho"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span class="nm">Kho<small>nguyên liệu · vật tư</small></span></button>
     <button role="tab" id="tab-tb" aria-selected="false" data-v="tb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5h8v2M3 12h18"/></svg><span class="nm">Thiết bị<small>combo xe · mua thêm</small></span></button>
     <button role="tab" id="tab-hh" aria-selected="false" data-v="hh"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg><span class="nm">Hao hụt<small>thực vs công thức · thất thoát</small></span></button>
-    <div class="sgrp">Về dashboard</div>
+    <div class="sgrp">Nội bộ</div>
+    <button role="tab" id="tab-tl" aria-selected="false" data-v="tl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg><span class="nm">Tài liệu<small>công thức · checklist · nội quy</small></span></button>
     <button role="tab" id="tab-new" aria-selected="false" data-v="new" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v4h1"/></svg><span class="nm">Có gì mới<small>bản mới · còn treo</small></span></button>
   </nav>
   <div class="sfoot" id="sfoot">
@@ -790,6 +803,11 @@ html.mcap{background:var(--paper)}
         <div class="ct">Thứ × khung giờ <span class="nt">· số ly, nền đậm = bán nhiều</span></div>
         <div class="tblwrap" style="max-height:300px"><table id="tHeat"></table></div>
       </div>
+    </div>
+    <div class="card" id="sec-sales-tv">   <!-- v1.7.110 -->
+      <div class="ct">Thẻ thành viên <span class="nt">· 1 hạng, giảm 2.000đ mỗi ly · đơn có ghi chú "Thành viên" (nhân viên gõ kèm tv trên bot) · theo bộ lọc kỳ</span></div>
+      <div id="tvTom" class="cmt"></div>
+      <div class="tblwrap" style="max-height:300px"><table id="tTv"></table></div>
     </div>
   </div>
 
@@ -1234,6 +1252,11 @@ html.mcap{background:var(--paper)}
   </div>
 
   <!-- ================= CÓ GÌ MỚI ================= -->
+  <!-- ================= TÀI LIỆU NỘI BỘ (v1.7.110) ================= -->
+  <div class="view" id="v-tl" hidden style="display:grid;gap:12px">
+    <div id="tlList"></div>
+  </div>
+
   <div class="view" id="v-new" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục tab Có gì mới"></nav>
     <div class="card" id="sec-new-log">
@@ -1474,7 +1497,7 @@ function parseWorkbook(wb){
     const k = dayKey(r[2]) || dk(toDate(r[1])); if (!k) return;
     const t = toDate(r[1]);
     if (txt(r[10]).toUpperCase() !== 'OK'){ if (txt(r[10]).toUpperCase() === 'HUY') D.cancel.push({id:txt(r[0]), k, tt:num(r[8]), sl:num(r[6])}); return; }
-    D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: txt(r[9]).toUpperCase() === 'CK' ? 'CK' : 'TM', hs: num(r[12]) > 0 ? num(r[12]) : 1});   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
+    D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: txt(r[9]).toUpperCase() === 'CK' ? 'CK' : 'TM', hs: num(r[12]) > 0 ? num(r[12]) : 1, tv: /th[aà]nh\s*vi[eê]n/i.test(txt(r[11]))});   // v1.7.110: đơn thẻ thành viên (bot ghi chú "Thành viên −2.000/ly")   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
   });
   rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE', tat:tatMon(r[5])}; });
   // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái · Sổ chi (H = "202610:47" nếu /chiphi đã tự ghi vào dòng 47 sổ Chi T10-2026; trống = chưa vào sổ)
@@ -1617,7 +1640,7 @@ function parseWorkbook(wb){
 
 /* ============ state ============ */
 let D = null;
-const VIEWS = ['ov', 'bc', 'today', 'sales', 'dtt', 'mon', 'perf', 'pnl', 'plan', 'kc', 'fin', 'kho', 'tb', 'hh', 'hr', 'qo', 'new'];   // v1.7.61: + tb (Thiết bị)   // v1.7.43: + bc (Báo cáo tuần / tháng)
+const VIEWS = ['ov', 'bc', 'today', 'sales', 'dtt', 'mon', 'perf', 'pnl', 'plan', 'kc', 'fin', 'kho', 'tb', 'hh', 'hr', 'qo', 'tl', 'new'];   // v1.7.110: + tl (Tài liệu nội bộ)   // v1.7.61: + tb (Thiết bị)   // v1.7.43: + bc (Báo cáo tuần / tháng)
 /* Tiêu đề + câu mô tả mỗi tab (kiểu Squad: tab này trả lời câu hỏi gì) */
 const VIEW_INFO = {
   ov:['Tổng quan', 'Tháng này quán đang ở đâu so với mốc hoà vốn, và việc gì cần xử lý trước.'],
@@ -1627,6 +1650,7 @@ const VIEW_INFO = {
   sales:['Bán hàng', 'Doanh thu, số ly theo ngày và khung giờ trong kỳ đang lọc, so với kỳ trước.'],
   dtt:['Doanh thu thuần', 'Doanh thu THỰC THU theo ngày như tab Doanh thu của Sheet: tiền mặt, chuyển khoản, lệch so với đơn bot, chốt ca, mục tiêu tháng. Theo kỳ đang lọc (lọc nhân viên / món / thanh toán không áp dụng).'],
   mon:['Món', 'Món nào chạy, lời bao nhiêu mỗi ly, món nào chưa bán, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
+  tl:['Tài liệu nội bộ', 'Công thức pha chế, checklist, nội quy và ấn phẩm in — bản mới nhất, bấm ảnh để xem to, có nút tải PDF để in.'],
   qo:['Mã món & order nhanh', 'Mã từng món, cách gõ tắt và cách order nhanh trên bot; bảng tự lấy từ tab Menu.'],
   fin:['Thu chi', 'Quỹ còn bao nhiêu, lãi vận hành, các khoản chi theo khối và người chi.'],
   kho:['Kho', 'Nguyên liệu và vật tư còn đủ dùng bao nhiêu ngày theo nhịp bán hiện tại.'],
@@ -2067,6 +2091,12 @@ const dlt = (cur, prev, goodUp = true) => { if (prev == null || !prev || cur == 
 
 /* ============ render: sales ============ */
 function renderSales(){
+  { // v1.7.110: thẻ thành viên — số ly, đơn, tiền đã giảm (2.000đ/ly) trong kỳ
+    const L = sel().filter(o => o.tv), A = agg(sel()), ly = L.reduce((x, o) => x + o.sl, 0), don = new Set(L.map(o => o.id)).size, giam = ly * 2000;
+    $('tvTom').innerHTML = ly ? `Kỳ đang xem: <b>${fmt(ly)} ly</b> thành viên (${pct(A.ly ? ly / A.ly : 0)} số ly) · <b>${fmt(don)} đơn</b> · đã giảm <b>${fmt(giam)} đ</b>.`
+      : 'Chưa có đơn thành viên trong kỳ. Khi bot nhận cú pháp <b>tv</b> (vd "csm tv") đơn sẽ ghi chú "Thành viên −2.000/ly" và hiện ở đây (đang chờ phiên Bot làm).';
+    const byK = [...groupBy(L, o => o.k)].map(([k, l]) => { const n = l.reduce((x, o) => x + o.sl, 0); return {k, ly:n, don:new Set(l.map(o => o.id)).size, giam:n * 2000, dt:l.reduce((x, o) => x + o.tt, 0)}; });
+    table({id:'tTv', rows:byK, sortDefault:{k:'k', d:-1}, total:byK.length ? {ly, don, giam, dt:L.reduce((x, o) => x + o.tt, 0)} : null, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`}, {k:'ly', l:'Ly thành viên', r:1, f:fmt}, {k:'don', l:'Đơn', r:1, f:fmt}, {k:'dt', l:'Doanh thu (sau giảm)', r:1, f:fmt}, {k:'giam', l:'Tiền đã giảm', r:1, f:fmt}]}); }
   const L = sel(), A = agg(L);
   const n = rangeDays(S.from, S.to).length;
   const pFrom = addDays(S.from, -n), pTo = addDays(S.from, -1);
@@ -3244,7 +3274,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.109';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.110';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3302,6 +3332,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.110', ngay:'03/11/2026', nd:['Tab mới Tài liệu nội bộ (nhóm Nội bộ): công thức pha chế, mã món gõ tắt, thẻ thành viên mới, tờ dán đồng giá 15K, checklist xe, bảng ghi nhớ, checklist kiểm kho tổng, nội quy làm việc — xem ảnh, tải PDF để in. Có cả menu có ảnh, standee vòm, tin tuyển dụng ca sáng.', 'Thẻ thành viên đổi sang 1 hạng duy nhất giảm 2.000đ/ly (thiết kế mới 90 × 54 mm). Tab Bán hàng có thẻ theo dõi: ly / đơn thành viên và tiền đã giảm theo ngày (đọc ghi chú "Thành viên" của đơn, chờ bot hỗ trợ cú pháp tv).']},
   {v:'v1.7.109', ngay:'03/11/2026', nd:['Thu chi: bỏ bảng "Chi từ két qua bot", thay bằng "Lịch sử đổi tiền mặt → CK" (ngày, số tiền, cộng dồn, ghi chú) từ bảng Đổi tiền của tab Quỹ tiền.']},
   {v:'v1.7.108', ngay:'03/11/2026', nd:['Nút phiên bản ở thanh bên thành chip nổi bật (✨ Bản … · Có gì mới).', 'Sheet: 10–12/10 tách đúng tiền mặt / CK (CK thật 230.000 · 296.000 · 150.000), phần tiền mặt ghi vào bảng Đổi TM → CK nên số dư quỹ không đổi.']},
   {v:'v1.7.107', ngay:'03/11/2026', nd:['Gộp tab: Thiết bị chuyển thành mục "Thiết bị (đầu tư)" cuối tab Thu chi; tab Có gì mới bỏ khỏi danh sách (mở bằng nút phiên bản ở thanh bên / menu ⋯).']},
@@ -4447,6 +4478,28 @@ function renderAiLam(){
     <p class="muted" style="margin:6px 0 0;font-size:12px">Giờ vào–ra lấy từ ChamCong (… = chưa check-out). Tiền công là cột Tiền công bot ghi (chưa gồm chuyên cần / thưởng / phạt; chủ quán 0 từ 01/11).</p>`
     : '<div class="muted">Tháng này chưa có chấm công.</div>';
 }
+/** v1.7.110 — Tài liệu nội bộ (chủ nhờ 03/11, chọn nhúng thẳng vào dashboard): file trong thư mục tai-lieu/ của repo. Thêm tài liệu = chép file vào tai-lieu/ + thêm 1 dòng ở đây */
+const TAI_LIEU = [
+  {nhom:'Pha chế & bán hàng', ten:'Công thức pha chế', mo:'Định lượng từng món, sơ chế (shot máy, nước đường, kem muối) · in A4', ngay:'31/10/2026', anh:'cong-thuc-pha-che.png', file:[['PDF in A4', 'cong-thuc-pha-che.pdf']]},
+  {nhom:'Pha chế & bán hàng', ten:'Mã món gõ tắt', mo:'Mã món và cách gõ đơn nhanh trên bot · in A5', ngay:'15/10/2026', anh:'ma-mon-go-tat.png', file:[['PDF in A5', 'ma-mon-go-tat.pdf']]},
+  {nhom:'Pha chế & bán hàng', ten:'Thẻ thành viên', mo:'Một hạng duy nhất · giảm 2.000đ mỗi ly · 90 × 54 mm in 2 mặt', ngay:'03/11/2026', anh:'the-thanh-vien.png', file:[['Mặt trước', 'the-thanh-vien_mat-truoc.png'], ['Mặt sau', 'the-thanh-vien_mat-sau.png']]},
+  {nhom:'Pha chế & bán hàng', ten:'Tờ dán đồng giá 15K', mo:'Cuối tuần T7, CN đồng giá 15K · tờ dán 40 × 45 cm lên bảng giá', ngay:'02/11/2026', anh:'to-dan-dong-gia-15K.png', file:[['PDF khổ A2', 'to-dan-dong-gia-15K.pdf']]},
+  {nhom:'Pha chế & bán hàng', ten:'Menu có ảnh', mo:'4 nhóm Cà phê · Cacao · Phindi · Matcha, size M / L, ảnh ly thật', ngay:'24/10/2026', anh:'menu-co-anh.png'},
+  {nhom:'Pha chế & bán hàng', ten:'Standee vòm ảnh thật', mo:'Standee cắt vòm 59,8 × 101,4 cm, giá chỉ từ 15K · file in có lề 3 mm', ngay:'24/10/2026', anh:'standee-vom.png', file:[['PDF in (10 MB)', 'standee-vom_598x1014mm.pdf']]},
+  {nhom:'Vận hành', ten:'Checklist xe', mo:'Tồn tối thiểu trên xe, đầu ca · trong ca · cuối ca · cuối tuần · in A4 ép plastic', ngay:'15/10/2026', anh:'checklist-xe.png'},
+  {nhom:'Vận hành', ten:'Bảng ghi nhớ', mo:'12 điều nhân viên quầy đọc kỹ đầu mỗi ca · in A5', ngay:'15/10/2026', anh:'bang-ghi-nho.png'},
+  {nhom:'Vận hành', ten:'Checklist kiểm kho tổng', mo:'Chủ kiểm kho tổng 1–2 lần/tuần · in A4 ép plastic', ngay:'16/10/2026', anh:'checklist-kiem-kho-tong.png', file:[['PDF in A4', 'checklist-kiem-kho-tong.pdf']]},
+  {nhom:'Nhân sự', ten:'Nội quy làm việc', mo:'Thời gian, lương thưởng, quy trình, kiểm kê, vi phạm · bản 25/10 (chưa cập nhật luật chuyên cần từ 01/11)', ngay:'25/10/2026', anh:'noi-quy-lam-viec.png', file:[['PDF A4', 'noi-quy-lam-viec.pdf'], ['PDF A3 dán tường', 'noi-quy-lam-viec_A3.pdf']]},
+  {nhom:'Nhân sự', ten:'Tuyển dụng nhân viên ca sáng', mo:'Ca 05:30–10:30, thu nhập theo giờ, công việc, yêu cầu · đăng nhóm / dán quầy', ngay:'24/10/2026', anh:'tuyen-dung-ca-sang.png'}
+];
+function renderTl(){
+  const u = f => 'tai-lieu/' + encodeURI(f), nhom = [...new Set(TAI_LIEU.map(x => x.nhom))];
+  $('tlList').innerHTML = nhom.map(n => `<div class="tlh">${esc(n)}</div><div class="tlg">` + TAI_LIEU.filter(x => x.nhom === n).map(x => x.cho
+    ? `<div class="tlc cho"><div class="th">⏳ Chờ file</div><div class="bd"><span class="tt">${esc(x.ten)}</span><span class="muted">${esc(x.mo)}</span></div></div>`
+    : `<div class="tlc"><a class="th" href="${u(x.anh)}" target="_blank" rel="noopener" title="Xem ảnh lớn"><img src="${u(x.anh)}" alt="${esc(x.ten)}" loading="lazy"></a>`
+      + `<div class="bd"><span class="tt">${esc(x.ten)}</span><span class="muted">${esc(x.mo)}</span><span class="muted" style="font-size:11.5px">Cập nhật ${esc(x.ngay)}</span>`
+      + `<div class="act"><a href="${u(x.anh)}" target="_blank" rel="noopener">Xem ảnh</a>${(x.file || []).map(([l, f]) => `<a href="${u(f)}" target="_blank" rel="noopener" download>${esc(l)}</a>`).join('')}</div></div></div>`).join('') + '</div>').join('');
+}
 function renderHr(){
   renderHoSo();
   renderAiLam();
@@ -5245,9 +5298,9 @@ function render(){
   chartBase();
   $('hdrRange').textContent = S.view === 'today' ? (S.tdKy !== 'ngay' ? (Q => `${TD_KY[Q.ky].toLowerCase()} ${dShort(Q.tu)} → ${dShort(Q.den)}/${Q.den.slice(0,4)}`)(tdKy()) : `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`)
     : S.view === 'bc' ? (K => `${dShort(K.tu)}/${K.tu.slice(0,4)} → ${dShort(K.den)}/${K.den.slice(0,4)}`)(kyBaoCao(S.bcKy, today()))   // v1.7.43
-    : ['ov', 'fin', 'kho', 'tb', 'hh', 'plan', 'kc', 'new', 'qo'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
+    : ['ov', 'fin', 'kho', 'tb', 'hh', 'plan', 'kc', 'new', 'qo', 'tl'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips(); demLoc();
-  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:() => { renderFin(); renderTb(); }, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, hr:renderHr})[S.view]();
+  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:() => { renderFin(); renderTb(); }, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, tl:renderTl, hr:renderHr})[S.view]();
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
