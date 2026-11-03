@@ -681,7 +681,7 @@ html.mcap{background:var(--paper)}
       <div id="qtBody"></div>
     </div>
     <div class="card" id="sec-ov-thang">
-      <div class="ct">Tổng hợp theo tháng <span class="nt">· như Sheet Tổng hợp: doanh thu, giá vốn, nhân sự, vận hành, lãi, đầu tư, vốn góp, dòng tiền, tiền cuối tháng, lãi cộng dồn, % thu hồi vốn · chi tiết tab Thu chi</span></div>
+      <div class="ct">Tổng hợp theo tháng <span class="nt">· doanh thu thực thu, lãi, tiền cuối tháng, % thu hồi vốn (như Sheet Tổng hợp) · đủ cột ở tab Thu chi</span></div>
       <div class="tblwrap"><table id="tOvThang"></table></div>
       <a href="#" class="lnk" id="ovThangXem" style="font-size:12px">Bảng đủ cột (giá vốn, nhân sự, vận hành, đầu tư, dòng tiền…) ở tab Thu chi →</a>
       <div class="muted" id="ovThangNote" style="font-size:12px;margin-top:6px"></div>
@@ -2707,12 +2707,12 @@ function renderFin(){
   { const s1 = css('--s1'), s2 = css('--s2');
   const mr = mRows.filter(r => !r.empty);
   // v1.7.105: cột Doanh thu cạnh cột Chi hoạt động (giá vốn theo ly bán · nhân sự · vận hành xếp chồng, cùng bảng Kết quả tháng) + đường Lãi; đầu tư không vẽ (cột T10 vọt lên làm bẹt tháng khác)
-  const FT = m => (FIN_THANG || []).find(x => x.m === m) || {}, cG = css('--c1'), cN = css('--c3'), cV = css('--c2'), sb = (c, st) => Object.assign(barStyle(c), {stack:st, borderRadius:0, borderColor:css('--surface'), borderWidth:{top:2}});
+  const FT = m => (FIN_THANG || []).find(x => x.m === m) || {}, cG = css('--c1'), cN = css('--c3'), cV = css('--c2'), sb = (c, st) => Object.assign(barStyle(c), {stack:st, borderRadius:0, borderColor:css('--surface'), borderWidth:{top:2}, nhan:false});   // số ghi trên cột: chỉ doanh thu (tổng chi xem tooltip / bảng)
   mk('cOvMonth', {type:'bar', data:{labels:mr.map(r => mlabel(r.m)), datasets:[
       Object.assign({label:'Doanh thu', data:mr.map(r => FT(r.m).rev ?? r.rev)}, barStyle(s1), {stack:'dt'}),
       Object.assign({label:'Giá vốn (theo ly bán)', data:mr.map(r => Math.round(FT(r.m).gv || 0))}, sb(cG, 'chi')), Object.assign({label:'Nhân sự', data:mr.map(r => Math.round(FT(r.m).ns || 0))}, sb(cN, 'chi')), Object.assign({label:'Vận hành', data:mr.map(r => Math.round(FT(r.m).vh || 0))}, sb(cV, 'chi')),
-      {type:'line', label:'Lãi', data:mr.map(r => Math.round(FT(r.m).lai || 0)), borderColor:s2, backgroundColor:s2, borderWidth:2, pointRadius:4, stack:'lai'}]},
-    options:{scales:{x:{stacked:true}, y:{stacked:false, beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
+      {type:'line', label:'Lãi', data:mr.map(r => Math.round(FT(r.m).lai || 0)), borderColor:s2, backgroundColor:s2, borderWidth:2, pointRadius:4, stack:'lai', nhan:false}]},
+    options:{scales:{x:{stacked:true}, y:{stacked:true, beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
       plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} đ`}}}}});
   $('lgOvMonth').innerHTML = `<span><i style="background:${s1}"></i>Doanh thu</span><span><i style="background:${cG}"></i>Giá vốn</span><span><i style="background:${cN}"></i>Nhân sự</span><span><i style="background:${cV}"></i>Vận hành</span><span><i style="background:${s2}"></i>Lãi</span> <span class="muted">· chi đầu tư không vẽ (xem bảng)</span>`;
   }
@@ -3236,7 +3236,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.105';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.106';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3294,6 +3294,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.106', ngay:'03/11/2026', nd:['Thu chi: biểu đồ tháng xếp chồng đúng giá vốn / nhân sự / vận hành; số trên cột chỉ ghi doanh thu.']},
   {v:'v1.7.105', ngay:'03/11/2026', nd:['Tổng quan: biểu đồ 14 ngày có đường mốc hoà vốn (nét đứt), cột dưới mốc tô nhạt, ghi số ngày đạt mốc; bảng Tổng hợp theo tháng gọn còn 4 cột (doanh thu, lãi, tiền cuối tháng, % thu hồi vốn) — bảng đủ cột ở Thu chi.', 'Thu chi: biểu đồ theo tháng = cột Doanh thu cạnh cột Chi hoạt động (giá vốn · nhân sự · vận hành xếp chồng) + đường Lãi, không vẽ chi đầu tư nên tháng nào cũng so được; thẻ Chi theo khối bỏ thanh tỉ trọng (trùng biểu đồ tròn), đưa 10 hạng mục chi nhiều nhất lên cạnh.']},
   {v:'v1.7.104', ngay:'03/11/2026', nd:['Khuyến mãi theo chính sách mới: ngày đồng giá 15K (T7/CN từ 07/11 + 31/10, 01/11 bật tay) tách riêng khỏi "giá thường". Giá thường (dùng cho mốc hoà vốn) chỉ tính ngày không khuyến mãi.', 'Tab Món: thẻ "Khuyến mãi vs giá thường" và "Khuyến mãi theo món" so 3 loại ngày (10K · 15K · giá thường).', 'Bộ lọc Loại ngày thêm: Ngày giá thường · Mọi ngày khuyến mãi · Đồng giá 15K. Nhãn 15K trên bảng ngày.', 'Dự báo ngày mai biết ngày mai là T7/CN đồng giá (giá 15K, nhân tỉ lệ ly khi đã có ngày 15K để so); Kế hoạch dự phóng tính T7/CN bán 15K.']},
   {v:'v1.7.103', ngay:'03/11/2026', nd:['Chuẩn bị gói dữ liệu gọn hơn: đọc được dòng bị cắt ô rỗng cuối (API mới bỏ dòng thừa, ngày tương lai của tab Doanh thu) — tải nhanh hơn khoảng 1/3 dung lượng.']},
