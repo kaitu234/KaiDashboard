@@ -3274,7 +3274,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.112';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.113';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3332,6 +3332,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.113', ngay:'03/11/2026', nd:['Tài liệu · Ấn phẩm xe: thêm setup mẫu, xe dù và bảng, mô phỏng kiosk & dù, bảng 3 món trên mặt bàn, bao bì (bản nâu – trắng – be).']},
   {v:'v1.7.112', ngay:'03/11/2026', nd:['Tài liệu: nhóm mới Ấn phẩm xe — xe mặt trước & mặt hông, decal máy pha & máy xay (bản màu nâu).']},
   {v:'v1.7.111', ngay:'03/11/2026', nd:['Tài liệu: thêm 2 sticker tròn Ø 10 cm dán menu vòm (khách hàng thân thiết −2K mỗi ly · size lớn +5K), có PDF A4 in sẵn.']},
   {v:'v1.7.110', ngay:'03/11/2026', nd:['Tab mới Tài liệu nội bộ (nhóm Nội bộ): công thức pha chế, mã món gõ tắt, thẻ thành viên mới, tờ dán đồng giá 15K, checklist xe, bảng ghi nhớ, checklist kiểm kho tổng, nội quy làm việc — xem ảnh, tải PDF để in. Có cả menu có ảnh, standee vòm, tin tuyển dụng ca sáng.', 'Thẻ thành viên đổi sang 1 hạng duy nhất giảm 2.000đ/ly (thiết kế mới 90 × 54 mm). Tab Bán hàng có thẻ theo dõi: ly / đơn thành viên và tiền đã giảm theo ngày (đọc ghi chú "Thành viên" của đơn, chờ bot hỗ trợ cú pháp tv).']},
@@ -4490,6 +4491,11 @@ const TAI_LIEU = [
   {nhom:'Pha chế & bán hàng', ten:'Tờ dán đồng giá 15K', mo:'Cuối tuần T7, CN đồng giá 15K · tờ dán 40 × 45 cm lên bảng giá', ngay:'02/11/2026', anh:'to-dan-dong-gia-15K.png', file:[['PDF khổ A2', 'to-dan-dong-gia-15K.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Menu có ảnh', mo:'4 nhóm Cà phê · Cacao · Phindi · Matcha, size M / L, ảnh ly thật', ngay:'24/10/2026', anh:'menu-co-anh.png'},
   {nhom:'Pha chế & bán hàng', ten:'Standee vòm ảnh thật', mo:'Standee cắt vòm 59,8 × 101,4 cm, giá chỉ từ 15K · file in có lề 3 mm', ngay:'24/10/2026', anh:'standee-vom.png', file:[['PDF in (10 MB)', 'standee-vom_598x1014mm.pdf']]},
+  {nhom:'Ấn phẩm xe', ten:'Setup mẫu', mo:'Xe 100 × 60 × 92 cm gắn khung biển tên, bảng 3 món, menu treo hông, QR, dù kẹp xe', ngay:'03/10/2026', anh:'setup-mau.png'},
+  {nhom:'Ấn phẩm xe', ten:'Xe, dù và bảng', mo:'Mô phỏng xe Take-away Inox kèm dù đứng, bảng giá và bảng cà phê muối · tỉ lệ thật', ngay:'03/10/2026', anh:'xe-du-va-bang.png'},
+  {nhom:'Ấn phẩm xe', ten:'Mô phỏng kiosk & dù', mo:'Kiosk theo brand guideline bản nâu – trắng – be, dù sọc nâu be, bảng vẫy', ngay:'03/10/2026', anh:'mo-phong-kiosk-du.png'},
+  {nhom:'Ấn phẩm xe', ten:'Bảng 3 món trên mặt bàn', mo:'Cà phê muối 18K · Bạc xỉu 18K · Cà phê sữa máy 17K', ngay:'03/10/2026', anh:'bang-3-mon-mat-ban.png'},
+  {nhom:'Ấn phẩm xe', ten:'Bao bì', mo:'Ly nhựa + tem tròn (2 phiên bản nâu / be), túi giấy đựng ly', ngay:'03/10/2026', anh:'bao-bi.png'},
   {nhom:'Ấn phẩm xe', ten:'Xe: mặt trước & mặt hông', mo:'Bản vẽ phẳng gửi nhà in · mặt ốp trước ~88 × 66 cm, mặt hông ~48 × 66 cm (đo lại khi in)', ngay:'03/10/2026', anh:'xe-mat-truoc-mat-hong.png'},
   {nhom:'Ấn phẩm xe', ten:'Decal máy pha & máy xay', mo:'Hông máy pha ~36 × 33 cm (2 tấm) · nẹp nắp ~40 × 6 cm · thân máy xay 21 × 60 cm', ngay:'03/10/2026', anh:'decal-may-pha-may-xay.png'},
   {nhom:'Vận hành', ten:'Checklist xe', mo:'Tồn tối thiểu trên xe, đầu ca · trong ca · cuối ca · cuối tuần · in A4 ép plastic', ngay:'15/10/2026', anh:'checklist-xe.png'},
