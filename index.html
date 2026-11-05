@@ -3285,7 +3285,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.128';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.129';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3343,6 +3343,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.129', ngay:'05/11/2026', nd:['Tài liệu: thêm mã QR MoMo nhận tiền của quán (KAI CAFÉ 429 PHAN HUY ÍCH, QR thế hệ 2.0 — khách quét bằng mọi ví và ngân hàng) đầu nhóm Pha chế & bán hàng, tải được ảnh gốc để in.']},
   {v:'v1.7.128', ngay:'04/11/2026', nd:['Tài liệu: nhóm mới “Hình ảnh quán” đầu danh sách — ảnh bìa (menu 3 món, giá chỉ từ 15K) và 2 ảnh quán thật tại 429 Phan Huy Ích.']},
   {v:'v1.7.127', ngay:'04/11/2026', nd:['Tài liệu: giờ mở cửa ghi thống nhất 5:30 – 10:30 trên thẻ thành viên (2 bản), menu có ảnh, standee vòm (ảnh, ảnh đã dán sticker, PDF in 604 × 1020,5 mm có lề 3 mm).']},
   {v:'v1.7.126', ngay:'04/11/2026', nd:['Tài liệu: thẻ thành viên (cả 2 bản) mặt sau ghi giờ mở cửa từ 5:30 như standee (trước ghi 6:00) — ảnh 2 mặt + PDF in 2 mặt làm lại; bỏ ảnh Mô phỏng kiosk & dù (quán không dùng kiosk).']},
@@ -4515,6 +4516,7 @@ const TAI_LIEU = [
   {nhom:'Hình ảnh quán', ten:'Ảnh bìa', mo:'Menu 3 món cà phê đen máy 15K · cà phê sữa máy 17K · bạc xỉu 18K, nhãn “Giá chỉ từ 15K” · dùng làm ảnh bìa trang / nhóm', ngay:'04/11/2026', anh:'anh-bia.png'},
   {nhom:'Hình ảnh quán', ten:'Ảnh quán thật · 1', mo:'Xe, dù, bảng giá, menu treo và standee vòm cà phê muối 18K tại 429 Phan Huy Ích', ngay:'04/11/2026', anh:'anh-quan-1.jpg'},
   {nhom:'Hình ảnh quán', ten:'Ảnh quán thật · 2', mo:'Xe, dù, bảng giá và standee vòm cà phê muối dán giá khuyến mãi 10K', ngay:'04/11/2026', anh:'anh-quan-2.jpg'},
+  {nhom:'Pha chế & bán hàng', ten:'Mã QR MoMo nhận tiền', mo:'KAI CAFÉ 429 PHAN HUY ÍCH · QR thế hệ 2.0, khách quét bằng MoMo hoặc app ngân hàng bất kỳ · in đặt tại quầy', ngay:'05/11/2026', anh:'qr-momo.jpg', file:[['Ảnh gốc để in', 'qr-momo.jpg']]},
   {nhom:'Pha chế & bán hàng', ten:'Công thức pha chế', mo:'Định lượng từng món, sơ chế (shot máy, nước đường, kem muối) · in A4', ngay:'31/10/2026', anh:'cong-thuc-pha-che.png', file:[['PDF in A4', 'cong-thuc-pha-che.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Mã món gõ tắt', mo:'Mã món và cách gõ đơn nhanh trên bot · in A5', ngay:'15/10/2026', anh:'ma-mon-go-tat.png', file:[['PDF in A5', 'ma-mon-go-tat.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Thẻ thành viên · bản dùng', mo:'Bản chủ chọn in · Một hạng duy nhất · giảm 2.000đ mỗi ly từ T2 đến T6 (T7, CN đồng giá không áp dụng) · 90 × 54 mm in 2 mặt', ngay:'03/11/2026', anh:'the-thanh-vien.png', file:[['PDF in 2 mặt (tràn 2 mm)', 'the-thanh-vien_in-2-mat.pdf'], ['Mặt trước', 'the-thanh-vien_mat-truoc.png'], ['Mặt sau', 'the-thanh-vien_mat-sau.png']]},
