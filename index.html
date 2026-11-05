@@ -3315,7 +3315,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.130';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.131';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3373,6 +3373,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.131', ngay:'05/11/2026', nd:['Sửa ví dụ mẫu của tự kiểm 85 (luật OT cũ: 05:20→10:55 = 330 phút, bỏ 5 phút). Số trên Sheet đã khớp: 12 ca từ 01/11 cột J = cách tính của dashboard.']},
   {v:'v1.7.130', ngay:'05/11/2026', nd:['Luật OT mới (bot ot-ra-v1 @204, chủ chốt 05/11): từ 01/11/2026 chỉ trả đủ ca + phút vào sớm trước giờ bắt đầu ca (tối đa 30 phút/ca); ở lại sau giờ hết ca không trả, không báo OT vượt. Trước 01/11 giữ luật cũ (OT vào sớm + về muộn, tối đa 30 phút).', 'Dashboard đọc cột J “Phút tính lương” bot ghi; ca chưa check-out / chưa có cột J tự tính cùng công thức caCong_ (lương tạm tính ở Tổng quan, PNL, Thu chi). Nhân sự: bảng nhân viên thêm cột Giờ tính lương, bảng chấm công thêm cột Tính lương (+phút vào sớm). Tự kiểm: bất biến 85.']},
   {v:'v1.7.129', ngay:'05/11/2026', nd:['Tài liệu: thêm mã QR MoMo nhận tiền của quán (KAI CAFÉ 429 PHAN HUY ÍCH, QR thế hệ 2.0 — khách quét bằng mọi ví và ngân hàng) đầu nhóm Pha chế & bán hàng, tải được ảnh gốc để in.']},
   {v:'v1.7.128', ngay:'04/11/2026', nd:['Tài liệu: nhóm mới “Hình ảnh quán” đầu danh sách — ảnh bìa (menu 3 món, giá chỉ từ 15K) và 2 ảnh quán thật tại 429 Phan Huy Ích.']},
@@ -4084,10 +4085,10 @@ function tuKiem(){
     ok('Đồng giá cuối tuần (bot dongia-tuan-v1): 07/11 T7 + 08/11 CN là ngày KM · 09/11 T2 và 06/11 T6 không · 31/10 T7 chưa (chưa có luật tuần)', laNgayKM('2026-11-07') && laNgayKM('2026-11-08') && !laNgayKM('2026-11-09') && !laNgayKM('2026-11-06') && !laNgayKM('2026-10-31'));
     // 85. v1.7.130 — phút tính lương = caCong_ bot (ot-ra-v1): từ 01/11 chỉ cộng phút vào sớm (≤ 30), về muộn không trả; trước 01/11 OT vào sớm + về muộn ≤ 30; ca có ra + cột J của Sheet thì khớp
     { const caS = {ma:'S', bd:'05:30', kt:'10:30'}, d = (k, g) => new Date(k + 'T' + g + ':00'), pl = (k, a, b) => phutLuongCore(k, d(k, a), d(k, b), caS);
-      const a = pl('2026-11-03', '05:28', '10:46'), b = pl('2026-11-05', '05:15', '10:58'), c0 = pl('2026-11-05', '04:50', '10:30'), e = pl('2026-11-05', '05:45', '11:20'), o = pl('2026-10-20', '05:20', '10:50'), n0 = phutLuongCore('2026-11-05', d('2026-11-05', '05:00'), d('2026-11-05', '06:10'), null);
+      const a = pl('2026-11-03', '05:28', '10:46'), b = pl('2026-11-05', '05:15', '10:58'), c0 = pl('2026-11-05', '04:50', '10:30'), e = pl('2026-11-05', '05:45', '11:20'), o = pl('2026-10-20', '05:20', '10:55'), n0 = phutLuongCore('2026-11-05', d('2026-11-05', '05:00'), d('2026-11-05', '06:10'), null);
       const ss = D.cong.filter(c => c.k >= OT_RA_BO_TU && c.ra && c.phutL != null), lech = ss.filter(c => Math.abs(c.phutL - phutLuongCore(c.k, c.vao, c.ra, caCuaCong(c)).phut) > 1);
-      ok('Phút tính lương như bot ot-ra-v1: 03/11 05:28→10:46 = 302 · 05:15→10:58 = 315 · vào 04:50 = 330 (bỏ 10p) · vào trễ 05:45→11:20 = 285 · 20/10 luật cũ 05:20→10:50 = 330 (bỏ 10p) · không có ca = phút thực; ca từ 01/11 trên Sheet cột J khớp',
-        a.phut === 302 && a.ot === 2 && b.phut === 315 && c0.phut === 330 && c0.otBo === 10 && e.phut === 285 && e.ot === 0 && o.phut === 330 && o.otBo === 10 && n0.phut === 70 && !lech.length,
+      ok('Phút tính lương như bot ot-ra-v1: 03/11 05:28→10:46 = 302 · 05:15→10:58 = 315 · vào 04:50 = 330 (bỏ 10p) · vào trễ 05:45→11:20 = 285 · 20/10 luật cũ 05:20→10:55 = 330 (bỏ 5p) · không có ca = phút thực; ca từ 01/11 trên Sheet cột J khớp',
+        a.phut === 302 && a.ot === 2 && b.phut === 315 && c0.phut === 330 && c0.otBo === 10 && e.phut === 285 && e.ot === 0 && o.phut === 330 && o.otBo === 5 && n0.phut === 70 && !lech.length,
         `${ss.length} ca từ 01/11 có cột J${lech.length ? ' · LỆCH: ' + lech.map(c => `${c.nv} ${dShort(c.k)} J=${c.phutL} / tính ${phutLuongCore(c.k, c.vao, c.ra, caCuaCong(c)).phut}`).join(', ') : ' · khớp hết'}`); }
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
