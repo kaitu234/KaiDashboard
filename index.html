@@ -3324,7 +3324,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.132';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.133';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3382,6 +3382,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.133', ngay:'06/11/2026', nd:['Thạch cà phê (thc) không nhân hệ số size lớn, như đá viên (chủ chốt 06/11, cùng bot apptv-v2 @206).']},
   {v:'v1.7.132', ngay:'06/11/2026', nd:['Giờ danh nghĩa và Lương/giờ danh nghĩa (chủ chốt 06/11): giờ danh nghĩa = giờ trong ca theo lịch, không gồm OT vào sớm / về muộn (= cột J − K của ChamCong; ca sáng đủ = 5 giờ); lương/giờ danh nghĩa = tiền công ÷ giờ danh nghĩa — mỗi giờ ca thật tốn bao nhiêu khi đã cộng OT, phụ cấp. Có ở tab Nhân sự (bảng nhân viên, bảng chấm công) và thẻ Ca, lương & két tab Hôm nay (thêm giờ tính lương, tiền công; ca đang làm ghi tạm). Chủ (tiền công 0) để —. Tự kiểm: bất biến 86.']},
   {v:'v1.7.131', ngay:'05/11/2026', nd:['Sửa ví dụ mẫu của tự kiểm 85 (luật OT cũ: 05:20→10:55 = 330 phút, bỏ 5 phút). Số trên Sheet đã khớp: 12 ca từ 01/11 cột J = cách tính của dashboard.']},
   {v:'v1.7.130', ngay:'05/11/2026', nd:['Luật OT mới (bot ot-ra-v1 @204, chủ chốt 05/11): từ 01/11/2026 chỉ trả đủ ca + phút vào sớm trước giờ bắt đầu ca (tối đa 30 phút/ca); ở lại sau giờ hết ca không trả, không báo OT vượt. Trước 01/11 giữ luật cũ (OT vào sớm + về muộn, tối đa 30 phút).', 'Dashboard đọc cột J “Phút tính lương” bot ghi; ca chưa check-out / chưa có cột J tự tính cùng công thức caCong_ (lương tạm tính ở Tổng quan, PNL, Thu chi). Nhân sự: bảng nhân viên thêm cột Giờ tính lương, bảng chấm công thêm cột Tính lương (+phút vào sớm). Tự kiểm: bất biến 85.']},
@@ -5017,7 +5018,7 @@ function ctTheoNgay(ct, hist, k){
 const ctKhoa = k => k ? DINH_LUONG_CU.map((h, i) => k <= h.den ? i : '').join('') : '';
 /** Giá vốn 1 ly theo công thức: {gv, thieu:[nguyên liệu chưa có giá], coCT}; k = ngày bán (không truyền = định lượng hiện hành) */
 /** v1.7.66 (bot sizelon-v1, chủ quán 19/10): hệ số công thức size lớn (DonHang cột M) nhân lượng nguyên liệu, TRỪ nguyên liệu đơn vị tính "cái" (ly, nắp, ống hút, túi: vẫn 1 cái / ly) */
-const NL_KHONG_SIZE = new Set(['da']);   // v1.7.67 (chủ quán 19/10): đá viên size lớn không đổi; đường × 1,3
+const NL_KHONG_SIZE = new Set(['da', 'thc']);   // v1.7.67 (chủ quán 19/10): đá viên size lớn không đổi; đường × 1,3 · v1.7.133 (chủ chốt 06/11, bot apptv-v2 @206 SIZE_LON.khongNhan): thạch cà phê thc cũng không nhân
 const heSoNL = (hs, dvTinh, ma) => hs && hs !== 1 && !/^cái$/i.test(String(dvTinh || "").trim()) && !NL_KHONG_SIZE.has(String(ma || "").toLowerCase()) ? hs : 1;
 function giaVonMon(ma, G, k, hs = 1){
   const ct = ctTheoNgay(D.congThuc[String(ma).toLowerCase()], DINH_LUONG_CU, k);
