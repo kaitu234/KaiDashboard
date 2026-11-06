@@ -632,7 +632,7 @@ html.mcap{background:var(--paper)}
     <div class="fi" id="gTuW"><label for="dFrom">Từ ngày</label><input type="date" id="dFrom"></div>
     <div class="fi" id="gDenW"><label for="dTo">Đến ngày</label><input type="date" id="dTo"></div>
     <div class="fi"><label for="fNv">Nhân viên</label><select id="fNv"><option value="">Tất cả</option></select></div>
-    <div class="fi"><label for="fPt">Thanh toán</label><select id="fPt"><option value="">Tất cả</option><option value="TM">💵 Tiền mặt</option><option value="CK">🏦 Chuyển khoản</option></select></div>
+    <div class="fi"><label for="fPt">Thanh toán</label><select id="fPt"><option value="">Tất cả</option><option value="TM">💵 Tiền mặt</option><option value="CK">🏦 Chuyển khoản</option><option value="BE">🛵 App be</option><option value="XANH">🛵 App Xanh SM</option></select></div>
     <div class="fi"><label for="fMon">Món</label><select id="fMon"><option value="">Tất cả</option></select></div>
     <div class="fi"><label for="fDay">Loại ngày</label><select id="fDay"><option value="">Tất cả</option><option value="thuong">Ngày giá thường</option><option value="km">🏷 Mọi ngày khuyến mãi</option><option value="dg15">🏷 Đồng giá 15K</option><option value="promo">🏷 Khai trương 10K</option><option value="wkend">Cuối tuần (T7–CN)</option><option value="wkday">Ngày thường (T2–T6)</option></select></div>
     <div class="fi"><label for="fTgt">Mục tiêu ly/ngày</label><input type="number" id="fTgt" min="1" step="5" value="80"></div>
@@ -1534,7 +1534,8 @@ function parseWorkbook(wb){
     const k = dayKey(r[2]) || dk(toDate(r[1])); if (!k) return;
     const t = toDate(r[1]);
     if (txt(r[10]).toUpperCase() !== 'OK'){ if (txt(r[10]).toUpperCase() === 'HUY') D.cancel.push({id:txt(r[0]), k, tt:num(r[8]), sl:num(r[6])}); return; }
-    D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: txt(r[9]).toUpperCase() === 'CK' ? 'CK' : 'TM', hs: num(r[12]) > 0 ? num(r[12]) : 1, tv: /th[aà]nh\s*vi[eê]n/i.test(txt(r[11]))});   // v1.7.110: đơn thẻ thành viên (bot ghi chú "Thành viên −2.000/ly")   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
+    D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: (p => p === 'CK' || p === 'BE' || p === 'XANH' ? p : 'TM')(txt(r[9]).toUpperCase()),   // v1.7.134 (bot apptv-v1 @205): J = BE / XANH là đơn app — đơn giá đã là thực nhận; tiền app để riêng, không vào TM/CK/chốt ca/quỹ
+      hs: num(r[12]) > 0 ? num(r[12]) : 1, tv: /th[aà]nh\s*vi[eê]n/i.test(txt(r[11]))});   // v1.7.110: đơn thẻ thành viên (bot ghi chú "Thành viên −2.000/ly")   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
   });
   rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE', tat:tatMon(r[5])}; });
   // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái · Sổ chi (H = "202610:47" nếu /chiphi đã tự ghi vào dòng 47 sổ Chi T10-2026; trống = chưa vào sổ)
@@ -1747,9 +1748,12 @@ function sel(skip = new Set(), from = S.from, to = S.to){
     && (skip.has('nv') || !S.nv || o.nv === S.nv) && (skip.has('pt') || !S.pt || o.pt === S.pt)
     && (skip.has('mon') || !S.mon || o.mon === S.mon) && (skip.has('hour') || S.hour == null || o.h === S.hour));
 }
+/** v1.7.134 (chủ chốt 06/11/2026: "tiền app tôi quản lí tách riêng tiền chốt ca") — đơn app be / Xanh SM: vẫn là doanh thu (thực nhận) nhưng KHÔNG vào tiền mặt, CK, đối soát chốt ca hay quỹ tiền */
+const laApp = o => o.pt === 'BE' || o.pt === 'XANH';
+const appTxt = (be, xanh) => [be ? `be ${fmt(be)} đ` : '', xanh ? `Xanh SM ${fmt(xanh)} đ` : ''].filter(Boolean).join(' · ');
 function agg(list){
-  const a = {ly:0, dt:0, tm:0, ck:0, ids:new Set(), days:new Set()};
-  list.forEach(o => { a.ly += o.sl; a.dt += o.tt; if (o.pt === 'CK') a.ck += o.tt; else a.tm += o.tt; a.ids.add(o.id); a.days.add(o.k); });
+  const a = {ly:0, dt:0, tm:0, ck:0, app:0, be:0, xanh:0, ids:new Set(), days:new Set()};
+  list.forEach(o => { a.ly += o.sl; a.dt += o.tt; if (o.pt === 'CK') a.ck += o.tt; else if (laApp(o)){ a.app += o.tt; if (o.pt === 'BE') a.be += o.tt; else a.xanh += o.tt; } else a.tm += o.tt; a.ids.add(o.id); a.days.add(o.k); });
   a.don = a.ids.size; a.nd = a.days.size; a.asp = a.ly ? a.dt / a.ly : null; a.aov = a.don ? a.dt / a.don : null;
   return a;
 }
@@ -2426,11 +2430,12 @@ function renderTdKy(){
   /* tiền & lãi */
   datCt('tdMoney', 'Tiền & lãi trong kỳ', '· lãi như tab PNL');
   const chiK = D.botChi.filter(c => c.k >= Q.tu && c.k <= K.denThuc), chiKet = chiK.filter(c => c.nguon !== 'CK').reduce((x, c) => x + c.tien, 0);
-  const NTk = nguonTien(), TC = {tm:0, ck:0, chua:0, n:0}; days.forEach(d => { const n = NTk[d]; if (!n) return; if (n.chot){ TC.tm += n.tm; TC.ck += n.ck; } else if (n.bot){ TC.chua += n.bot; TC.n++; } });   // v1.7.58: TM / CK theo chốt ca
+  const NTk = nguonTien(), TC = {tm:0, ck:0, chua:0, n:0, app:0}; days.forEach(d => { const n = NTk[d]; if (!n) return; TC.app += n.app; if (n.chot){ TC.tm += n.tm; TC.ck += n.ck; } else if (n.bot){ TC.chua += n.bot; TC.n++; } });   // v1.7.58: TM / CK theo chốt ca
   $('tdMoney').innerHTML = `<span>🔒 Thực thu sau chốt ca</span><b>${fmt(TC.tm + TC.ck)} đ</b>
     <span>💵 Tiền mặt (giữ lại)</span><b>${fmt(TC.tm)} đ</b>
     <span>🏦 CK (kể cả tiền mặt đã nộp vào CK)</span><b>${fmt(TC.ck)} đ</b>
     ${TC.n ? `<span>⏳ Chưa chốt ca · ${TC.n} ngày (đơn bot)</span><b>${fmt(TC.chua)} đ</b>` : ''}
+    ${TC.app ? `<span>🛵 Đơn app (để riêng, không vào két)</span><b>${fmt(TC.app)} đ</b>` : ''}
     <span>Chi từ két trong kỳ</span><b>${chiKet ? '−' + fmt(chiKet) + ' đ' : '0 đ'}</b>
     <span class="sep"></span>
     ${tdPnlHtml(P, days, false)}`;
@@ -2479,7 +2484,7 @@ function renderTdKy(){
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${dShort(o.k)}<br>${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it">${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' ? 'neu' : 'warn'}">${o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it">${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -2534,7 +2539,8 @@ function renderToday(){
   const nTM = new Set(L.filter(o => o.pt === 'TM').map(o => o.id)).size, nCK = new Set(L.filter(o => o.pt === 'CK').map(o => o.id)).size;
   $('tdMoney').innerHTML = `${(() => { const n = nguonTien()[k]; return `<span>Tỉ lệ chuyển khoản <span class="muted">(${n && n.chot ? 'theo chốt ca' : 'chưa chốt ca — nhân viên không bấm 🏦 từng đơn'})</span></span><b>${n && n.chot && n.tt ? pct(n.ck / n.tt) : '—'}</b>`; })()}
     ${(() => { const n = nguonTien()[k]; return n && n.tt ? `<span class="sep"></span>
-    ${n.chot ? `<span>🔒 Thực thu sau chốt ca</span><b>${fmt(n.tt)} đ</b>
+    ${n.app ? `<span>🛵 Đơn app (để riêng) · ${appTxt(n.be, n.xanh)}</span><b>${fmt(n.app)} đ</b>` : ''}
+    ${n.chot ? `<span>🔒 Thực thu sau chốt ca${n.app ? ' (gồm app)' : ''}</span><b>${fmt(n.tt)} đ</b>
     <span>💵 Tiền mặt (giữ lại)</span><b>${fmt(n.tm)} đ</b>
     <span>🏦 CK (kể cả tiền mặt đã nộp vào CK)</span><b>${fmt(n.ck)} đ</b>` : `<span>⏳ Chưa chốt ca — tiền mặt / CK biết sau khi /chotca</span><b>—</b>`}` : ''; })()}
     <span class="sep"></span>
@@ -2600,7 +2606,7 @@ function renderToday(){
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it">${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' ? 'neu' : 'warn'}">${o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it">${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -2616,10 +2622,10 @@ function renderToday(){
   table({id:'tTdChi', rows:chiK, sortDefault:{k:'tien', d:-1}, total:chiK.length ? {tien:chiK.reduce((s, x) => s + x.tien, 0)} : null, cols:[
     {k:'nd', l:'Nội dung'}, {k:'tien', l:'Số tiền', r:1, f:fmt}, {k:'nguon', l:'Nguồn', f:v => v === 'CK' ? '🏦 CK' : '💵 Két'}, {k:'ai', l:'Người ghi'}]});
   if (!chiK.length) $('tTdChi').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center;padding:12px">Chưa có khoản chi từ két.</td></tr>';
-  const ch = D.chot.filter(x => x.k === k);
-  $('tdChot').innerHTML = ch.length ? ch.map(x => `🔒 <b>Đã chốt ca</b> (${esc(x.nv)}): ${x.ckThuc != null ? `TM ${fmt(x.thucThu)} đ + CK ${fmt(x.ckThuc)} đ = ${fmt(x.thucThu + x.ckThuc)} đ` : `két thực thu ${fmt(x.thucThu)} đ`} / phải có theo bot ${fmt(x.phaiCo)} đ → ${x.chenh === 0 ? '<b class="up">khớp</b>' : x.chenh > 0 ? `<b>dư ${fmt(x.chenh)} đ</b>` : `<b class="dn">thiếu ${fmt(-x.chenh)} đ</b>`}`).join('<br>')
+  const ch = D.chot.filter(x => x.k === k), apK = agg(L.filter(laApp)), apTd = apK.app ? `<br>🛵 <b>Đơn app</b> ${appTxt(apK.be, apK.xanh)} — để riêng, không tính vào két / chênh` : '';
+  $('tdChot').innerHTML = (ch.length ? ch.map(x => `🔒 <b>Đã chốt ca</b> (${esc(x.nv)}): ${x.ckThuc != null ? `TM ${fmt(x.thucThu)} đ + CK ${fmt(x.ckThuc)} đ = ${fmt(x.thucThu + x.ckThuc)} đ` : `két thực thu ${fmt(x.thucThu)} đ`} / phải có theo bot ${fmt(x.phaiCo)} đ → ${x.chenh === 0 ? '<b class="up">khớp</b>' : x.chenh > 0 ? `<b>dư ${fmt(x.chenh)} đ</b>` : `<b class="dn">thiếu ${fmt(-x.chenh)} đ</b>`}`).join('<br>')
     : (tk => tk ? `🔒 <b>Đã chốt ca</b> (tick ở tab Doanh thu): Lệch ${tk.chenh === 0 ? '<b class="up">khớp</b>' : tk.chenh > 0 ? `<b>dư ${fmt(tk.chenh)} đ</b>` : `<b class="dn">thiếu ${fmt(-tk.chenh)} đ</b>`}`
-      : `🔓 <b>Chưa chốt ca.</b> Chốt bằng <code>/chotca</code> ở bot hoặc báo số cho Claude (tab Doanh thu tự tick CHỐT CA). Bot nhắc chủ từ 12:00, rồi 3 tiếng 1 lần.`)(D.chotSheet.find(x => x.k === k));
+      : `🔓 <b>Chưa chốt ca.</b> Chốt bằng <code>/chotca</code> ở bot hoặc báo số cho Claude (tab Doanh thu tự tick CHỐT CA). Bot nhắc chủ từ 12:00, rồi 3 tiếng 1 lần.`)(D.chotSheet.find(x => x.k === k))) + apTd;
 }
 
 /* ============ doanh thu THỰC THU (cho tài chính) ============
@@ -2637,10 +2643,10 @@ function doanhThuThuCore(orders, chot, legacy, tk, tick){
   // v1.7.11 (chủ chốt 15/10/2026): chốt ca ghi tick CHỐT CA + Lệch ở tab Doanh thu (bot /chotca hoặc chủ báo số cho Claude). Ngày đã tick mà không có dòng ChotCa → dùng Lệch; có cả hai → ChotCa thắng (không cộng hai lần)
   const tickMoi = [], thay = new Set(chotNgay); (tick || []).forEach(t => { if (!thay.has(t.k)) { thay.add(t.k); tickMoi.push(t); } });
   tickMoi.forEach(t => chotNgay.add(t.k));
-  orders.forEach(o => { cong(mkey(o.k), o.tt); bot += o.tt; });
+  let app = 0; orders.forEach(o => { cong(mkey(o.k), o.tt); bot += o.tt; if (o.pt === 'BE' || o.pt === 'XANH') app += o.tt; });
   if (!orders.length) legacy.forEach(r => { cong(mkey(r.k), r.tt); bot += r.tt; });
   else { chot.forEach(c => { cong(mkey(c.k), c.chenh); chenh += c.chenh; }); tickMoi.forEach(t => { cong(mkey(t.k), t.chenh); chenh += t.chenh; }); }
-  return {thang, tong:bot + chenh, bot, chenh, ngayBan:ngayBan.size, ngayChot:[...ngayBan].filter(k => chotNgay.has(k)).length, chuaChot:[...ngayBan].filter(k => k < tk && !chotNgay.has(k)).sort()};
+  return {thang, tong:bot + chenh, bot, chenh, app, ngayBan:ngayBan.size, ngayChot:[...ngayBan].filter(k => chotNgay.has(k)).length, chuaChot:[...ngayBan].filter(k => k < tk && !chotNgay.has(k)).sort()};
 }
 const doanhThuThu = () => doanhThuThuCore(D.orders, D.chot, D.legacyRev, today(), D.chotSheet);
 /** v1.7.6 — Tiền còn lại tách 2 cục (chủ quán chốt 14/10/2026): mặc định mọi khoản (vốn góp, chi, doanh thu) là tiền CK; chỉ phần doanh thu từng ngày chủ báo "giữ lại thành tiền mặt" (cột Trích tiền mặt tab Doanh thu: 13/10 giữ 500.000, 14/10 giữ 669.000) là tiền mặt.
@@ -2649,19 +2655,19 @@ const doanhThuThu = () => doanhThuThuCore(D.orders, D.chot, D.legacyRev, today()
  *  ngày đã chốt (dòng ChotCa có hiệu lực hoặc tick CHỐT CA) → thực thu = đơn bot + Lệch; 💵 mặt = phần chủ báo giữ lại (cột Trích tiền mặt, tối đa bằng thực thu), 🏦 CK = phần còn lại (đã nộp vào CK);
  *  ngày chưa chốt ca → theo đơn bot (mặt / CK theo cách nhân viên bấm lúc bán), đánh dấu chot = false (tạm). Trả { 'yyyy-mm-dd': {tt, tm, ck, chot, bot} }. */
 function nguonTienCore(orders, chot, tick, tienMat){
-  const ngay = {}, ds = k => ngay[k] || (ngay[k] = {k, bot:0, botTm:0, botCk:0, giu:0, chot:false, chenh:0});
-  orders.forEach(o => { const d = ds(o.k); d.bot += o.tt; if (o.pt === 'CK') d.botCk += o.tt; else d.botTm += o.tt; });
+  const ngay = {}, ds = k => ngay[k] || (ngay[k] = {k, bot:0, botTm:0, botCk:0, app:0, be:0, xanh:0, giu:0, chot:false, chenh:0});
+  orders.forEach(o => { const d = ds(o.k); d.bot += o.tt; if (o.pt === 'CK') d.botCk += o.tt; else if (o.pt === 'BE' || o.pt === 'XANH'){ d.app += o.tt; d[o.pt === 'BE' ? 'be' : 'xanh'] += o.tt; } else d.botTm += o.tt; });   // v1.7.134: tiền app để riêng (tt = tm + ck + app)
   chot.forEach(c => { const d = ds(c.k); d.chot = true; d.chenh = c.chenh; });
   (tick || []).forEach(t => { const d = ds(t.k); if (!d.chot){ d.chot = true; d.chenh = t.chenh; } });
   (tienMat || []).forEach(x => { ds(x.k).giu += x.tm; });
   Object.values(ngay).forEach(d => {
-    if (d.chot){ d.tt = d.bot + d.chenh; d.tm = Math.max(0, Math.min(d.giu, d.tt)); d.ck = d.tt - d.tm; }
+    if (d.chot){ d.tt = d.bot + d.chenh; const q = d.tt - d.app; d.tm = Math.max(0, Math.min(d.giu, q)); d.ck = q - d.tm; }
     else { d.tt = d.bot; d.tm = d.botTm; d.ck = d.botCk; }
   });
   return ngay;
 }
 /** Cộng nguồn tiền các ngày trong danh sách days → {tt, tm, ck, chuaChot (số ngày có bán mà chưa chốt, đang tính theo đơn bot)} */
-const nguonTienTong = (ngay, days) => days.reduce((s, k) => { const d = ngay[k]; if (!d) return s; s.tt += d.tt; s.tm += d.tm; s.ck += d.ck; if (!d.chot && d.bot) s.chuaChot++; return s; }, {tt:0, tm:0, ck:0, chuaChot:0});
+const nguonTienTong = (ngay, days) => days.reduce((s, k) => { const d = ngay[k]; if (!d) return s; s.tt += d.tt; s.tm += d.tm; s.ck += d.ck; s.app += d.app; if (!d.chot && d.bot) s.chuaChot++; return s; }, {tt:0, tm:0, ck:0, app:0, chuaChot:0});
 const nguonTien = () => nguonTienCore(D.orders, D.chot, D.chotSheet, D.tienMat);
 function quyTienCore(cash, tienMat, tk, daChuyen, doi, chiTM){
   // v1.7.14 (chủ quán chốt 15/10/2026): tab Quỹ tiền có cột "ĐÃ CHUYỂN TM VÀO QUỸ CK" (ô tick theo ngày) — ngày đã tick thì phần tiền mặt giữ lại của ngày đó đã nộp vào CK, không còn là tiền mặt
@@ -2688,7 +2694,7 @@ function renderFin(){
   const CN = chiVaNoCore(D.chi, D.traTruoc), totalChi = CN.tong, chiNo = CN.no, tongNo = CN.tongNo;
   const capitalIn = D.capital.filter(c => /góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
   const otherIn = D.capital.filter(c => !/góp/i.test(c.type)).reduce((s, c) => s + c.amt, 0);
-  const cash = D.opening + capitalIn + otherIn + totalRev - CN.tra, QT = quyTienCore(cash, D.tienMat, today(), D.daChuyenCK, D.doiTM, D.chi.concat(D.traTruoc).filter(r => r.tm && !r.no && r.amt > 0));   // v1.7.6: 2 cục tiền mặt / CK · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
+  const cash = D.opening + capitalIn + otherIn + totalRev - DT.app - CN.tra, QT = quyTienCore(cash, D.tienMat, today(), D.daChuyenCK, D.doiTM, D.chi.concat(D.traTruoc).filter(r => r.tm && !r.no && r.amt > 0));   // v1.7.6: 2 cục tiền mặt / CK · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
   const botChua = D.botChi.filter(c => !c.so);   // chỉ khoản chưa vào sổ Chi tháng mới làm tiền quỹ lệch (từ bot note-v3 /chiphi tự ghi vào sổ)
   const botKet = botChua.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
   const isFr = r => r.block === 'Vận hành' && /nhượng quyền/i.test(r.desc);
@@ -3166,7 +3172,7 @@ function renderPnl(){
 const planIn = id => Math.max(0, parseFloat($(id).value) || 0);
 const PLAN_IDS = ['plLy', 'plTang', 'plGia', 'plCogs', 'plLuong', 'plCd', 'plBien'];
 const tienQuyHienTai = () => D.opening + D.capital.reduce((s, c) => s + c.amt, 0)
-  + doanhThuThu().tong - chiVaNoCore(D.chi, D.traTruoc).tra;   // v1.7.1: tiền thực thu · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
+  + doanhThuThu().tong - doanhThuThu().app - chiVaNoCore(D.chi, D.traTruoc).tra;   // v1.7.1: tiền thực thu · v1.7.10: chỉ trừ chi đã trả tiền (công nợ chưa trừ)
 
 /** Số liệu nền cho kế hoạch: 14 ngày có bán gần nhất (ly/ngày, từng món, giá vốn từng món, lương TB, tiền quỹ) */
 function nenTangKH(){
@@ -3324,7 +3330,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.133';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.134';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3382,6 +3388,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.134', ngay:'06/11/2026', nd:['Đơn app be / Xanh SM (bot apptv-v1 @205, chủ chốt 06/11: tiền app quản lí tách riêng tiền chốt ca): DonHang cột J = BE / XANH, đơn giá đã là tiền thực nhận. Vẫn tính doanh thu, nhưng KHÔNG vào tiền mặt, CK, đối soát chốt ca hay quỹ tiền (trước đây bị tính như tiền mặt).', 'Hiện riêng: dòng 🛵 Đơn app ở Hôm nay (tiền & chốt ca), cột App ở Doanh thu thuần, nhãn 🛵 be / Xanh SM ở đơn mới nhất, bộ lọc Thanh toán thêm App be / App Xanh SM. Tự kiểm: bất biến 87.']},
   {v:'v1.7.133', ngay:'06/11/2026', nd:['Thạch cà phê (thc) không nhân hệ số size lớn, như đá viên (chủ chốt 06/11, cùng bot apptv-v2 @206).']},
   {v:'v1.7.132', ngay:'06/11/2026', nd:['Giờ danh nghĩa và Lương/giờ danh nghĩa (chủ chốt 06/11): giờ danh nghĩa = giờ trong ca theo lịch, không gồm OT vào sớm / về muộn (= cột J − K của ChamCong; ca sáng đủ = 5 giờ); lương/giờ danh nghĩa = tiền công ÷ giờ danh nghĩa — mỗi giờ ca thật tốn bao nhiêu khi đã cộng OT, phụ cấp. Có ở tab Nhân sự (bảng nhân viên, bảng chấm công) và thẻ Ca, lương & két tab Hôm nay (thêm giờ tính lương, tiền công; ca đang làm ghi tạm). Chủ (tiền công 0) để —. Tự kiểm: bất biến 86.']},
   {v:'v1.7.131', ngay:'05/11/2026', nd:['Sửa ví dụ mẫu của tự kiểm 85 (luật OT cũ: 05:20→10:55 = 330 phút, bỏ 5 phút). Số trên Sheet đã khớp: 12 ca từ 01/11 cột J = cách tính của dashboard.']},
@@ -4105,6 +4112,9 @@ function tuKiem(){
     { const L0 = D.lich; D.lich = {ca:[{ma:'S', bd:'05:30', kt:'10:30'}], dk:[]};
       try { const k = '2026-11-06', v = g => new Date(k + 'T' + g + ':00'), a = gioDN({k, vao:v('05:28'), ra:v('10:46'), phutL:301, otTinh:1}), b = gioDN({k, vao:v('05:15'), ra:null}, v('10:30')), c = gioDN({k, vao:v('05:45'), ra:v('11:00'), phutL:null});
         ok('Giờ danh nghĩa = giờ trong ca, không gồm OT: J 301 − K 1 = 5 giờ · 05:15→10:30 = 5 giờ · vào trễ 05:45→11:00 = 4,75 giờ · lương/giờ danh nghĩa 138.333 ÷ 5 = 27.667', a === 5 && b === 5 && c === 4.75 && Math.round(138333 / a) === 27667, a + ' · ' + b + ' · ' + c); } finally { D.lich = L0; } }
+    // 87. v1.7.134 — đơn app (J = BE/XANH): vào doanh thu, không vào TM/CK/quỹ; ngày đã chốt: tm + ck = thực thu − app
+    { const nA = nguonTienCore([{k:'2026-11-06', tt:299000, pt:'TM'}, {k:'2026-11-06', tt:45120, pt:'BE'}, {k:'2026-11-07', tt:100, pt:'TM'}, {k:'2026-11-07', tt:50, pt:'XANH'}, {k:'2026-11-07', tt:20, pt:'CK'}], [{k:'2026-11-06', chenh:0}], [], [{k:'2026-11-06', tm:154000}]), a6 = nA['2026-11-06'], a7 = nA['2026-11-07'], gA = agg([{sl:1, tt:45120, pt:'BE', id:'a', k:'x'}, {sl:1, tt:10, pt:'TM', id:'b', k:'x'}]);
+      ok('Đơn app be / Xanh SM: tính doanh thu nhưng để riêng — 06/11 chốt: thực thu 344.120 = mặt 154.000 + CK 145.000 + app 45.120 · chưa chốt: mặt 100 · CK 20 · app 50 · agg tm không gồm app', a6.tt === 344120 && a6.tm === 154000 && a6.ck === 145000 && a6.app === 45120 && a7.tm === 100 && a7.ck === 20 && a7.app === 50 && a7.xanh === 50 && gA.tm === 10 && gA.app === 45120 && gA.dt === 45130, a6.tm + ' + ' + a6.ck + ' + ' + a6.app); }
   } catch(e){ ok('Tự kiểm chạy được', false, e.message); }
   finally { S.day = keep; }
   return R;
@@ -4689,8 +4699,8 @@ function renderDtt(){
   const lyNgay = {}; D.orders.forEach(o => { lyNgay[o.k] = (lyNgay[o.k] || 0) + o.sl; });
   const days = rangeDays(S.from, S.to).filter(k => dayOk(k) && NT[k] && (NT[k].tt || NT[k].bot));
   const rows = days.map(k => { const d = NT[k], ly = lyNgay[k] || 0;
-    return {k, thu:thu(k), tm:d.tm, ck:d.ck, tt:d.tt, bot:d.bot, lech: d.chot ? d.tt - d.bot : null, ly, gia: ly ? d.tt / ly : null, chot:d.chot, momo: k in SH.momo ? SH.momo[k] : null, note:SH.note[k] || ''}; });
-  const T = rows.reduce((a, r) => { a.tt += r.tt; a.tm += r.tm; a.ck += r.ck; a.bot += r.bot; a.ly += r.ly; a.lech += r.lech || 0; a.chot += r.chot ? 1 : 0; return a; }, {tt:0, tm:0, ck:0, bot:0, ly:0, lech:0, chot:0});
+    return {k, thu:thu(k), tm:d.tm, ck:d.ck, app:d.app, tt:d.tt, bot:d.bot, lech: d.chot ? d.tt - d.bot : null, ly, gia: ly ? d.tt / ly : null, chot:d.chot, momo: k in SH.momo ? SH.momo[k] : null, note:SH.note[k] || ''}; });
+  const T = rows.reduce((a, r) => { a.tt += r.tt; a.tm += r.tm; a.ck += r.ck; a.app += r.app; a.bot += r.bot; a.ly += r.ly; a.lech += r.lech || 0; a.chot += r.chot ? 1 : 0; return a; }, {tt:0, tm:0, ck:0, app:0, bot:0, ly:0, lech:0, chot:0});
   const n = rows.length, chua = rows.filter(r => !r.chot).length;
   $('dttKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Doanh thu thực thu</span><span class="v">${fmt(T.tt)}</span><span class="s">${n} ngày bán · TB ${fmt(n ? Math.round(T.tt / n) : 0)} đ/ngày</span></div>
@@ -4706,11 +4716,11 @@ function renderDtt(){
     options:{scales:{x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
       plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} đ`, footer:it => { const r = rows[it[0].dataIndex]; return r ? `Thực thu: ${fmt(r.tt)} đ${r.chot ? '' : ' (chưa chốt ca)'}` : ''; }}}}}});
   $('lgDtt').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt</span><span><i style="background:${s2}"></i>Chuyển khoản</span><span><i class="dash"></i>Bot ghi đơn</span>`;
-  $('dttCmt').innerHTML = !n ? 'Chưa có ngày bán trong kỳ.' : `Kỳ ${dShort(S.from)} → ${dShort(S.to)}: thực thu <b>${fmt(T.tt)} đ</b> (tiền mặt ${fmt(T.tm)} · CK ${fmt(T.ck)}), bot ghi ${fmt(T.bot)} đ, lệch <b class="${T.lech < 0 ? 'dn' : ''}">${T.lech > 0 ? '+' : ''}${fmt(T.lech)} đ</b>.${chua ? ` <span class="pill warn">${chua} ngày chưa chốt ca</span> đang tạm lấy theo đơn bot.` : ''} Ngày đã chốt: thực thu = đơn bot + chênh két, tiền mặt = trích tiền mặt (cột C tab Doanh thu), còn lại là CK. MoMo chỉ để đối soát, không cộng vào doanh thu.`;
+  $('dttCmt').innerHTML = !n ? 'Chưa có ngày bán trong kỳ.' : `Kỳ ${dShort(S.from)} → ${dShort(S.to)}: thực thu <b>${fmt(T.tt)} đ</b> (tiền mặt ${fmt(T.tm)} · CK ${fmt(T.ck)}${T.app ? ` · app để riêng ${fmt(T.app)}` : ''}), bot ghi ${fmt(T.bot)} đ, lệch <b class="${T.lech < 0 ? 'dn' : ''}">${T.lech > 0 ? '+' : ''}${fmt(T.lech)} đ</b>.${chua ? ` <span class="pill warn">${chua} ngày chưa chốt ca</span> đang tạm lấy theo đơn bot.` : ''} Ngày đã chốt: thực thu = đơn bot + chênh két, tiền mặt = trích tiền mặt (cột C tab Doanh thu), còn lại là CK. MoMo chỉ để đối soát, không cộng vào doanh thu.`;
   const coMomo = rows.some(r => r.momo != null);
-  table({id:'tDtt', rows, sortDefault:{k:'k', d:-1}, total:{tm:T.tm, ck:T.ck, tt:T.tt, bot:T.bot, lech:T.lech, ly:T.ly, gia: T.ly ? T.tt / T.ly : null}, cols:[
+  table({id:'tDtt', rows, sortDefault:{k:'k', d:-1}, total:{tm:T.tm, ck:T.ck, app:T.app, tt:T.tt, bot:T.bot, lech:T.lech, ly:T.ly, gia: T.ly ? T.tt / T.ly : null}, cols:[
     {k:'k', l:'Ngày', f:(v, r) => r && r.thu ? `${r.thu} ${dShort(v)}` : ''},
-    {k:'tm', l:'Tiền mặt', r:1, f:fmt}, {k:'ck', l:'Chuyển khoản', r:1, f:fmt}, {k:'tt', l:'Thực thu', r:1, heat:1, f:fmt},
+    {k:'tm', l:'Tiền mặt', r:1, f:fmt}, {k:'ck', l:'Chuyển khoản', r:1, f:fmt}, ...(T.app ? [{k:'app', l:'🛵 App (riêng)', r:1, f:v => v ? fmt(v) : '—'}] : []), {k:'tt', l:'Thực thu', r:1, heat:1, f:fmt},
     {k:'bot', l:'Bot ghi', r:1, f:fmt}, {k:'lech', l:'Lệch', r:1, f:v => v == null ? '—' : v === 0 ? '<span class="up">khớp</span>' : (v > 0 ? '+' : '') + fmt(v), cls:v => v ? (v < 0 ? 'dn' : '') : ''},
     {k:'ly', l:'Ly', r:1, f:fmt}, {k:'gia', l:'Giá TB/ly', r:1, f:v => v == null ? '—' : fmt(Math.round(v))},
     {k:'chot', l:'Chốt ca', f:(v, r) => !r || r.thu === undefined ? '' : v ? '<span class="pill good">✓</span>' : '<span class="pill warn">chưa</span>'},
@@ -5371,7 +5381,7 @@ function syncFilters(){
 }
 function renderChips(){
   const c = [];
-  if (S.nv) c.push(['nv', `Nhân viên: ${S.nv}`]); if (S.pt) c.push(['pt', S.pt === 'CK' ? 'Chuyển khoản' : 'Tiền mặt']);
+  if (S.nv) c.push(['nv', `Nhân viên: ${S.nv}`]); if (S.pt) c.push(['pt', ({CK:'Chuyển khoản', BE:'App be', XANH:'App Xanh SM'})[S.pt] || 'Tiền mặt']);
   if (S.mon) c.push(['mon', `Món: ${S.mon}`]); if (S.hour != null) c.push(['hour', `Khung ${p2(S.hour)}h`]);
   if (S.day) c.push(['day', $('fDay').selectedOptions[0].textContent]);
   $('chips').hidden = !c.length;
