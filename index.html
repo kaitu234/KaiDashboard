@@ -1750,6 +1750,7 @@ function sel(skip = new Set(), from = S.from, to = S.to){
 }
 /** v1.7.134 (chủ chốt 06/11/2026: "tiền app tôi quản lí tách riêng tiền chốt ca") — đơn app be / Xanh SM: vẫn là doanh thu (thực nhận) nhưng KHÔNG vào tiền mặt, CK, đối soát chốt ca hay quỹ tiền */
 const laApp = o => o.pt === 'BE' || o.pt === 'XANH';
+const appThang = m => D.orders.filter(o => laApp(o) && mkey(o.k) === m).reduce((s, o) => s + o.tt, 0);   // tiền app của tháng m (trừ khỏi dòng tiền / quỹ, vẫn ở doanh thu và lãi)
 const appTxt = (be, xanh) => [be ? `be ${fmt(be)} đ` : '', xanh ? `Xanh SM ${fmt(xanh)} đ` : ''].filter(Boolean).join(' · ');
 function agg(list){
   const a = {ly:0, dt:0, tm:0, ck:0, app:0, be:0, xanh:0, ids:new Set(), days:new Set()};
@@ -2790,7 +2791,7 @@ function renderFin(){
   const mRows = allM.map(m => { const c = D.chi.filter(r => r.m === m);
     const by = b => c.filter(r => blockOf(r) === b).reduce((s, r) => s + r.amt, 0);
     const cap = D.capital.filter(x => mkey(x.k) === m).reduce((s, x) => s + x.amt, 0);
-    const rev = revByMonth[m] || 0, cn = chiVaNoCore(c, D.traTruoc.filter(r => r.m === m)), chi = cn.tong, flow = cap + rev - cn.tra; run += flow;   // v1.7.10: dòng tiền chỉ trừ chi đã trả tiền
+    const rev = revByMonth[m] || 0, cn = chiVaNoCore(c, D.traTruoc.filter(r => r.m === m)), chi = cn.tong, flow = cap + rev - appThang(m) - cn.tra; run += flow;   // v1.7.136: tiền app không vào quỹ   // v1.7.10: dòng tiền chỉ trừ chi đã trả tiền
     return {m, rev, gv:by('Giá vốn'), vh:by('Vận hành') + by('Nhân sự') + by('Khác'), dt:by('Đầu tư'), chi, no:cn.tongNo, flow, run, empty:!rev && !chi && !cap}; });
   const nz = v => v ? fmt(v) : '–';
   S.sort.tMonth = {k:'m', d:1};
@@ -2817,7 +2818,7 @@ function renderFin(){
       const ns = c.filter(r => blockOf(r) === 'Nhân sự' && !r.tamLuong).reduce((a, r) => a + r.amt, 0) + congTam.filter(x => mkey(x.k) === m).reduce((a, x) => a + (x.tien || 0) + (x.cc || 0), 0) + (D.thuongPhat || []).filter(x => mkey(x.k) === m && !daChotLuong(x.id, x.k)).reduce((a, x) => a + x.tien, 0);
       const vh = c.filter(r => !['Đầu tư', 'Giá vốn', 'Nhân sự', '?'].includes(blockOf(r)) && !laBoQua(r) && !laChoKem(r)).reduce((a, r) => a + r.amt, 0) + c.filter(r => laChoKem(r) && !laBoQua(r)).reduce((a, r) => a + r.amt, 0);
       const dt = c.filter(r => blockOf(r) === 'Đầu tư').reduce((a, r) => a + r.amt, 0), gop = D.capital.filter(x => mkey(x.k) === m && /góp/i.test(x.type)).reduce((a, x) => a + x.amt, 0), khac = D.capital.filter(x => mkey(x.k) === m && !/góp/i.test(x.type)).reduce((a, x) => a + x.amt, 0);
-      const cn = chiVaNoCore(c, D.traTruoc.filter(r => r.m === m)), flow = gop + khac + rev - cn.tra, lai = rev - gv - ns - vh, dau = quy; quy += flow; luy += lai; dtLuy += dt;
+      const cn = chiVaNoCore(c, D.traTruoc.filter(r => r.m === m)), flow = gop + khac + rev - appThang(m) - cn.tra, lai = rev - gv - ns - vh, dau = quy; quy += flow; luy += lai; dtLuy += dt;
       const ck = c.filter(r => laChoKem(r) && !laBoQua(r)).reduce((a, r) => a + r.amt, 0), chuaPL = c.filter(r => blockOf(r) === '?').reduce((a, r) => a + r.amt, 0);
       return {m, rev, gv, ck, chuaPL, dau, gvPct: rev ? gv / rev : null, ns, vh, lai, bien: rev ? lai / rev : null, dt, gop, khac, no:cn.tongNo, flow, quy, luy, thv: dtLuy ? Math.max(0, luy) / dtLuy : null, empty: !rev && !c.length && !gop && !khac}; }).filter(r => !r.empty);
     FIN_THANG = thang; }
@@ -3331,7 +3332,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.135';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.136';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3389,6 +3390,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.136', ngay:'06/11/2026', nd:['Thu chi: dòng tiền và tổng tiền cuối tháng (bảng tháng, Tổng hợp theo tháng) trừ tiền app như thẻ Tiền quỹ còn lại — trước đây bảng tháng còn cộng 45.120 đ tiền app vào quỹ.']},
   {v:'v1.7.135', ngay:'06/11/2026', nd:['Thu chi: thẻ mới 🛵 Tiền app (quỹ riêng) cạnh Tiền quỹ còn lại — tổng tiền app thực nhận be / Xanh SM, số ly, tháng này (chủ chốt 06/11: quỹ tiền tách app ra 1 thẻ cho dễ quản lý; doanh thu, lãi, hiệu suất vẫn tính tiền app).']},
   {v:'v1.7.134', ngay:'06/11/2026', nd:['Đơn app be / Xanh SM (bot apptv-v1 @205, chủ chốt 06/11: tiền app quản lí tách riêng tiền chốt ca): DonHang cột J = BE / XANH, đơn giá đã là tiền thực nhận. Vẫn tính doanh thu, nhưng KHÔNG vào tiền mặt, CK, đối soát chốt ca hay quỹ tiền (trước đây bị tính như tiền mặt).', 'Hiện riêng: dòng 🛵 Đơn app ở Hôm nay (tiền & chốt ca), cột App ở Doanh thu thuần, nhãn 🛵 be / Xanh SM ở đơn mới nhất, bộ lọc Thanh toán thêm App be / App Xanh SM. Tự kiểm: bất biến 87.']},
   {v:'v1.7.133', ngay:'06/11/2026', nd:['Thạch cà phê (thc) không nhân hệ số size lớn, như đá viên (chủ chốt 06/11, cùng bot apptv-v2 @206).']},
