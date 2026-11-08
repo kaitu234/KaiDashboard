@@ -1,0 +1,11 @@
+﻿KAI CAFÉ – STANDEE VÒM ẢNH THẬT – GHI CHÚ GỬI NHÀ IN (bản 08/11/2026, giờ mở cửa 5:30 – 10:30)
+
+1. File in: standee-vom_598x1014mm.pdf
+   - Khổ thành phẩm: 598 x 1014,5 mm, cắt theo vòm (bán kính 299 mm).
+   - File đã chừa lề 3 mm mỗi cạnh: khổ file 604 x 1020,5 mm.
+   - Chữ dạng vector. Ảnh ly khoảng 190-200 dpi theo kích thước thật.
+   - In nguyên bản, CHƯA dán sticker (3 sticker tròn Ø 10 cm in riêng trên decal A4, quán tự dán).
+2. Đường cắt: standee-vom_duong-cat_598x1014mm.pdf, cùng khổ 604 x 1020,5 mm, đặt chồng khít lên file in.
+3. Màu: nâu #5E3B25 (C0 M37 Y61 K63), be #EBDCC3 (C0 M6 Y17 K8).
+4. Chữ: đã chuyển toàn bộ thành nét (outline), file không còn font nào, nhà in không cần cài font.
+   Font gốc dùng để dựng: Space Mono Bold, IBM Plex Mono Medium.
