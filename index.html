@@ -3347,7 +3347,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.144';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.145';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3405,6 +3405,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.145', ngay:'08/11/2026', nd:['Tự kiểm 76 (loại ngày) cập nhật: 07/11 là ngày giá thường (chủ bỏ đồng giá), 08/11 + 14/11 đồng giá 15K.']},
   {v:'v1.7.144', ngay:'08/11/2026', nd:['Đồng giá cuối tuần: chỉ bỏ T7 07/11; CN 08/11 giữ đồng giá 15K vì khách đã trả (bot @217, chủ chốt 08/11).']},
   {v:'v1.7.143', ngay:'08/11/2026', nd:['Hiệu suất (chủ nhờ 08/11): thêm Tỉ suất lợi nhuận gộp (lãi gộp ÷ doanh thu của kỳ đang lọc), Doanh thu hoà vốn / tháng (lương + chi cố định + vận hành ÷ tỉ suất gộp, so với doanh thu tháng này) và Doanh thu hoàn vốn đầu tư dự kiến (vốn đầu tư ÷ tỉ suất gộp).', 'Đồng giá cuối tuần bỏ T7 07/11 + CN 08/11 (bot @216, chủ chốt 08/11); từ T7 14/11 như cũ.']},
   {v:'v1.7.142', ngay:'06/11/2026', nd:['Lịch làm bỏ chủ quán chỉ TỪ 01/11/2026, cùng bot chulich-v1 (@214); lịch tháng 10 của chủ giữ nguyên (chuyên cần tháng 10 đã trả không đổi).']},
@@ -3966,7 +3967,7 @@ function tuKiem(){
       [S.gKy, S.gMoc, S.preset, S.from, S.to] = keep;
       ok('Kỳ xem: T10 = 01–31/10 · ◀ ngày 20/10 → 19/10 · tuần chứa 22/10 = T2 19/10–CN 25/10, ◀ → 12/10 · ◀ tháng T11 → T10 đủ tháng', o.join(',') === '2026-10-01~2026-10-31,2026-10-19,2026-10-19~2026-10-25,2026-10-12,2026-10-01~2026-10-31|m:2026-10', o.join(' · ')); }
     // 76. v1.7.104 — loại ngày: 10K 10–16/10 · đồng giá 15K (31/10, 01/11 bật tay; T7/CN từ 07/11) · còn lại giá thường
-    ok('Loại ngày khuyến mãi: 12/10 = 10K · 31/10, 01/11, 07/11, 08/11 = 15K · 06/11 (T6), 02/11 = giá thường', ['2026-10-12', '2026-10-31', '2026-11-01', '2026-11-07', '2026-11-08', '2026-11-06', '2026-11-02'].map(loaiNgay).join() === 'km10,dg15,dg15,dg15,dg15,thuong,thuong', ['2026-10-12', '2026-10-31', '2026-11-07', '2026-11-06'].map(loaiNgay).join('/'));
+    ok('Loại ngày khuyến mãi: 12/10 = 10K · 31/10, 01/11, 08/11, 14/11 = 15K · 07/11 (T7 chủ bỏ đồng giá), 06/11 (T6), 02/11 = giá thường', ['2026-10-12', '2026-10-31', '2026-11-01', '2026-11-08', '2026-11-14', '2026-11-07', '2026-11-06', '2026-11-02'].map(loaiNgay).join() === 'km10,dg15,dg15,dg15,dg15,thuong,thuong,thuong', ['2026-10-12', '2026-10-31', '2026-11-07', '2026-11-06'].map(loaiNgay).join('/'));
     // 69. v1.7.80 — Lịch làm theo đợt: đợt = ngày liên tiếp của 1 người, tổng ngày/giờ/lương khớp block lịch ở tab NhanVien của Sheet
     { const dkL = (k, nv, tt) => ({k, ca:'S', id:nv, nv, tt:tt || 'OK'}), caL = [{ma:'S', bd:'05:30', kt:'10:30'}],
         dkT = [dkL('2026-11-07', 'bơ'), dkL('2026-11-08', 'bơ'), dkL('2026-11-09', 'bơ'), dkL('2026-11-10', 'Q'), dkL('2026-11-11', 'Q'), dkL('2026-11-14', 'bơ'), dkL('2026-11-12', 'N', 'HUY'), dkL('2026-10-01', 'bơ')],
