@@ -1767,6 +1767,11 @@ function sel(skip = new Set(), from = S.from, to = S.to){
 const laApp = o => o.pt === 'BE' || o.pt === 'XANH';
 const appThang = m => D.orders.filter(o => laApp(o) && mkey(o.k) === m).reduce((s, o) => s + o.tt, 0);   // tiền app của tháng m (trừ khỏi dòng tiền / quỹ, vẫn ở doanh thu và lãi)
 const appTxt = (be, xanh) => [be ? `be ${fmt(be)} đ` : '', xanh ? `Xanh SM ${fmt(xanh)} đ` : ''].filter(Boolean).join(' · ');
+/** v1.7.149 (chủ nhờ 08/11: "nhân viên ko nói thì biết hôm nay bán app ra sao") — thẻ 🛵 Đơn app cho Hôm nay, Bán hàng, Doanh thu thuần: luôn hiện (kể cả 0) */
+function appKpi(list, nhan){
+  const all = agg(list), ap = agg(list.filter(laApp)), apBe = agg(list.filter(o => o.pt === 'BE')), apX = agg(list.filter(o => o.pt === 'XANH'));
+  return `<div class="kpi tgt"><span class="lb">🛵 Đơn app · ${esc(nhan)}</span><span class="v">${fmt(ap.app)}</span><span class="s">${ap.don ? `<b>${fmt(ap.don)} đơn · ${fmt(ap.ly)} ly</b> · ${pct(all.dt ? ap.app / all.dt : null, 0)} doanh thu<br>be ${fmt(apBe.app)} (${apBe.don} đơn) · Xanh SM ${fmt(apX.app)} (${apX.don} đơn) · thực nhận, chủ giữ riêng` : 'chưa có đơn be / Xanh SM'}</span></div>`;
+}
 function agg(list){
   const a = {ly:0, dt:0, tm:0, ck:0, app:0, be:0, xanh:0, ids:new Set(), days:new Set()};
   list.forEach(o => { a.ly += o.sl; a.dt += o.tt; if (o.pt === 'CK') a.ck += o.tt; else if (laApp(o)){ a.app += o.tt; if (o.pt === 'BE') a.be += o.tt; else a.xanh += o.tt; } else a.tm += o.tt; a.ids.add(o.id); a.days.add(o.k); });
@@ -2187,6 +2192,7 @@ function renderSales(){
       <span class="s">Đang bán TB <b>${fmt(lyNgayTT)} ly/ngày</b> (đã qua ${mElapsed}/${activeDays} ngày bán, dự phóng tháng ${fmt(runRate)} ly)<br>Đủ trả lương: <b>${fmt(beThuc.sauLuong)} ly/ngày</b> · hoà vốn vận hành (lương + chi vận hành + cố định): <b>${fmt(beThuc.vanHanh)} ly/ngày</b><br>Giá TB 7 ngày gần nhất ${fmt(HV.giaThuc)} đ/ly · giá vốn ${fmt(HV.cogs)} đ/ly</span></div>
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu</span><span class="v ${achv == null ? '' : achv >= 1 ? 'up' : achv >= .9 ? '' : 'dn'}">${pct(achv)}</span>
       <span class="s">${fmt(A.ly)} / ${fmt(tgtLy)} ly · ${S.tgt} ly × ${A.nd} ngày bán</span></div>`;
+  $('kpis').insertAdjacentHTML('beforeend', appKpi(L, 'kỳ đang lọc'));
 
 
   /* --- payment donut --- */
@@ -2442,6 +2448,7 @@ function renderTdKy(){
     <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${dlt(A.aov, KT.A.aov)} vs ${Q.nhanT} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu</span><span class="v ${muc && A.ly >= muc ? 'up' : ''}">${muc ? pct(A.ly / muc) : '—'}</span>
       <div class="meter"><i style="width:${muc ? Math.min(100, A.ly / muc * 100) : 0}%"></i></div><span class="s">${fmt(A.ly)} / ${fmt(muc)} ly (${K.nd} ngày bán × ${S.tgt})</span></div>`;
+  $('tdKpis').insertAdjacentHTML('beforeend', appKpi(K.L, 'trong kỳ'));
 
   /* tiền & lãi */
   datCt('tdMoney', 'Tiền & lãi trong kỳ', '· lãi như tab PNL');
@@ -2549,6 +2556,7 @@ function renderToday(){
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu ngày</span><span class="v ${A.ly >= S.tgt ? 'up' : ''}">${pct(A.ly / S.tgt)}</span>
       <div class="meter"><i style="width:${Math.min(100, A.ly / S.tgt * 100)}%"></i></div><span class="s">${fmt(A.ly)} / ${S.tgt} ly${A.ly < S.tgt ? ` · còn ${S.tgt - A.ly} ly` : ' · đã đạt'}</span></div>
 `;
+  $('tdKpis').insertAdjacentHTML('beforeend', appKpi(L, isToday ? 'hôm nay' : 'ngày này'));   // v1.7.149: thẻ đơn app — nhân viên không báo vẫn thấy hôm nay bán app ra sao
 
   /* money */
   const chiK = D.botChi.filter(c => c.k === k), chiKet = chiK.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
@@ -3347,7 +3355,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.148';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.149';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3405,6 +3413,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.149', ngay:'08/11/2026', nd:['Thẻ 🛵 Đơn app ở Hôm nay, Bán hàng, Doanh thu thuần (chủ nhờ 08/11): tiền thực nhận app, số đơn / ly, % doanh thu, tách be / Xanh SM — luôn hiện kể cả khi chưa có đơn app.']},
   {v:'v1.7.148', ngay:'08/11/2026', nd:['Tài liệu: nhóm mới “Ảnh bìa” đầu danh sách — 6 mẫu ảnh bìa (tối giản 1000 × 500 · 1280 × 1400 · 640 × 700, theo menu, như bìa cũ, theo vòm) tải được ảnh gốc; ảnh bìa menu 3 món chuyển từ nhóm Hình ảnh quán sang nhóm này.']},
   {v:'v1.7.147', ngay:'08/11/2026', nd:['Tài liệu · Standee vòm: PDF in (giờ 5:30 – 10:30) đã chuyển chữ thành nét, không còn font, nhà in không cần cài font; thêm file đường cắt cắt vòm (đặt chồng khít lên file in) và ghi chú gửi nhà in.']},
   {v:'v1.7.146', ngay:'08/11/2026', nd:['Thẻ tiền app đổi tên “🛵 App (chủ giữ riêng)” cùng chữ của bot @218.']},
@@ -4766,6 +4775,7 @@ function renderDtt(){
     <div class="kpi main"><span class="lb">Lệch tiền thực vs đơn bot</span><span class="v ${T.lech < 0 ? 'dn' : ''}">${T.lech > 0 ? '+' : ''}${fmt(T.lech)}</span><span class="s">bot ghi ${fmt(T.bot)} đ · ${T.lech < 0 ? 'thiếu' : T.lech > 0 ? 'dư' : 'khớp'} ở các ngày đã chốt</span></div>
     <div class="kpi tgt"><span class="lb">Số ly · giá TB/ly thực thu</span><span class="v">${fmt(T.ly)}</span><span class="s">${T.ly ? fmt(Math.round(T.tt / T.ly)) + ' đ/ly' : '—'}</span></div>
     <div class="kpi tgt"><span class="lb">Ngày đã chốt ca</span><span class="v ${chua ? 'dn' : 'up'}">${T.chot}/${n}</span><span class="s">${chua ? `${chua} ngày chưa chốt: tạm tính theo đơn bot` : 'đủ, số là tiền thực thu'}</span></div>`;
+  $('dttKpis').insertAdjacentHTML('beforeend', appKpi(D.orders.filter(o => o.k >= S.from && o.k <= S.to && dayOk(o.k)), 'kỳ đang lọc'));   // v1.7.149: thẻ đơn app
   mk('cDtt', {type:'bar', data:{labels:rows.map(r => `${r.thu} ${dShort(r.k)}`), datasets:[
       Object.assign({label:'Tiền mặt', data:rows.map(r => r.tm), stack:'a', order:2}, barStyle(s1), {borderRadius:0}),
       Object.assign({label:'Chuyển khoản', data:rows.map(r => r.ck), stack:'a', order:2}, barStyle(s2)),
