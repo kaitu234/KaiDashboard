@@ -2198,10 +2198,10 @@ function renderSales(){
   /* --- payment donut --- */
   const s1 = css('--s1'), s2 = css('--s2'), s3 = css('--s3'), ghost = css('--ghost'), surf = css('--surface');
   // v1.7.58 (chủ quán 18/10): nhân viên không bấm 🏦 từng đơn → TM / CK lấy từ chốt ca; ngày chưa chốt tách riêng (không dồn vào TM)
-  const NTb = nguonTien(), PY = {tm:0, ck:0, chua:0, nChua:0}; rangeDays(S.from, S.to).forEach(k => { const n = NTb[k]; if (!n) return; if (n.chot){ PY.tm += n.tm; PY.ck += n.ck; } else if (n.bot){ PY.chua += n.bot; PY.nChua++; } }); PY.tt = PY.tm + PY.ck + PY.chua;
-  mk('cPay', {type:'doughnut', data:{labels:['Tiền mặt','Chuyển khoản','Chưa chốt (đơn bot)'], datasets:[{data:[PY.tm, PY.ck, PY.chua], backgroundColor:[s1, s2, ghost], borderColor:surf, borderWidth:2}]},
+  const NTb = nguonTien(), PY = {tm:0, ck:0, chua:0, nChua:0, app:0}; rangeDays(S.from, S.to).forEach(k => { const n = NTb[k]; if (!n) return; PY.app += n.app; if (n.chot){ PY.tm += n.tm; PY.ck += n.ck; } else if (n.bot){ PY.chua += n.bot - n.app; PY.nChua++; } }); PY.tt = PY.tm + PY.ck + PY.chua + PY.app;   // v1.7.152: app là lát riêng (trước đây ngày chốt thiếu app, ngày chưa chốt app nằm trong 'chưa chốt')
+  mk('cPay', {type:'doughnut', data:{labels:['Tiền mặt','Chuyển khoản','Chưa chốt (đơn bot)','🛵 App (chủ giữ riêng)'], datasets:[{data:[PY.tm, PY.ck, PY.chua, PY.app], backgroundColor:[s1, s2, ghost, s3], borderColor:surf, borderWidth:2}]},
     options:{cutout:'62%', plugins:{tooltip:{callbacks:{label:c => ` ${c.label}: ${fmt(c.raw)} đ (${pct(PY.tt ? c.raw / PY.tt : 0)})`}}}}});
-  $('lgPay').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt <b class="num">${fmtK(PY.tm)}</b> · ${pct(PY.tt ? PY.tm/PY.tt : null)}</span><span><i style="background:${s2}"></i>Chuyển khoản <b class="num">${fmtK(PY.ck)}</b> · ${pct(PY.tt ? PY.ck/PY.tt : null)}</span>${PY.chua ? `<span><i style="background:${ghost}"></i>Chưa chốt ${PY.nChua} ngày <b class="num">${fmtK(PY.chua)}</b> (đơn bot)</span>` : ''}<span class="muted">· theo chốt ca</span>`;
+  $('lgPay').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt <b class="num">${fmtK(PY.tm)}</b> · ${pct(PY.tt ? PY.tm/PY.tt : null)}</span><span><i style="background:${s2}"></i>Chuyển khoản <b class="num">${fmtK(PY.ck)}</b> · ${pct(PY.tt ? PY.ck/PY.tt : null)}</span>${PY.chua ? `<span><i style="background:${ghost}"></i>Chưa chốt ${PY.nChua} ngày <b class="num">${fmtK(PY.chua)}</b> (đơn bot)</span>` : ''}${PY.app ? `<span><i style="background:${s3}"></i>🛵 App <b class="num">${fmtK(PY.app)}</b> · ${pct(PY.tt ? PY.app/PY.tt : null)}</span>` : ''}<span class="muted">· theo chốt ca</span>`;
   const chotIn = D.chot.filter(c => c.k >= S.from && c.k <= S.to);
   const chenh = chotIn.reduce((s, c) => s + c.chenh, 0);
   $('payCmt').innerHTML = `Tiền mặt / CK lấy từ số chốt ca (tiền mặt = phần giữ lại; CK gồm cả tiền mặt đã nộp vào tài khoản). Ngày chưa chốt ca chưa biết tách nên để riêng, theo đơn bot. Bộ lọc nhân viên / món / thanh toán không áp cho thẻ này. Chi tiết và chênh két: tab <a href="#" data-goto="dtt">Doanh thu thuần →</a>.`;
@@ -2441,7 +2441,7 @@ function renderTdKy(){
   const muc = S.tgt * K.nd;
   $('tdKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Doanh thu (đơn bot)</span><span class="v">${fmt(A.dt)}</span><span class="s">${ss(A.dt, KT.A.dt)}${tb(A.dt)}</span></div>
-    <div class="kpi main"><span class="lb">Thực thu (sau chốt ca)</span><span class="v">${fmt(K.T.tt)}</span><span class="s">${(() => { let tm = 0, ck = 0, chua = 0; const N = nguonTien(); (K.denThuc >= Q.tu ? rangeDays(Q.tu, K.denThuc) : []).forEach(d => { const n = N[d]; if (!n) return; if (n.chot){ tm += n.tm; ck += n.ck; } else chua += n.bot || 0; }); return `💵 ${fmt(tm)} · 🏦 ${fmt(ck)}${chua ? ` · chưa chốt ${fmt(chua)} (đơn bot)` : ''}`; })()}</span></div>
+    <div class="kpi main"><span class="lb">Thực thu (sau chốt ca)</span><span class="v">${fmt(K.T.tt)}</span><span class="s">${(() => { let tm = 0, ck = 0, chua = 0, app = 0; const N = nguonTien(); (K.denThuc >= Q.tu ? rangeDays(Q.tu, K.denThuc) : []).forEach(d => { const n = N[d]; if (!n) return; app += n.app || 0; if (n.chot){ tm += n.tm; ck += n.ck; } else chua += (n.bot || 0) - (n.app || 0); }); return `💵 ${fmt(tm)} · 🏦 ${fmt(ck)}${chua ? ` · chưa chốt ${fmt(chua)} (đơn bot)` : ''}${app ? ` · 🛵 app ${fmt(app)}` : ''}`; })()}</span></div>
     <div class="kpi tgt"><span class="lb">Lãi gộp</span><span class="v ${P && P.laiGop < 0 ? 'dn' : 'up'}">${P ? fmt(P.laiGop) : '—'}</span><span class="s">${P ? `biên ${pct(P.dt ? P.laiGop / P.dt : null)} · ${ss(P.laiGop, KT.P ? KT.P.laiGop : null)}${hvTxt(P, K.nd, 'luong')}` : 'chưa có đơn'}</span></div>
     <div class="kpi tgt"><span class="lb">Lãi sau lương</span><span class="v ${sauL != null && sauL < 0 ? 'dn' : 'up'}">${sauL == null ? '—' : fmt(sauL)}</span><span class="s">${P ? `lương ${fmt(P.luong)} · lãi vận hành ${fmt(P.laiVH)}${hvTxt(P, K.nd, 'vh')}` : 'chưa có đơn'}</span></div>
     <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${ss(A.ly, KT.A.ly)}${tb(A.ly)}</span></div>
@@ -2454,7 +2454,7 @@ function renderTdKy(){
   /* tiền & lãi */
   datCt('tdMoney', 'Tiền & lãi trong kỳ', '· lãi như tab PNL');
   const chiK = D.botChi.filter(c => c.k >= Q.tu && c.k <= K.denThuc), chiKet = chiK.filter(c => c.nguon !== 'CK').reduce((x, c) => x + c.tien, 0);
-  const NTk = nguonTien(), TC = {tm:0, ck:0, chua:0, n:0, app:0}; days.forEach(d => { const n = NTk[d]; if (!n) return; TC.app += n.app; if (n.chot){ TC.tm += n.tm; TC.ck += n.ck; } else if (n.bot){ TC.chua += n.bot; TC.n++; } });   // v1.7.58: TM / CK theo chốt ca
+  const NTk = nguonTien(), TC = {tm:0, ck:0, chua:0, n:0, app:0}; days.forEach(d => { const n = NTk[d]; if (!n) return; TC.app += n.app; if (n.chot){ TC.tm += n.tm; TC.ck += n.ck; } else if (n.bot){ TC.chua += n.bot - n.app; TC.n++; } });   // v1.7.152: app hiện dòng riêng, không cộng trùng · v1.7.58: TM / CK theo chốt ca
   $('tdMoney').innerHTML = `<span>🔒 Thực thu sau chốt ca</span><b>${fmt(TC.tm + TC.ck)} đ</b>
     <span>💵 Tiền mặt (giữ lại)</span><b>${fmt(TC.tm)} đ</b>
     <span>🏦 CK (kể cả tiền mặt đã nộp vào CK)</span><b>${fmt(TC.ck)} đ</b>
@@ -2562,7 +2562,7 @@ function renderToday(){
   /* money */
   const chiK = D.botChi.filter(c => c.k === k), chiKet = chiK.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
   const nTM = new Set(L.filter(o => o.pt === 'TM').map(o => o.id)).size, nCK = new Set(L.filter(o => o.pt === 'CK').map(o => o.id)).size;
-  $('tdMoney').innerHTML = `${(() => { const n = nguonTien()[k]; return `<span>Tỉ lệ chuyển khoản <span class="muted">(${n && n.chot ? 'theo chốt ca' : 'chưa chốt ca — nhân viên không bấm 🏦 từng đơn'})</span></span><b>${n && n.chot && n.tt ? pct(n.ck / n.tt) : '—'}</b>`; })()}
+  $('tdMoney').innerHTML = `${(() => { const n = nguonTien()[k]; return `<span>Tỉ lệ chuyển khoản <span class="muted">(${n && n.chot ? 'theo chốt ca' : 'chưa chốt ca — nhân viên không bấm 🏦 từng đơn'})</span></span><b>${n && n.chot && n.tt - n.app ? pct(n.ck / (n.tt - n.app)) : '—'}</b>`; })()}
     ${(() => { const n = nguonTien()[k]; return n && n.tt ? `<span class="sep"></span>
     ${n.app ? `<span>🛵 Đơn app (để riêng) · ${appTxt(n.be, n.xanh)}</span><b>${fmt(n.app)} đ</b>` : ''}
     ${n.chot ? `<span>🔒 Thực thu sau chốt ca${n.app ? ' (gồm app)' : ''}</span><b>${fmt(n.tt)} đ</b>
@@ -3356,7 +3356,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.151';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.152';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3414,6 +3414,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.152', ngay:'08/11/2026', nd:['Soát tiền app: biểu đồ tròn TM / CK (Bán hàng) thêm lát 🛵 App; Hôm nay theo kỳ không cộng app 2 lần vào “chưa chốt ca”; tỉ lệ chuyển khoản hôm nay tính trên tiền két (không gồm app).']},
   {v:'v1.7.151', ngay:'08/11/2026', nd:['Icon thẻ: Lệch / chênh → ⚖️, Số ly → ☕ (trước bị gắn nhầm).']},
   {v:'v1.7.150', ngay:'08/11/2026', nd:['Biểu đồ thêm phần 🛵 App (cột chồng màu caramel): Doanh thu thực thu theo ngày (Doanh thu thuần) và cơ cấu tiền mặt / CK theo ngày (Bán hàng) — trước đây cột thiếu tiền app nên thấp hơn nét đứt bot ghi.']},
   {v:'v1.7.149', ngay:'08/11/2026', nd:['Thẻ 🛵 Đơn app ở Hôm nay, Bán hàng, Doanh thu thuần (chủ nhờ 08/11): tiền thực nhận app, số đơn / ly, % doanh thu, tách be / Xanh SM — luôn hiện kể cả khi chưa có đơn app.']},
