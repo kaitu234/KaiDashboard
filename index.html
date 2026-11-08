@@ -153,6 +153,8 @@ details.guide p{margin:4px 0;max-width:110ch}
 .kpi.main:has(.v.dn){border-left-color:#F08A7C}
 .kpi.main .v.up{color:#9FE0B4} .kpi.main .v.dn{color:#FFB4A8}
 .kpi .lb .ki{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:7px;background:rgba(193,140,82,.16);font-size:14px;line-height:1;letter-spacing:0;text-transform:none;vertical-align:middle}
+.amons .amon{width:22px;height:22px;margin:-2px 3px -2px 0}.amons .amon:last-child{margin-right:7px}
+.dbtn + .amon{margin-left:4px}
 .amon{width:26px;height:26px;border-radius:7px;object-fit:cover;vertical-align:middle;margin:-3px 8px -3px 0;background:#EAD9BE;box-shadow:0 0 0 1px var(--line)}
 .kpi.main .lb .ki{background:rgba(255,255,255,.13)}
 .kpi.tgt:has(.v.dn) .lb .ki{background:rgba(200,70,50,.14)}
@@ -2506,12 +2508,12 @@ function renderTdKy(){
   /* đơn trong kỳ */
   datCt('tdFeed', 'Đơn trong kỳ');
   const ord = [...groupBy(K.L, o => o.id)].map(([id, l]) => ({id, k:l[0].k, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((x, o) => x + o.tt, 0), ly:l.reduce((x, o) => x + o.sl, 0),
-    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', ')})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
+    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', '), anh:l.map(o => o.ma)})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${dShort(o.k)}<br>${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it">${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -2629,12 +2631,12 @@ function renderToday(){
 
   /* feed */
   const ord = [...groupBy(L, o => o.id)].map(([id, l]) => ({id, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((s, o) => s + o.tt, 0), ly:l.reduce((s, o) => s + o.sl, 0),
-    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', ')})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
+    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', '), anh:l.map(o => o.ma)})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it">${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -3359,7 +3361,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.154';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.155';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3417,6 +3419,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.155', ngay:'08/11/2026', nd:['Ảnh món thêm ở: bảng món chính tab Món (dòng có nút ＋), Đơn mới nhất (Hôm nay), Cặp món cùng đơn (Hiệu suất, ảnh cả 2 món).']},
   {v:'v1.7.154', ngay:'08/11/2026', nd:['Ảnh nhỏ của món (ảnh phiên Marketing) trước tên món trong mọi bảng có cột Món: Hôm nay, Bán hàng, Món, Mã món, Kế hoạch, Kiểm chứng, Báo cáo…']},
   {v:'v1.7.153', ngay:'08/11/2026', nd:['Icon thẻ số: mỗi loại 1 icon riêng — đơn 🧾, ly ☕, giá TB/ly 🏷️, ly/giờ công ⚡, ly/ngày 📊, tỉ suất 📐, hoà vốn 🏁, hoàn vốn 🔁, chuyển khoản 📲, lương/giờ 🪙, hụt 📉, chi 📤, chốt ca 🔒, thử việc 🌱, thâm niên 🏆…; icon nằm trong ô nền cho nổi.']},
   {v:'v1.7.152', ngay:'08/11/2026', nd:['Soát tiền app: biểu đồ tròn TM / CK (Bán hàng) thêm lát 🛵 App; Hôm nay theo kỳ không cộng app 2 lần vào “chưa chốt ca”; tỉ lệ chuyển khoản hôm nay tính trên tiền két (không gồm app).']},
@@ -5527,13 +5530,20 @@ function tenMonAnh(){
   ((D && D.orders) || []).forEach(o => { if (o.mon && ANH_MON[o.ma] && !m[o.mon.toLowerCase()]) m[o.mon.toLowerCase()] = o.ma; });
   tenMonAnh.d = D; return tenMonAnh.ds = Object.entries(m).sort((a, b) => b[0].length - a[0].length);
 }
+const anhMonImg = ma => `<img class="amon" src="tai-lieu/mon/${ANH_MON[ma]}.jpg" alt="" loading="lazy" width="26" height="26">`;
+/** Ảnh món theo danh sách mã (dòng đơn có nhiều món: tối đa 3 ảnh) */
+const anhMonHtml = mas => [...new Set(mas || [])].filter(m => ANH_MON[m]).slice(0, 3).map(anhMonImg).join('');
+/** v1.7.155: mọi bảng có cột chứa chữ "món" (Món, Cặp món cùng đơn…); ô có nút ＋ mở rộng thì ảnh nằm sau nút; ô "A + B" gắn ảnh từng món */
 function ganAnhMon(){
   if (!D) return; const ds = tenMonAnh(); if (!ds.length) return;
+  const tim = t => { t = t.trim().toLowerCase(); const h = ds.find(([ten]) => t === ten || t.startsWith(ten + ' ') || t.startsWith(ten + ' (')); return h ? h[1] : null; };
   document.querySelectorAll('table').forEach(tb => {
-    const i = [...tb.querySelectorAll('thead th')].findIndex(th => /^món\b/i.test(th.textContent.trim())); if (i < 0) return;
+    const i = [...tb.querySelectorAll('thead th')].findIndex(th => /món/i.test(th.textContent) && !/mã món|số món/i.test(th.textContent)); if (i < 0) return;
     tb.querySelectorAll('tbody tr').forEach(tr => { const td = tr.children[i]; if (!td || td.colSpan > 1 || td.querySelector('.amon')) return;
-      const t = td.textContent.trim().toLowerCase(), hit = ds.find(([ten]) => t === ten || t.startsWith(ten + ' ') || t.startsWith(ten + ' ('));
-      if (hit) td.insertAdjacentHTML('afterbegin', `<img class="amon" src="tai-lieu/mon/${ANH_MON[hit[1]]}.jpg" alt="" loading="lazy" width="26" height="26">`); });
+      const t = [...td.childNodes].filter(n => !(n.nodeType === 1 && n.tagName === 'BUTTON')).map(n => n.textContent).join('');
+      const mas = t.includes(' + ') ? t.split(' + ').map(tim) : [tim(t)]; if (!mas.every(Boolean)) return;
+      const html = mas.map(anhMonImg).join(''), nut = td.querySelector(':scope > button');
+      if (nut) nut.insertAdjacentHTML('afterend', html); else td.insertAdjacentHTML('afterbegin', html); });
   });
 }
 new MutationObserver(() => { clearTimeout(ganIconKpi.t); ganIconKpi.t = setTimeout(() => { ganIconKpi(); ganAnhMon(); }, 30); }).observe(document.documentElement, {childList:true, subtree:true});
