@@ -829,7 +829,7 @@ html.mcap{background:var(--paper)}
     <nav class="jnav" aria-label="Mục lục tab Doanh thu thuần"></nav>
     <div class="kpis" id="dttKpis"></div>
     <div class="card" id="sec-dtt-ngay">
-      <div class="ct">Doanh thu thực thu theo ngày <span class="nt">· cột chồng = tiền mặt + chuyển khoản · nét đứt = doanh thu bot ghi đơn</span></div>
+      <div class="ct">Doanh thu thực thu theo ngày <span class="nt">· cột chồng = tiền mặt + chuyển khoản + app · nét đứt = doanh thu bot ghi đơn</span></div>
       <div class="cw"><canvas id="cDtt" aria-label="Doanh thu thực thu theo ngày, tiền mặt và chuyển khoản"></canvas></div>
       <div class="legend" id="lgDtt"></div>
       <div class="cmt" id="dttCmt"></div>
@@ -2240,14 +2240,15 @@ function renderSales(){
 
   /* --- mix --- */
   const NTd = nguonTien(), dtD = days.map(k => (byDay.get(k) || []).reduce((s, o) => s + o.tt, 0));   // v1.7.58: TM / CK theo chốt ca; giá TB/ly vẫn theo đơn bot
-  const tmD = days.map(k => NTd[k] && NTd[k].chot ? NTd[k].tm : null), ckD = days.map(k => NTd[k] && NTd[k].chot ? NTd[k].ck : null), chuaD = days.map(k => NTd[k] && !NTd[k].chot && NTd[k].bot ? NTd[k].bot : null);
+  const tmD = days.map(k => NTd[k] && NTd[k].chot ? NTd[k].tm : null), ckD = days.map(k => NTd[k] && NTd[k].chot ? NTd[k].ck : null), chuaD = days.map(k => NTd[k] && !NTd[k].chot && NTd[k].bot - NTd[k].app ? NTd[k].bot - NTd[k].app : null), appD = days.map(k => NTd[k] && NTd[k].app ? NTd[k].app : null);   // v1.7.150: tiền app là cột riêng
   mk('cMix', {type:'bar', data:{labels:days.map(k => dShort(k)), datasets:[
       Object.assign({label:'Tiền mặt', data:tmD, stack:'a'}, barStyle(s1), {borderRadius:0}),
       Object.assign({label:'Chuyển khoản', data:ckD, stack:'a'}, barStyle(s2)),
-      Object.assign({label:'Chưa chốt ca (đơn bot)', data:chuaD, stack:'a'}, barStyle(ghost))]},
+      Object.assign({label:'Chưa chốt ca (đơn bot)', data:chuaD, stack:'a'}, barStyle(ghost)),
+      Object.assign({label:'🛵 App (chủ giữ riêng)', data:appD, stack:'a'}, barStyle(s3))]},
     options:{scales:{x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
       plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} đ`, footer:it => `Tổng: ${fmt(it.reduce((s, x) => s + (x.raw || 0), 0))} đ`}}}}});
-  $('lgMix').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt</span><span><i style="background:${s2}"></i>Chuyển khoản</span><span><i style="background:${ghost}"></i>Chưa chốt ca (đơn bot)</span>`;
+  $('lgMix').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt</span><span><i style="background:${s2}"></i>Chuyển khoản</span><span><i style="background:${ghost}"></i>Chưa chốt ca (đơn bot)</span><span><i style="background:${s3}"></i>🛵 App</span>`;
 
   /* --- asp --- */
   const aspD = days.map((k, i) => dayLy[i] ? dtD[i] / dayLy[i] : null);
@@ -3355,7 +3356,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.149';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.150';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3413,6 +3414,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.150', ngay:'08/11/2026', nd:['Biểu đồ thêm phần 🛵 App (cột chồng màu caramel): Doanh thu thực thu theo ngày (Doanh thu thuần) và cơ cấu tiền mặt / CK theo ngày (Bán hàng) — trước đây cột thiếu tiền app nên thấp hơn nét đứt bot ghi.']},
   {v:'v1.7.149', ngay:'08/11/2026', nd:['Thẻ 🛵 Đơn app ở Hôm nay, Bán hàng, Doanh thu thuần (chủ nhờ 08/11): tiền thực nhận app, số đơn / ly, % doanh thu, tách be / Xanh SM — luôn hiện kể cả khi chưa có đơn app.']},
   {v:'v1.7.148', ngay:'08/11/2026', nd:['Tài liệu: nhóm mới “Ảnh bìa” đầu danh sách — 6 mẫu ảnh bìa (tối giản 1000 × 500 · 1280 × 1400 · 640 × 700, theo menu, như bìa cũ, theo vòm) tải được ảnh gốc; ảnh bìa menu 3 món chuyển từ nhóm Hình ảnh quán sang nhóm này.']},
   {v:'v1.7.147', ngay:'08/11/2026', nd:['Tài liệu · Standee vòm: PDF in (giờ 5:30 – 10:30) đã chuyển chữ thành nét, không còn font, nhà in không cần cài font; thêm file đường cắt cắt vòm (đặt chồng khít lên file in) và ghi chú gửi nhà in.']},
@@ -4779,10 +4781,11 @@ function renderDtt(){
   mk('cDtt', {type:'bar', data:{labels:rows.map(r => `${r.thu} ${dShort(r.k)}`), datasets:[
       Object.assign({label:'Tiền mặt', data:rows.map(r => r.tm), stack:'a', order:2}, barStyle(s1), {borderRadius:0}),
       Object.assign({label:'Chuyển khoản', data:rows.map(r => r.ck), stack:'a', order:2}, barStyle(s2)),
+      Object.assign({label:'🛵 App (chủ giữ riêng)', data:rows.map(r => r.app || null), stack:'a', order:2}, barStyle(css('--s3'))),   // v1.7.150
       {type:'line', label:'Bot ghi đơn', data:rows.map(r => r.bot), borderColor:ghost, borderDash:[5,4], borderWidth:2, pointRadius:0, pointHoverRadius:4, order:1, tension:.25}]},
     options:{scales:{x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
       plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} đ`, footer:it => { const r = rows[it[0].dataIndex]; return r ? `Thực thu: ${fmt(r.tt)} đ${r.chot ? '' : ' (chưa chốt ca)'}` : ''; }}}}}});
-  $('lgDtt').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt</span><span><i style="background:${s2}"></i>Chuyển khoản</span><span><i class="dash"></i>Bot ghi đơn</span>`;
+  $('lgDtt').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt</span><span><i style="background:${s2}"></i>Chuyển khoản</span><span><i style="background:${css('--s3')}"></i>🛵 App</span><span><i class="dash"></i>Bot ghi đơn</span>`;
   $('dttCmt').innerHTML = !n ? 'Chưa có ngày bán trong kỳ.' : `Kỳ ${dShort(S.from)} → ${dShort(S.to)}: thực thu <b>${fmt(T.tt)} đ</b> (tiền mặt ${fmt(T.tm)} · CK ${fmt(T.ck)}${T.app ? ` · app để riêng ${fmt(T.app)}` : ''}), bot ghi ${fmt(T.bot)} đ, lệch <b class="${T.lech < 0 ? 'dn' : ''}">${T.lech > 0 ? '+' : ''}${fmt(T.lech)} đ</b>.${chua ? ` <span class="pill warn">${chua} ngày chưa chốt ca</span> đang tạm lấy theo đơn bot.` : ''} Ngày đã chốt: thực thu = đơn bot + chênh két, tiền mặt = trích tiền mặt (cột C tab Doanh thu), còn lại là CK. MoMo chỉ để đối soát, không cộng vào doanh thu.`;
   const coMomo = rows.some(r => r.momo != null);
   table({id:'tDtt', rows, sortDefault:{k:'k', d:-1}, total:{tm:T.tm, ck:T.ck, app:T.app, tt:T.tt, bot:T.bot, lech:T.lech, ly:T.ly, gia: T.ly ? T.tt / T.ly : null}, cols:[
