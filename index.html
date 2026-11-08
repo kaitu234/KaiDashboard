@@ -152,7 +152,9 @@ details.guide p{margin:4px 0;max-width:110ch}
 .kpi.tgt:has(.v.dn) .lb{color:var(--bad)}
 .kpi.main:has(.v.dn){border-left-color:#F08A7C}
 .kpi.main .v.up{color:#9FE0B4} .kpi.main .v.dn{color:#FFB4A8}
-.kpi .lb .ki{margin-right:5px;font-size:13px;letter-spacing:0;text-transform:none}
+.kpi .lb .ki{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:7px;background:rgba(193,140,82,.16);font-size:14px;line-height:1;letter-spacing:0;text-transform:none;vertical-align:middle}
+.kpi.main .lb .ki{background:rgba(255,255,255,.13)}
+.kpi.tgt:has(.v.dn) .lb .ki{background:rgba(200,70,50,.14)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kpi.main{background:linear-gradient(160deg,#0F0A06,#241911 70%);border-color:#3D2E22;border-left-color:var(--caramel)} :root:not([data-theme="light"]) .kpi.tgt:has(.v.dn){border-color:#5A2E27}}
 :root[data-theme="dark"] .kpi.main{background:linear-gradient(160deg,#0F0A06,#241911 70%);border-color:#3D2E22;border-left-color:var(--caramel)} :root[data-theme="dark"] .kpi.tgt:has(.v.dn){border-color:#5A2E27}
 .kpi .lb{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;opacity:.8}
@@ -3356,7 +3358,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.152';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.153';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3414,6 +3416,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.153', ngay:'08/11/2026', nd:['Icon thẻ số: mỗi loại 1 icon riêng — đơn 🧾, ly ☕, giá TB/ly 🏷️, ly/giờ công ⚡, ly/ngày 📊, tỉ suất 📐, hoà vốn 🏁, hoàn vốn 🔁, chuyển khoản 📲, lương/giờ 🪙, hụt 📉, chi 📤, chốt ca 🔒, thử việc 🌱, thâm niên 🏆…; icon nằm trong ô nền cho nổi.']},
   {v:'v1.7.152', ngay:'08/11/2026', nd:['Soát tiền app: biểu đồ tròn TM / CK (Bán hàng) thêm lát 🛵 App; Hôm nay theo kỳ không cộng app 2 lần vào “chưa chốt ca”; tỉ lệ chuyển khoản hôm nay tính trên tiền két (không gồm app).']},
   {v:'v1.7.151', ngay:'08/11/2026', nd:['Icon thẻ: Lệch / chênh → ⚖️, Số ly → ☕ (trước bị gắn nhầm).']},
   {v:'v1.7.150', ngay:'08/11/2026', nd:['Biểu đồ thêm phần 🛵 App (cột chồng màu caramel): Doanh thu thực thu theo ngày (Doanh thu thuần) và cơ cấu tiền mặt / CK theo ngày (Bán hàng) — trước đây cột thiếu tiền app nên thấp hơn nét đứt bot ghi.']},
@@ -5490,13 +5493,26 @@ $('fTog').onclick = () => { const on = $('fbar').classList.toggle('open'); $('fT
 function demLoc(){ const n = [S.nv, S.pt, S.mon, S.day].filter(Boolean).length + (S.preset ? 0 : 1);
   $('fTog').textContent = `Bộ lọc${n ? ' (' + n + ')' : ''} ${$('fbar').classList.contains('open') ? '▴' : '▾'}`; }
 /** v1.7.138 — icon cho nhãn thẻ KPI theo từ khoá (chạy sau mỗi lần vẽ). Nhãn đã mở đầu bằng emoji thì giữ nguyên. */
-const KPI_ICON = [[/app/i, '🛵'], [/chênh|lệch/i, '⚖️'], [/^số ly|^ly/i, '☕'], [/nợ/i, '⚠️'], [/quỹ|tiền còn/i, '🏦'], [/tiền mặt|két/i, '💵'], [/chuyển khoản|\bck\b/i, '🏦'], [/lương|tiền công|phụ cấp|thưởng/i, '💸'], [/lãi|lợi nhuận|biên/i, '📈'],
-  [/hoà vốn|hòa vốn|thu hồi/i, '🎯'], [/mục tiêu|%đạt|đạt/i, '🎯'], [/doanh thu|thực thu|gmv/i, '💰'], [/giá vốn|nguyên liệu|kho|hao hụt/i, '📦'], [/chi |chi$|^chi|tổng chi|vận hành/i, '🧾'],
-  [/giờ|ca |ca$|chốt ca|chấm/i, '⏱️'], [/ly|đơn|món/i, '☕'], [/nhân viên|đang làm|thử việc|level|thâm niên|người/i, '👥'], [/vốn góp|góp/i, '🤝'], [/giá tb|giá/i, '🏷️'], [/chênh|lệch/i, '⚖️'], [/ngày/i, '📅']];
+/** v1.7.153 (chủ nhờ 08/11: "icon đơn khác icon ly, giá TB/ly đừng dùng icon ly") — mỗi loại số 1 icon riêng; luật cụ thể đứng trước luật chung */
+const KPI_ICON = [
+  [/app/i, '🛵'], [/chênh|lệch/i, '⚖️'],
+  [/^số ly/i, '☕'], [/^số đơn|\bđơn$/i, '🧾'], [/giá tb/i, '🏷️'], [/ly \/ giờ/i, '⚡'], [/^ly \/ ngày|ngày bán · ly/i, '📊'],
+  [/tỉ suất|tỷ suất|\/ doanh thu|\/ giá bán/i, '📐'], [/hoà vốn|hòa vốn/i, '🏁'], [/hoàn vốn|thu hồi/i, '🔁'], [/vốn góp/i, '🤝'],
+  [/^lãi|lợi nhuận/i, '📈'], [/mục tiêu/i, '🎯'], [/khuyến mãi/i, '🎁'], [/đồng giá/i, '🏷️'],
+  [/nợ/i, '⚠️'], [/quỹ|tiền còn/i, '🏦'], [/tiền mặt|két/i, '💵'], [/chuyển khoản|\bck\b/i, '📲'],
+  [/lương \/ giờ/i, '🪙'], [/lương|tiền công|phụ cấp|thưởng/i, '💸'], [/doanh thu|thực thu|gmv/i, '💰'],
+  [/hụt/i, '📉'], [/kiểm xe|xe cần/i, '🚚'], [/kiểm kho|kho cần/i, '🏠'], [/giá trị hàng|giá vốn|nguyên liệu|kho/i, '📦'], [/tổng chi|^chi|vận hành/i, '📤'],
+  [/chốt ca/i, '🔒'], [/ca đã chấm/i, '🗓️'], [/lên level/i, '⬆️'], [/thử việc/i, '🌱'], [/thâm niên/i, '🏆'], [/đang làm|nhân viên/i, '👥'], [/giờ/i, '⏱️'],
+  [/data sẵn sàng|^ổn/i, '✅'], [/định lượng/i, '🧪'], [/đủ mẫu/i, '🔬'], [/tự kiểm/i, '🧮'], [/combo/i, '🛒'], [/thiết bị/i, '🔧'], [/để ý/i, '👀'],
+  [/ngày/i, '📅'], [/ly|món/i, '☕'], [/giá/i, '🏷️']];
+/** Gắn icon vào ô nền đầu nhãn thẻ; nhãn đã tự có emoji đầu (🛵, 🏠, 🚚…) thì đưa emoji đó vào ô cho đồng bộ */
 function ganIconKpi(){
   document.querySelectorAll('.kpi > .lb').forEach(el => {
-    if (el.querySelector('.ki') || /^\p{Extended_Pictographic}/u.test(el.textContent.trim())) return;
-    const m = KPI_ICON.find(([re]) => re.test(el.textContent)); if (m) el.insertAdjacentHTML('afterbegin', `<span class="ki" aria-hidden="true">${m[1]}</span>`);
+    if (el.querySelector('.ki')) return;
+    const n = el.firstChild, m = n && n.nodeType === 3 ? /^\s*(\p{Extended_Pictographic}\uFE0F?)\s*/u.exec(n.nodeValue) : null;
+    if (m){ n.nodeValue = n.nodeValue.slice(m[0].length); el.insertAdjacentHTML('afterbegin', `<span class="ki" aria-hidden="true">${m[1]}</span>`); return; }
+    if (/^\p{Extended_Pictographic}/u.test(el.textContent.trim())) return;
+    const r = KPI_ICON.find(([re]) => re.test(el.textContent)); if (r) el.insertAdjacentHTML('afterbegin', `<span class="ki" aria-hidden="true">${r[1]}</span>`);
   });
 }
 new MutationObserver(() => { clearTimeout(ganIconKpi.t); ganIconKpi.t = setTimeout(ganIconKpi, 30); }).observe(document.documentElement, {childList:true, subtree:true});
