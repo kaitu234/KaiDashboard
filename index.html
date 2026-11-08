@@ -153,6 +153,8 @@ details.guide p{margin:4px 0;max-width:110ch}
 .kpi.main:has(.v.dn){border-left-color:#F08A7C}
 .kpi.main .v.up{color:#9FE0B4} .kpi.main .v.dn{color:#FFB4A8}
 .kpi .lb .ki{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:7px;background:rgba(193,140,82,.16);font-size:14px;line-height:1;letter-spacing:0;text-transform:none;vertical-align:middle}
+.lapp{width:16px;height:16px;border-radius:4px;vertical-align:-3px;margin-right:4px;object-fit:cover}.lapp-w{width:38px}
+.kpi .lb .ki.ki-app{width:auto;padding:0 3px;gap:3px;display:inline-flex;align-items:center;background:#fff}.ki-app .lapp{margin:0;width:18px;height:18px}.ki-app .lapp-w{width:43px}
 .amons .amon{width:22px;height:22px;margin:-2px 3px -2px 0}.amons .amon:last-child{margin-right:7px}
 .dbtn + .amon{margin-left:4px}
 .amon{width:26px;height:26px;border-radius:7px;object-fit:cover;vertical-align:middle;margin:-3px 8px -3px 0;background:#EAD9BE;box-shadow:0 0 0 1px var(--line)}
@@ -1771,11 +1773,13 @@ function sel(skip = new Set(), from = S.from, to = S.to){
 /** v1.7.134 (chủ chốt 06/11/2026: "tiền app tôi quản lí tách riêng tiền chốt ca") — đơn app be / Xanh SM: vẫn là doanh thu (thực nhận) nhưng KHÔNG vào tiền mặt, CK, đối soát chốt ca hay quỹ tiền */
 const laApp = o => o.pt === 'BE' || o.pt === 'XANH';
 const appThang = m => D.orders.filter(o => laApp(o) && mkey(o.k) === m).reduce((s, o) => s + o.tt, 0);   // tiền app của tháng m (trừ khỏi dòng tiền / quỹ, vẫn ở doanh thu và lãi)
-const appTxt = (be, xanh) => [be ? `be ${fmt(be)} đ` : '', xanh ? `Xanh SM ${fmt(xanh)} đ` : ''].filter(Boolean).join(' · ');
+/** v1.7.156 (chủ gửi logo 08/11): logo be / Xanh SM thay chữ + 🛵 ở đơn, thẻ, dòng tiền app */
+const LOGO_APP = {BE:'<img class="lapp" src="tai-lieu/app/be.png" alt="be" title="be">', XANH:'<img class="lapp lapp-w" src="tai-lieu/app/xanh-sm.png" alt="Xanh SM" title="Xanh SM">'};
+const appTxt = (be, xanh) => [be ? `${LOGO_APP.BE}${fmt(be)} đ` : '', xanh ? `${LOGO_APP.XANH}${fmt(xanh)} đ` : ''].filter(Boolean).join(' · ');
 /** v1.7.149 (chủ nhờ 08/11: "nhân viên ko nói thì biết hôm nay bán app ra sao") — thẻ 🛵 Đơn app cho Hôm nay, Bán hàng, Doanh thu thuần: luôn hiện (kể cả 0) */
 function appKpi(list, nhan){
   const all = agg(list), ap = agg(list.filter(laApp)), apBe = agg(list.filter(o => o.pt === 'BE')), apX = agg(list.filter(o => o.pt === 'XANH'));
-  return `<div class="kpi tgt"><span class="lb">🛵 Đơn app · ${esc(nhan)}</span><span class="v">${fmt(ap.app)}</span><span class="s">${ap.don ? `<b>${fmt(ap.don)} đơn · ${fmt(ap.ly)} ly</b> · ${pct(all.dt ? ap.app / all.dt : null, 0)} doanh thu<br>be ${fmt(apBe.app)} (${apBe.don} đơn) · Xanh SM ${fmt(apX.app)} (${apX.don} đơn) · thực nhận, chủ giữ riêng` : 'chưa có đơn be / Xanh SM'}</span></div>`;
+  return `<div class="kpi tgt"><span class="lb">🛵 Đơn app · ${esc(nhan)}</span><span class="v">${fmt(ap.app)}</span><span class="s">${ap.don ? `<b>${fmt(ap.don)} đơn · ${fmt(ap.ly)} ly</b> · ${pct(all.dt ? ap.app / all.dt : null, 0)} doanh thu<br>${LOGO_APP.BE}${fmt(apBe.app)} (${apBe.don} đơn) · ${LOGO_APP.XANH}${fmt(apX.app)} (${apX.don} đơn) · thực nhận, chủ giữ riêng` : 'chưa có đơn be / Xanh SM'}</span></div>`;
 }
 function agg(list){
   const a = {ly:0, dt:0, tm:0, ck:0, app:0, be:0, xanh:0, ids:new Set(), days:new Set()};
@@ -2513,7 +2517,7 @@ function renderTdKy(){
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${dShort(o.k)}<br>${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -2636,7 +2640,7 @@ function renderToday(){
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? '🛵 be' : o.pt === 'XANH' ? '🛵 Xanh SM' : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -3361,7 +3365,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.155';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.156';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3419,6 +3423,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.156', ngay:'08/11/2026', nd:['Logo be / Xanh SM (chủ gửi 08/11) thay 🛵 ở đơn mới nhất, thẻ Đơn app, thẻ App (chủ giữ riêng), dòng tiền app Hôm nay.']},
   {v:'v1.7.155', ngay:'08/11/2026', nd:['Ảnh món thêm ở: bảng món chính tab Món (dòng có nút ＋), Đơn mới nhất (Hôm nay), Cặp món cùng đơn (Hiệu suất, ảnh cả 2 món).']},
   {v:'v1.7.154', ngay:'08/11/2026', nd:['Ảnh nhỏ của món (ảnh phiên Marketing) trước tên món trong mọi bảng có cột Món: Hôm nay, Bán hàng, Món, Mã món, Kế hoạch, Kiểm chứng, Báo cáo…']},
   {v:'v1.7.153', ngay:'08/11/2026', nd:['Icon thẻ số: mỗi loại 1 icon riêng — đơn 🧾, ly ☕, giá TB/ly 🏷️, ly/giờ công ⚡, ly/ngày 📊, tỉ suất 📐, hoà vốn 🏁, hoàn vốn 🔁, chuyển khoản 📲, lương/giờ 🪙, hụt 📉, chi 📤, chốt ca 🔒, thử việc 🌱, thâm niên 🏆…; icon nằm trong ô nền cho nổi.']},
@@ -5518,6 +5523,7 @@ function ganIconKpi(){
     if (m){ n.nodeValue = n.nodeValue.slice(m[0].length); el.insertAdjacentHTML('afterbegin', `<span class="ki" aria-hidden="true">${m[1]}</span>`); return; }
     if (/^\p{Extended_Pictographic}/u.test(el.textContent.trim())) return;
     const r = KPI_ICON.find(([re]) => re.test(el.textContent)); if (r) el.insertAdjacentHTML('afterbegin', `<span class="ki" aria-hidden="true">${r[1]}</span>`);
+    const ki = el.querySelector('.ki'); if (ki && ki.textContent === '🛵'){ ki.classList.add('ki-app'); ki.innerHTML = LOGO_APP.BE + LOGO_APP.XANH; }   // v1.7.156: thẻ app dùng logo be + Xanh SM
   });
 }
 /** v1.7.154 (chủ nhờ 08/11): ảnh nhỏ của món (ảnh phiên Marketing, tai-lieu/mon/*.jpg 112 px) trước tên món trong mọi bảng có cột "Món".
