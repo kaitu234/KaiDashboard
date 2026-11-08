@@ -1524,7 +1524,7 @@ const dongTieuDeQT = r => /^NGÀY$/i.test(txt(r[0]).trim()) && r.some(c => /ĐÃ
 const ngayDaQua = (open, tk, coDonHomNay) => { const den = coDonHomNay ? tk : addDays(tk, -1); return den < open ? 0 : nDays(open, den); };
 const isPromo = k => k >= PROMO.from && k <= PROMO.to;
 /** v1.7.89 (bot dongia-tuan-v1, chủ chốt 02/11/2026): từ 07/11/2026 T7 + CN tự đồng giá 15K mọi món, T2–T6 giá menu — CÙNG luật DONG_GIA_TUAN của bot. KM_TAY = ngày chủ bật tay /dongia 15 trước đó (31/10–01/11). Dùng cho nhịp dùng kho và kiểm 'đơn lệch giá' */
-const DONG_GIA_TUAN = {tu:'2026-11-07', gia:15000, thu:[6, 0], bo:['2026-11-07', '2026-11-08']},   // v1.7.143 (bot @216, chủ chốt 08/11): tuần này T7 07/11 + CN 08/11 KHÔNG đồng giá; từ T7 14/11 như cũ
+const DONG_GIA_TUAN = {tu:'2026-11-07', gia:15000, thu:[6, 0], bo:['2026-11-07']},   // v1.7.144 (bot @217, chủ chốt 08/11): chỉ T7 07/11 KHÔNG đồng giá; CN 08/11 giữ 15K (khách đã trả)
       KM_TAY = ['2026-10-31', '2026-11-01'];
 const laCuoiTuanKM = k => k >= DONG_GIA_TUAN.tu && !(DONG_GIA_TUAN.bo || []).includes(k) && DONG_GIA_TUAN.thu.includes(new Date(k + 'T12:00:00Z').getUTCDay());
 const laNgayKM = k => isPromo(k) || laCuoiTuanKM(k);   // nhịp dùng kho: cùng bot nhip7 (không gồm KM_TAY)
@@ -3347,7 +3347,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.143';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.144';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3405,6 +3405,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.144', ngay:'08/11/2026', nd:['Đồng giá cuối tuần: chỉ bỏ T7 07/11; CN 08/11 giữ đồng giá 15K vì khách đã trả (bot @217, chủ chốt 08/11).']},
   {v:'v1.7.143', ngay:'08/11/2026', nd:['Hiệu suất (chủ nhờ 08/11): thêm Tỉ suất lợi nhuận gộp (lãi gộp ÷ doanh thu của kỳ đang lọc), Doanh thu hoà vốn / tháng (lương + chi cố định + vận hành ÷ tỉ suất gộp, so với doanh thu tháng này) và Doanh thu hoàn vốn đầu tư dự kiến (vốn đầu tư ÷ tỉ suất gộp).', 'Đồng giá cuối tuần bỏ T7 07/11 + CN 08/11 (bot @216, chủ chốt 08/11); từ T7 14/11 như cũ.']},
   {v:'v1.7.142', ngay:'06/11/2026', nd:['Lịch làm bỏ chủ quán chỉ TỪ 01/11/2026, cùng bot chulich-v1 (@214); lịch tháng 10 của chủ giữ nguyên (chuyên cần tháng 10 đã trả không đổi).']},
   {v:'v1.7.141', ngay:'06/11/2026', nd:['Chủ quán (Khoa Từ, chủ chốt 06/11): chấm công 5 giờ mỗi ngày nhưng không tính lương, phụ cấp (dậy sớm không đếm ở ca 0 đ), chuyên cần; bỏ khỏi Lịch làm và Lịch làm theo đợt.', 'Chuyên cần và Ai làm ngày nào: chủ quán tô vàng, người đã nghỉ (nhân viên cũ) tô xám và xuống cuối.']},
@@ -4126,7 +4127,7 @@ function tuKiem(){
     { const C11 = Object.assign({}, CHUYEN_CAN, {quenTu:null}), k11 = d => `2026-11-${String(d).padStart(2, '0')}`, dd = (d, id, chu) => ({k:k11(d), nv:chu ? 'Chủ' : 'An', id, vao:new Date(k11(d) + 'T05:20:00'), chu}), cs = [1, 2, 3, 4, 5, 6, 7].flatMap(d => [dd(d, 'c', true), dd(d, 'n', false)]), r = chuyenCanCore(cs, [], x => !!x.chu, C11);
       ok('Chủ quán từ 01/11/2026: đủ 7 ca vẫn không có thưởng chuyên cần · nhân viên cùng chuỗi vẫn có', r.c.thuong.length === 0 && r.c.chuoi === 0 && r.n.thuong.length === 1, `chủ ${r.c.thuong.length} · nv ${r.n.thuong.length}`); }
     // 72. v1.7.89 — đồng giá cuối tuần: T7/CN từ 07/11/2026 là ngày KM (07/11 T7, 08/11 CN), T2–T6 không; trước 07/11 không
-    ok('Đồng giá cuối tuần (bot dongia-tuan-v1 · @216): 14/11 T7 + 15/11 CN là ngày KM · 07–08/11 bỏ (chủ chốt 08/11) · 09/11 T2 và 06/11 T6 không · 31/10 T7 chưa (chưa có luật tuần)', laNgayKM('2026-11-14') && laNgayKM('2026-11-15') && !laNgayKM('2026-11-07') && !laNgayKM('2026-11-08') && !laNgayKM('2026-11-09') && !laNgayKM('2026-11-06') && !laNgayKM('2026-10-31'));
+    ok('Đồng giá cuối tuần (bot dongia-tuan-v1 · @216): 14/11 T7 + 15/11 CN là ngày KM · 08/11 CN vẫn đồng giá · 07/11 bỏ (chủ chốt 08/11) · 09/11 T2 và 06/11 T6 không · 31/10 T7 chưa (chưa có luật tuần)', laNgayKM('2026-11-14') && laNgayKM('2026-11-15') && !laNgayKM('2026-11-07') && laNgayKM('2026-11-08') && !laNgayKM('2026-11-09') && !laNgayKM('2026-11-06') && !laNgayKM('2026-10-31'));
     // 85. v1.7.130 — phút tính lương = caCong_ bot (ot-ra-v1): từ 01/11 chỉ cộng phút vào sớm (≤ 30), về muộn không trả; trước 01/11 OT vào sớm + về muộn ≤ 30; ca có ra + cột J của Sheet thì khớp
     { const caS = {ma:'S', bd:'05:30', kt:'10:30'}, d = (k, g) => new Date(k + 'T' + g + ':00'), pl = (k, a, b) => phutLuongCore(k, d(k, a), d(k, b), caS);
       const a = pl('2026-11-03', '05:28', '10:46'), b = pl('2026-11-05', '05:15', '10:58'), c0 = pl('2026-11-05', '04:50', '10:30'), e = pl('2026-11-05', '05:45', '11:20'), o = pl('2026-10-20', '05:20', '10:55'), n0 = phutLuongCore('2026-11-05', d('2026-11-05', '05:00'), d('2026-11-05', '06:10'), null);
