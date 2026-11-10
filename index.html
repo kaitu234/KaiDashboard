@@ -3183,11 +3183,14 @@ function renderPnl(){
   /* 4 · Lãi lỗ theo ngày (lương theo bot, chưa gồm chi vận hành / khấu hao) */
   // v1.7.173 (chủ quán 10/11): bộ lọc "Lãi sau lương + vận hành" — vận hành ngày = hàng cho kèm + chi vận hành chia theo ngày, đúng cách tinhPnl tính cho 1 ngày (chi cả tháng chia đều số ngày, chi cố định tạm tính)
   const vhMode = S.pnlNgayVH === 'vh', tenLai = vhMode ? 'Lãi sau lương + vận hành' : 'Lãi sau lương';
-  const dayRows = Object.values(P.day).sort((a, b) => a.k < b.k ? -1 : 1).map(d => { const lu = luongNgay(d.k), laiGop = d.dt - d.gv, Pk = tinhPnl(d.k, d.k), vh = Pk.choKem + Pk.vhTong, lai = laiGop - lu.luong;
+  /* v1.7.174: vận hành của mỗi tháng trong kỳ (kể cả phần của ngày không bán, vd 01–09/10 trước khai trương) chia đều cho các ngày CÓ BÁN của tháng đó → cộng các ngày = đúng hàng cho kèm + chi vận hành của kỳ (trước đây cộng từng ngày lẻ nên thiếu phần ngày không bán) */
+  const vhThang = {}; { const banM = {}; Object.keys(P.day).forEach(k => banM[mkey(k)] = (banM[mkey(k)] || 0) + 1);
+    Object.keys(banM).forEach(m => { const ng = P.ngay.filter(k => mkey(k) === m), Pm = ng.length ? tinhPnl(ng[0], ng[ng.length - 1]) : null; vhThang[m] = Pm ? (Pm.choKem + Pm.vhTong) / banM[m] : 0; }); }
+  const dayRows = Object.values(P.day).sort((a, b) => a.k < b.k ? -1 : 1).map(d => { const lu = luongNgay(d.k), laiGop = d.dt - d.gv, vh = vhThang[mkey(d.k)] || 0, lai = laiGop - lu.luong;
     return {k:d.k, ly:d.ly, dt:d.dt, gv:d.gv, laiGop, luong:lu.luong, tam:lu.tam, lai, vh, laiVH:lai - vh, v:vhMode ? lai - vh : lai, laiLy:d.ly ? (vhMode ? lai - vh : lai) / d.ly : null}; });
   $('pnlNgayMode').value = vhMode ? 'vh' : ''; $('pnlNgayMode').onchange = () => { S.pnlNgayVH = $('pnlNgayMode').value; renderPnl(); };
   $('pnlNgayLbl').textContent = tenLai + ' mỗi ngày'; $('pnlLuyKeLbl').textContent = 'Lũy kế ' + tenLai.charAt(0).toLowerCase() + tenLai.slice(1);
-  $('pnlNgayNt').textContent = vhMode ? '· = doanh thu − giá vốn − lương bot tính − hàng cho kèm − chi vận hành (chi cả tháng chia đều theo ngày) · chưa gồm khấu hao' : '· lãi sau lương = doanh thu − giá vốn − lương bot tính · chưa gồm chi vận hành';
+  $('pnlNgayNt').textContent = vhMode ? '· = doanh thu − giá vốn − lương bot tính − hàng cho kèm − chi vận hành (của tháng, chia đều cho các ngày có bán) · chưa gồm khấu hao' : '· lãi sau lương = doanh thu − giá vốn − lương bot tính · chưa gồm chi vận hành';
   mk('cPnlNgay', {type:'bar', data:{labels:dayRows.map(r => `${thu(r.k)} ${dShort(r.k)}`), datasets:[{label:tenLai, data:dayRows.map(r => Math.round(r.v)),
       backgroundColor:dayRows.map(r => r.v < 0 ? bad : good), borderRadius:4, maxBarThickness:36}]},
     options:{scales:{x:{grid:{display:false}, ticks:{maxRotation:0, autoSkipPadding:8}}, y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
@@ -3372,7 +3375,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.173';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.174';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3430,6 +3433,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.174', ngay:'10/11/2026', nd:['PNL · Lãi lỗ theo ngày, chế độ "Lãi sau lương + vận hành": chi vận hành của tháng chia đều cho các ngày có bán nên cộng các ngày = đúng chi vận hành của kỳ (trước đây thiếu phần của ngày không bán, T10 thiếu ~455.000). Bot @222 sửa Tiền công ChamCong của nhân viên cũ (bị tính lại với lương nền 0) → biểu đồ theo ngày không còn báo lãi ảo.']},
   {v:'v1.7.173', ngay:'10/11/2026', nd:['PNL · Lãi lỗ theo ngày có ô chọn "Lãi sau lương" / "Lãi sau lương + vận hành" (chủ quán 10/11): chế độ mới trừ thêm hàng cho kèm và chi vận hành chia theo ngày (cùng cách tính lãi vận hành của PNL cho 1 ngày), áp cho cột mỗi ngày, đường lũy kế và cột Lãi/ly; bảng thêm cột Vận hành (chia theo ngày) và Lãi sau lương + vận hành.']},
   {v:'v1.7.172', ngay:'10/11/2026', nd:['Tài liệu: nhóm mới “Ấn phẩm” ngay sau Ảnh bìa — chỉ bản đang dùng: Menu cầm tay (bản món mới, chữ Courier New), Standee vòm (giá M │ L), Bảng món mới A3, Bảng công thức M │ L (có ảnh và bản ngắn); bỏ Menu có ảnh bản cũ.']},
   {v:'v1.7.171', ngay:'11/11/2026', nd:['Tài liệu · Bảng công thức M │ L: món cà phê, bạc xỉu ghi “lắc 10 lần”; matcha, Phindi ghi “đánh bằng máy”.']},
