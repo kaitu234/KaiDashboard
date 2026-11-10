@@ -3366,7 +3366,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.165';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.166';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3424,6 +3424,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn
+  {v:'v1.7.166', ngay:'10/11/2026', nd:['Bán 4 món mới từ 10/11 (Menu Sheet): Cà phê caramel cfc, Cà phê chocolate cfch, Matcha coffee mtc, Trà sữa gạo rang tsg (M 20K │ L 25K); bật lại Phindi caramel. Size lớn cà phê: cà phê caramel / chocolate 40 → 50 ml, matcha coffee 20 → 30 ml (cùng bot sizecf-v1b, Sheet Giá vốn ly). Trà sữa gạo rang chưa có công thức nên chưa tính giá vốn.']},
   {v:'v1.7.165', ngay:'10/11/2026', nd:['Size lớn (chủ chốt 10/11): từ ly bán 10/11, cà phê tính theo ml chủ chốt từng món thay cho × 1,3 — máy 45 → 60 ml, phin 40 → 50, bạc xỉu / bạc xỉu muối / cà phê sữa tươi 20 → 30, cà phê muối 30 → 40; nguyên liệu khác vẫn × 1,3. Giá vốn ly L, tồn kho và nhịp dùng cà phê đổi theo; cùng bot (sizecf-v1) và Sheet Giá vốn ly.']},
   {v:'v1.7.164', ngay:'09/11/2026', nd:['Tài liệu · Standee vòm: nhãn giá mỗi món ghi M │ L như bảng món mới (L = M + 5K, vd M 15K │ L 20K); ảnh, ảnh dán sticker và PDF in (phá nét) làm lại.']},
   {v:'v1.7.163', ngay:'09/11/2026', nd:['Tài liệu: Standee vòm (ảnh, ảnh dán 3 sticker, PDF in) và Bảng món mới A3 làm lại chữ Courier New theo chuẩn ấn phẩm in mới (tên/giá đậm, mô tả thường); PDF in vẫn phá nét chữ; ghi chú nhà in cập nhật font.']},
@@ -5129,7 +5130,7 @@ const ctKhoa = k => k ? DINH_LUONG_CU.map((h, i) => k <= h.den ? i : '').join(''
 const NL_KHONG_SIZE = new Set(['da', 'thc']);   // v1.7.67 (chủ quán 19/10): đá viên size lớn không đổi; đường × 1,3 · v1.7.133 (chủ chốt 06/11, bot apptv-v2 @206 SIZE_LON.khongNhan): thạch cà phê thc cũng không nhân
 /** v1.7.165 (chủ chốt 10/11/2026, bot sizecf-v1): size lớn (hệ số 1,3) — CÀ PHÊ (cf, cfb) theo ml chủ chốt từng món thay cho × 1,3, áp ly bán TỪ 10/11;
  *  M → L: máy 45 → 60 ml · phin 40 → 50 · bạc xỉu, bạc xỉu muối, cà phê sữa tươi 20 → 30 · cà phê muối 30 → 40. Món khác / ly trước 10/11 vẫn × 1,3. Cùng Sheet Giá vốn ly!E54 + bot SIZE_LON.cfL. */
-const SIZE_L_CF = {tu:"2026-11-10", nl:new Set(["cf", "cfb"]), mon:{cdm:60/45, csm:60/45, cdp:50/40, csp:50/40, bx:30/20, bxm:30/20, cst:30/20, cfm:40/30}};
+const SIZE_L_CF = {tu:"2026-11-10", nl:new Set(["cf", "cfb"]), mon:{cdm:60/45, csm:60/45, cdp:50/40, csp:50/40, bx:30/20, bxm:30/20, cst:30/20, cfm:40/30, cfc:50/40, cfch:50/40, mtc:30/20}};   // v1.7.166: món mới bán từ 10/11 (cà phê caramel / chocolate 40 → 50 ml, matcha coffee 20 → 30)
 const heSoNL = (hs, dvTinh, ma, mon, k) => { if (!hs || hs === 1 || /^cái$/i.test(String(dvTinh || "").trim()) || NL_KHONG_SIZE.has(String(ma || "").toLowerCase())) return 1;
   const r = Math.abs(hs - 1.3) < 1e-6 && SIZE_L_CF.nl.has(String(ma || "").toLowerCase()) && SIZE_L_CF.mon[String(mon || "").toLowerCase()];
   return r && (!k || k >= SIZE_L_CF.tu) ? r : hs; };
