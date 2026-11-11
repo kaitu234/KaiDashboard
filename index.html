@@ -1407,7 +1407,7 @@ html.mcap{background:var(--paper)}
     </div>
     <div class="kpis" id="hrKpis"></div>
     <div class="card">
-      <div class="ct">Nhân viên trong kỳ <span class="nt">· giờ &amp; tiền công từ ChamCong (đã gồm phụ cấp dậy sớm; phụ cấp ca 1 người đã bỏ từ 01/11; chủ quán chỉ ghi giờ, không tính lương từ 01/11; thử việc 100.000đ/ngày; chuyên cần tính riêng ở bảng lương của bot) · ly trong ca = đơn nằm giữa giờ vào và giờ ra · ly/giờ = ly trong ca ÷ giờ làm · chủ quán: tính lương, không tính hiệu suất</span></div>
+      <div class="ct">Nhân viên trong kỳ <span class="nt">· giờ &amp; tiền công từ ChamCong (đã gồm phụ cấp dậy sớm và khoản trừ trễ quá 30p từ 12/11; phụ cấp ca 1 người đã bỏ từ 01/11; chủ quán chỉ ghi giờ, không tính lương từ 01/11; thử việc 100.000đ/ngày; chuyên cần tính riêng ở bảng lương của bot) · ly trong ca = đơn nằm giữa giờ vào và giờ ra · ly/giờ = ly trong ca ÷ giờ làm · chủ quán: tính lương, không tính hiệu suất</span></div>
       <div class="g2">
         <div><div class="lbl">Tiền công theo người</div><div class="cw sm"><canvas id="cHrTien" aria-label="Tiền công theo người"></canvas></div></div>
         <div><div class="lbl">Giờ làm theo người</div><div class="cw sm"><canvas id="cHrGio" aria-label="Giờ làm theo người"></canvas></div></div>
@@ -3486,7 +3486,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.189';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.190';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3544,6 +3544,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.190', ngay:'11/11/2026', nd:['Luật mới từ 12/11 (bot tretru-v1): check-in trễ quá 30 phút trừ 50% lương 1 giờ — bot tự trừ vào cột Tiền công ChamCong nên bảng lương dashboard khớp; Sổ tay sửa Nội quy, Chính sách, Lịch sử thay đổi.', 'Giờ dọn quầy: 10:00 bắt đầu dọn + /kiemxe, 10:30 xong (Nội quy, Checklist, Quy trình).', 'Sổ tay lên bản 12/11/2026 — nhân viên cần xác nhận đã đọc lại.']},
   {v:'v1.7.189', ngay:'11/11/2026', nd:['Thẻ “Của tôi”: ca sắp tới không tính ca hôm nay khi đã qua 10:30.']},
   {v:'v1.7.188', ngay:'11/11/2026', nd:['Nội quy, Chính sách, Công thức pha chế, Checklist ca chuyển ra tab riêng “Sổ tay” trong nhóm Vận hành (tab Nhân sự trở lại như cũ).', 'Xác nhận đã đọc: nhân viên tick “đã đọc, hiểu và đồng ý” rồi bấm xác nhận — ghi tab Sheet DaDocNoiQuy; chưa xác nhận thì vào trang được nhắc. Chủ thấy bảng ai đã / chưa xác nhận bản hiện hành.', 'Sổ tay thêm: ảnh món trong bảng công thức · Kiểm tra công thức 10 câu (nhân viên làm xong tự lưu, chủ xem kết quả — tab Sheet QuizCongThuc) · Lịch sử thay đổi chính sách · Danh bạ (tab Sheet DanhBa, chủ điền số) + xử lý sự cố.', 'Tab Nhân sự: thẻ Nhật ký dashboard nhân viên (chủ xem ai mở dash lúc nào, bao lâu, tab nào) chuyển lên đầu tab.', 'Tab Nhân sự: thẻ “Của tôi” cho tài khoản nhân viên — bậc, giờ thâm niên, ca tháng này, chuỗi chuyên cần, ca sắp tới, đã đọc sổ tay chưa (không có số tiền).']},
   {v:'v1.7.187', ngay:'11/11/2026', nd:['Tab Nhân sự thêm sổ tay nhân viên: Nội quy (bản 25/10 sửa theo luật bot từ 01/11), Chính sách lương thưởng (như /chinhsach) + bán hàng tại quầy, Công thức pha chế size M │ L có ô tìm món + sơ chế, Checklist ca + lệnh bot hay dùng.', 'Tài khoản nhân viên thấy đủ 4 thẻ này (không bị ẩn chữ lương/thưởng/phạt).', 'Tự kiểm: ml cà phê size M/L trong công thức khớp hệ số size L của bot.']},
@@ -4626,7 +4627,8 @@ function renderTl(){
    chính sách = /chinhsach của bot (chinhSachDayDu_ + GHI_CHU_CHINH_SACH) · công thức = bảng in 10/11 (04_Cong thuc…/34_cong-thuc-M-L_tao.js) · checklist = Checklist xe + Bảng ghi nhớ 15/10.
    Số dùng chung lấy thẳng từ CHUYEN_CAN, OT_TOI_DA, DONG_GIA_TUAN, SIZE_L_CF; phần còn lại là bản sao hằng bot trong CS_BOT — đổi bot thì đổi đây.
    Thẻ có data-nvok: anTienNV KHÔNG ẩn (nhân viên phải đọc được chính sách lương, như /chinhsach trên bot). Tự kiểm: ml cà phê M/L ở công thức khớp SIZE_L_CF. */
-const CS_BOT = {luong:25000, som:{han:'05:30', tien:10000, tu:'2026-11-01'}, thuViec:100000, tre:5, treNang:30, banKinh:200, traNgay:3, quenMien:3, loi:10000, loiMax:3, tuanToi:2, sizeL:5000, thanhVien:2000,
+const CS_BOT = {luong:25000, som:{han:'05:30', tien:10000, tu:'2026-11-01'}, thuViec:100000, tre:5, treNang:30, banKinh:200, traNgay:3, quenMien:3, loi:10000, loiMax:3, tuanToi:2, sizeL:5000, thanhVien:2000, treTru:{tu:'2026-11-12', phut:30, tyLe:0.5},   // treTru = TRE_TRU bot (tretru-v1)
+ 
   thamNien:[[100, 1000], [300, 2000], [600, 3000], [900, 4000], [1200, 5000], [1500, 6000], [1900, 7000], [2400, 8000]],   // = THAM_NIEN bot [giờ, +đ/giờ]
   tenLv:['🔩 Iron', '🥉 Bronze', '🥈 Silver', '🥇 Gold', '💠 Platinum', '💎 Diamond', '🔮 Master', '🔥 Grandmaster', '👑 Challenger']};
 const CONG_THUC_IN = [   // [tên, size M, size L, cách pha, mã món (chỉ món có cà phê, để tự kiểm với SIZE_L_CF)]
@@ -4671,7 +4673,7 @@ const SO_CHE_IN = [
 const mlCfIn = t => { const m = /(\d+(?:,\d+)?) ml cf/.exec(t); return m ? +m[1].replace(',', '.') : null; };
 /* v1.7.188 — xác nhận đã đọc (dadoc-v1, Dashboard.gs): nhân viên tick + bấm → server ghi tab DaDocNoiQuy [lúc, tên đăng nhập, tên, bản].
    Nhân viên nhận lại dòng của mình, chủ nhận tất cả (res.dd). Sửa nội dung Nội quy / Chính sách thì đổi SO_TAY_BAN → mọi người phải xác nhận lại. */
-const SO_TAY_BAN = '11/11/2026';
+const SO_TAY_BAN = '12/11/2026';   // 12/11: trừ tiền trễ quá 30p + giờ dọn quầy → nhân viên xác nhận lại
 let DD = [];
 const ddLuc = r => { const d = toDate(r[0]); return d ? d.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}) : esc(r[0]); };
 function renderSt(){ renderSoTay(); renderDaDoc(); renderQuizLs(); renderDanhBa(); }
@@ -4680,6 +4682,7 @@ const ANH_CT = {'Cà phê đen máy':'ca-phe-den-may', 'Cà phê sữa máy':'ca
   'Cacao latte':'cacao-latte', 'Matcha latte':'matcha-latte', 'Matcha coffee':'matcha-coffee', 'Trà sữa gạo rang':'tra-sua-gao-rang', 'Phindi':'phindi-hanh-nhan'};   // ảnh trong tai-lieu/mon
 /* Lịch sử thay đổi chính sách (nguồn: chú thích hằng trong bot + bộ nhớ chốt của chủ). Thêm bản mới lên ĐẦU; đổi nội quy / chính sách thì tăng SO_TAY_BAN. */
 const LS_CS = [
+  {ngay:'12/11/2026', nd:['Check-in trễ quá 30 phút (ca 05:30 → sau 06:00): trừ 50% lương 1 giờ (căn bản + thâm niên), bot tự trừ vào tiền công và phiếu lương.', 'Cuối ca: 10:00 bắt đầu dọn quầy và /kiemxe, 10:30 dọn xong.']},
   {ngay:'11/11/2026', nd:['Dashboard có tab Sổ tay (nội quy, chính sách, công thức, checklist); nhân viên xác nhận đã đọc ngay trên dashboard.']},
   {ngay:'10/11/2026', nd:['Bán 4 món mới: cà phê caramel, cà phê chocolate, matcha coffee, trà sữa gạo rang (M 20K │ L 25K); bật lại Phindi caramel.', 'Size L cà phê pha theo ml: máy 45/60 · phin 40/50 · bạc xỉu, cf sữa tươi 20/30 · cf muối 30/40 · caramel/choco 40/50 · matcha coffee 20/30.']},
   {ngay:'07/11/2026', nd:['T7, CN đồng giá 15K (T7 07/11 chưa áp dụng, bắt đầu từ CN 08/11).']},
@@ -4810,10 +4813,10 @@ function renderSoTay(){
   const CC = CHUYEN_CAN, thuDG = DONG_GIA_TUAN.thu.map(t => t === 0 ? 'CN' : 'T' + (t + 1)).join(', ');
   $('hrNq').innerHTML =
     muc('I. Thời gian làm việc', '<ol>' + li([
-      'Ca làm việc <b>05:30–10:30</b>, mỗi ca 1 người. Bắt đầu dọn quầy từ 10:00.',
+      'Ca làm việc <b>05:30–10:30</b>, mỗi ca 1 người. <b>10:00</b> bắt đầu dọn quầy và đếm xe (<code>/kiemxe</code>), <b>10:30</b> dọn xong.',
       '<b>/checkin</b> khi tới xe, <b>/checkout</b> khi xong hết việc cuối ca — gửi vị trí trong ' + CS_BOT.banKinh + ' m quanh xe.',
       'Lương tính theo <b>từng phút</b> từ lúc check-in. Vào sớm được trả tối đa ' + OT_TOI_DA + ' phút/ca; <b>ở lại sau giờ ca không trả</b> (từ 01/11). /chotca trước 10:30 thì bot ghi giờ ra 10:30.',
-      'Đi trễ <b>không trừ tiền</b>: trễ quá ' + CS_BOT.tre + ' phút bot ghi nhận, quá ' + CS_BOT.treNang + ' phút báo chủ. Nhưng check-in sau ' + CS_BOT.som.han + ' thì mất phụ cấp dậy sớm hôm đó và ảnh hưởng chuỗi chuyên cần (xem Chính sách).',
+      'Đi trễ: quá ' + CS_BOT.tre + ' phút bot ghi nhận. <b>Trễ quá ' + CS_BOT.treTru.phut + ' phút</b> (check-in sau 06:00): báo chủ và <b>trừ ' + CS_BOT.treTru.tyLe * 100 + '% lương 1 giờ</b> (căn bản + thâm niên), từ ' + dShort(CS_BOT.treTru.tu) + '. Check-in sau ' + CS_BOT.som.han + ' còn mất phụ cấp dậy sớm hôm đó và ảnh hưởng chuỗi chuyên cần.' + QT,
       'Xin nghỉ / đổi ca: <b>báo trước 2 ngày</b>. Nhờ người làm thay bằng <code>/doica T4 @tên</code> — người nhận đồng ý và chủ duyệt thì lịch mới đổi; trước đó ca vẫn là của bạn.',
       'Đăng ký ca mà không đến: ghi nhận vắng. Chủ huỷ bán (lễ, mưa bão…) thì không tính vắng.',
     ]) + '</ol>', true) +
@@ -4860,6 +4863,7 @@ function renderSoTay(){
     muc('1. Lương giờ', '<ul>' + li([
       'Lương/giờ = <b>căn bản ' + d(CS_BOT.luong) + '</b> + <b>thâm niên</b> (bảng dưới). Tính đúng số phút thực tế. Căn bản chủ xét tăng định kỳ.',
       '<b>Phụ cấp dậy sớm: +' + d(CS_BOT.som.tien) + '/ca</b> nếu check-in đến hết phút ' + CS_BOT.som.han + ' (tức trước ' + CS_BOT.som.han.replace(/30$/, '31') + '). Check-in sau đó không có.',
+      '<b>Trễ quá ' + CS_BOT.treTru.phut + ' phút</b> (check-in sau 06:00): trừ ' + CS_BOT.treTru.tyLe * 100 + '% lương 1 giờ, vd L1 trừ ' + d(Math.round((CS_BOT.luong + CS_BOT.thamNien[0][1]) * CS_BOT.treTru.tyLe)) + ' (từ ' + dShort(CS_BOT.treTru.tu) + ', bot tự trừ).',
       'Không bonus theo số ly, không phụ cấp ca 1 người (từ 01/11).',
       'Ví dụ L1, check-in 05:30, ra 10:30 (5 giờ): (' + d(CS_BOT.luong) + ' + ' + d(CS_BOT.thamNien[0][1]) + ') × 5 = ' + d((CS_BOT.luong + CS_BOT.thamNien[0][1]) * 5) + ' + dậy sớm ' + d(CS_BOT.som.tien) + ' = <b>' + d((CS_BOT.luong + CS_BOT.thamNien[0][1]) * 5 + CS_BOT.som.tien) + '</b>.',
     ]) + '</ul>', true) +
@@ -4910,7 +4914,7 @@ function renderSoTay(){
       'Đọc tin nhắn cũ trong group để biết số lượng đầu ngày.' + QT, 'Đếm tồn xe (bảng trên); thiếu thì lấy từ kho 1 lần, ghi <code>/laykho</code>.' + QT]) + '</ul>') +
     muc('Trong ca', '<ul>' + li(['Luôn có ít nhất 1 người ở quầy; có việc thì nhờ bảo vệ trông giúp.' + QT, 'Thay nước mỗi <b>60 ly</b> để tránh cháy máy.' + QT,
       'Cà phê kẹt: bỏ bớt ra, ấn xay tay. Chỉnh độ mịn thì vừa xay vừa chỉnh.' + QT, 'Pha thử, đổ bỏ: ghi <code>/dungnoibo</code> để không tính vào hao hụt.']) + '</ul>') +
-    muc('Cuối ca', '<ul>' + li(['Dọn quầy: 1 bạn rửa dụng cụ, bỏ gọn vào góc; 1 bạn dọn đồ ở xe.', 'Bọc nguyên liệu pha chế dư, cất ngăn tủ mát.', 'Vệ sinh xe, máy.',
+    muc('Cuối ca (10:00 bắt đầu dọn · 10:30 xong)', '<ul>' + li(['10:00 bắt đầu dọn quầy: 1 bạn rửa dụng cụ, bỏ gọn vào góc; 1 bạn dọn đồ ở xe.', 'Bọc nguyên liệu pha chế dư, cất ngăn tủ mát.', 'Vệ sinh xe, máy.',
       'Đếm ly, kg cà phê: <code>/kiemxe ly 120 cf 2,4</code>.' + QT, 'Kiểm tiền mặt / chuyển khoản: <code>/chotca tm 745 ck 220</code>; bọc giấy, ghi “ngày + số tiền”.' + QT,
       'Khoá tủ tiền, khoá xe, cất chìa khoá cẩn thận.' + QT, 'Check-out sau ca.' + QT]) + '</ul>') +
     muc('Cuối tuần', '<ul>' + li(['Kiểm lại dụng cụ pha chế, báo mua thêm nếu cần.' + QT, 'Vệ sinh máy bằng bột vệ sinh.' + QT, 'Đếm lại đủ các món còn lại trên xe (ngày thường chỉ đếm ly + cà phê).']) + '</ul>') +
@@ -5109,10 +5113,10 @@ const QUY_TRINH = [
     {w:'Đầu ca · 5g30', tool:'📋 Checklist xe', t:'Check in. Đọc tin <code>/kiemxe</code> cuối ca hôm qua trong group: đã có số <b>ly</b> và <b>cà phê</b>, không phải đếm lại hai món này.'},
     {w:'Đầu ca', tool:'📋 Checklist xe', t:'Đếm các món còn lại, ghi bút lông vào cột "Số đếm đầu ca" và so với mức nên có in sẵn. Khác với ngưỡng bot báo lấy thêm trong ca (tab Kho cột S, vd ly < 50, cà phê < 1 kg).', sub:'Nên có trên xe lúc đầu ca (checklist xe): sữa đặc 2 hộp · sữa tươi 2 hộp · cà phê 2 kg · cacao 0,5 hũ · ly 100 · nắp 100 · ống hút 2 bịch · túi quai T 2 bịch.'},
     {w:'Đầu ngày', tool:'🤖 /laykho', t:'Món nào thiếu thì lấy từ kho <b>một lần</b> cho cả ngày, rồi báo <code>/laykho ly 100 cf 2</code> (ghi vào nhóm xuất/nhập kho).'},
-    {w:'Cuối ca · 10g30', tool:'🤖 /kiemxe', t:'Đếm <b>ly</b> và <b>cà phê hạt (kg)</b> rồi gõ <code>/kiemxe ly 120 cf 2,4</code>; số này là số đầu ca hôm sau. <b>Chủ nhật</b> đếm đủ mọi mục.'},
+    {w:'Cuối ca · từ 10:00', tool:'🤖 /kiemxe', t:'Đếm <b>ly</b> và <b>cà phê hạt (kg)</b> rồi gõ <code>/kiemxe ly 120 cf 2,4</code>; số này là số đầu ca hôm sau. <b>Chủ nhật</b> đếm đủ mọi mục.'},
     {w:'Tự động', tool:'📊 Dashboard · tab Kho', t:'Tồn xe và kho tự tính, mục "Xe cần lấy" hiện ở Cần chú ý; hao hụt thật đo giữa hai lần kiểm xe.'}]},
   {id:'chot', ten:'Chốt ca', icon:'🔒', ai:'Nhân viên + chủ', khi:'mỗi ngày', go:'fin', nguon:'Checklist xe — mục 4 Cuối ca', buoc:[
-    {w:'Cuối ca · 10g30', tool:'📋 Checklist xe', t:'Dọn quầy: 1 bạn rửa dụng cụ, 1 bạn dọn đồ ở xe; bọc nguyên liệu dư cất tủ mát; vệ sinh xe, máy.'},
+    {w:'Cuối ca · 10:00–10:30', tool:'📋 Checklist xe', t:'Dọn quầy: 1 bạn rửa dụng cụ, 1 bạn dọn đồ ở xe; bọc nguyên liệu dư cất tủ mát; vệ sinh xe, máy.'},
     {w:'Đếm tiền', tool:'📋 Checklist xe', t:'Kiểm kê <b>tiền mặt</b> và <b>chuyển khoản</b>; bọc tiền bằng giấy sổ ghi <b>"ngày + số tiền"</b>.'},
     {w:'Chốt ca', tool:'🤖 /chotca', t:'Gõ <code>/chotca tm 745 ck 220</code> (đơn vị nghìn; tm = tiền mặt thực thu, ck = chuyển khoản thực nhận) rồi <code>/checkout</code>. Bot so với đơn trong ngày để ra chênh két.'},
     {w:'Trước khi về', tool:'📋 Checklist xe', t:'<b>Khóa tủ tiền, khóa xe</b>, cất chìa khóa cẩn thận; tick các ô cuối ca.'},
