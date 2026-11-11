@@ -575,7 +575,7 @@ html.mcap{background:var(--paper)}
   <div class="brand">
     <svg class="blogo" viewBox="2 -6 286 146" role="img" aria-label="Kai Café"><g transform="scale(0.95)"><g class="lf"><rect x="44" y="0" width="12" height="7" rx="3"></rect><path d="M 30 17 Q 30 9 38 9 L 62 9 Q 70 9 70 17 Z"></path><path d="M 28 20 L 72 20 L 68.5 43 L 31.5 43 Z"></path><rect x="12" y="46" width="76" height="7" rx="3.5"></rect><path d="M 18 56 L 82 56 L 77 128 Q 76.5 136 68 136 L 32 136 Q 23.5 136 23 128 Z"></path></g><path class="lp" d="M 26 56 L 74 56 L 70.6 116 L 29.4 116 Z"></path><path class="lf" d="M 30.4 82 L 69.6 82 L 68.4 113 L 31.6 113 Z"></path><path class="lps" d="M 32 31 L 68 31" style="stroke-width:2.5"></path><path class="lps" d="M 32 126 L 68 126" style="stroke-width:2.5;stroke-linecap:round"></path></g><g transform="translate(104 0)"><g class="lf"><rect x="0" y="0" width="22" height="100"></rect><path d="M 38 0 L 62 0 L 22 71.4 L 22 28.6 Z"></path><path d="M 28 52 L 44 40 L 64 100 L 40 100 Z"></path><g transform="translate(76 0)"><path d="M 0 100 L 22 100 L 40 0 L 26 0 Z"></path><path d="M 66 100 L 44 100 L 26 0 L 40 0 Z"></path><rect x="10" y="64" width="46" height="16"></rect></g><rect x="154" y="0" width="22" height="100"></rect></g><g class="ls" style="stroke-width:2.6"><path d="M 0 123 L 41 123"></path><path d="M 135 123 L 176 123"></path></g><g transform="translate(51 114)"><g class="ls" style="stroke-width:2.6;stroke-linejoin:miter"><path d="M 9.9 2.1 A 6 9 0 1 0 9.9 15.9"></path><path d="M 21 18 L 27 0 L 33 18 M 23.2 11.5 L 30.8 11.5"></path><path d="M 53 0 L 43 0 L 43 18 M 43 8.5 L 51 8.5"></path><path d="M 74 0 L 64 0 L 64 18 L 74 18 M 64 8.5 L 72 8.5"></path><path d="M 67.5 -3.5 L 71.5 -8.5"></path></g></g></svg>
     <div class="bn">Internal dashboard</div>
-    <div class="bv">429 Phan Huy Ích · <span id="hdrRange"></span></div>
+    <div class="bv"><span id="hdrChao">Xin chào !!!</span><br><span id="hdrRange" style="font-size:.86em;opacity:.8"></span></div>
     <div class="bv" id="verChip" role="button" tabindex="0" title="Xem có gì mới" style="cursor:pointer;text-decoration:underline dotted"></div>
     <span class="updchip" id="upd"><span class="dot"></span><span id="updTxt">Đang kết nối Google Sheet…</span></span>
     <span class="mtopt" id="mTopT"></span>
@@ -1012,6 +1012,10 @@ html.mcap{background:var(--paper)}
     </div>
     <div class="kpis" id="bcKpis"></div>
     <div class="cmt" id="bcCoSo"></div>
+    <div class="card" id="sec-bc-nv" hidden>
+      <div class="ct">Gợi ý bán hàng <span class="nt">· cho người đứng ca · tính từ đơn bot 14 ngày gần nhất</span></div>
+      <div id="bcNv" style="display:grid;gap:8px"></div>
+    </div>
     <div class="card" id="sec-bc-dexuat">
       <div class="ct">Đề xuất tự động <span class="nt">· chỉ hiện khi đúng điều kiện, mỗi dòng có số thật làm bằng chứng · không thêm luật dựa trên giả định</span></div>
       <div id="bcDeXuat"></div>
@@ -1158,6 +1162,10 @@ html.mcap{background:var(--paper)}
     <nav class="jnav" aria-label="Mục lục tab Kế hoạch"></nav>
     <div class="cmt" id="planNote"></div>
     <div class="kpis" id="planKpis"></div>
+    <div class="card" id="sec-plan-nv" hidden>
+      <div class="ct">Gợi ý bán hàng <span class="nt">· cho người đứng ca · tính từ đơn bot 14 ngày gần nhất</span></div>
+      <div id="planNv" style="display:grid;gap:8px"></div>
+    </div>
     <div class="card" id="sec-plan-dx">
       <div class="ct">Đề xuất tối ưu <span class="nt">· tự tính từ số thật · xếp theo mức ưu tiên rồi tác động ước tính (đ/tháng)</span></div>
       <div class="recs" id="planRecs"></div>
@@ -1346,6 +1354,11 @@ html.mcap{background:var(--paper)}
       <div class="cw sm"><canvas id="cHrKet" aria-label="Tổng chênh két theo người chốt ca"></canvas></div>
       <div class="tblwrap" style="max-height:320px"><table id="tHrKet"></table></div>
     </div>
+    <div class="card" id="sec-hr-nk" hidden>
+      <div class="ct">Nhật ký dashboard nhân viên <span class="nt">· chỉ chủ thấy · tab Sheet NhatKyDash · trang đang mở tự tải mỗi phút nên “phút dùng” ≈ thời gian để trang mở</span></div>
+      <div class="cmt" id="hrNkTom"></div>
+      <div class="tblwrap" style="max-height:360px"><table id="tHrNk"></table></div>
+    </div>
   </div>
 </main>
 </div>
@@ -1380,7 +1393,7 @@ const PROMO = {from:'2026-10-10', to:'2026-10-16'};  // khai trương đồng gi
 /* Ngày lễ dương lịch (MM-DD). Tết âm lịch đổi theo năm: thêm dạng 'YYYY-MM-DD' khi biết lịch nghỉ. */
 const NGAY_LE = {'01-01':'Tết Dương lịch', '04-30':'Giải phóng 30/4', '05-01':'Quốc tế Lao động', '09-02':'Quốc khánh'};
 /* Thời tiết Gò Vấp (Open-Meteo, miễn phí, không cần khoá) */
-const WX_URL = 'https://api.open-meteo.com/v1/forecast?latitude=10.84&longitude=106.65&daily=weather_code,precipitation_sum,temperature_2m_max&timezone=Asia%2FHo_Chi_Minh&past_days=92&forecast_days=7';
+const WX_URL = 'https://api.open-meteo.com/v1/forecast?latitude=10.84&longitude=106.65&current=weather_code,is_day&daily=weather_code,precipitation_sum,temperature_2m_max&timezone=Asia%2FHo_Chi_Minh&past_days=92&forecast_days=7';
 /* v1.3: tồn kho chỉ còn một nguồn tính tại chỗ (tinhKho, cùng công thức bot) — mã dự phòng cũ VAT_TU / CONG_THUC / vatTu() / nguyenLieu() đã xoá. */
 /* v1.7.8: bỏ quy tắc thưởng theo số ly (bậc lương) — chủ quán chốt 14/10/2026. API vẫn có thể gửi res.bac nhưng dashboard không dùng nữa. */
 /* Chủ quán (res.chu = [{id, ten}]): vẫn tính lương, nhưng KHÔNG tính vào hiệu suất bán hàng (ly/giờ, bảng nhân viên nhập đơn, đơn ngoài ca). */
@@ -1834,13 +1847,20 @@ function chiVanHanhKhacThang(){
 /** Chữ nêu cơ sở của mốc hoà vốn (in đủ số) */
 const coSoHoaVon = p => `lương ${fmt(p.luong)} đ/ngày × 30 · ${p.vh ? `chi vận hành khác ${fmt(p.vh)} đ/tháng (TB sổ chi) · ` : ''}chi cố định ${fmt(p.cd)} đ/tháng (tab Chi cố định${p.thang === 'ổn định' ? ', các khoản còn hiệu lực' : ''}) · giá vốn ${fmt(p.cogs)} đ/ly (không tính khấu hao đầu tư)`;
 /* ---- Thời tiết theo ngày (Open-Meteo). Lỗi mạng thì bỏ qua, dashboard vẫn chạy. ---- */
-let WX = {}, WX_AT = 0;
+let WX = {}, WX_AT = 0, WX_NOW = null;   // WX_NOW (v1.7.185): thời tiết lúc này {weather_code, is_day} cho lời chào thanh bên
 function loadWx(){
   if (Date.now() - WX_AT < 3 * 3600e3) return;
   WX_AT = Date.now();
-  fetch(WX_URL).then(r => r.json()).then(j => { const d = j.daily || {}; WX = {};
+  fetch(WX_URL).then(r => r.json()).then(j => { const d = j.daily || {}; WX = {}; WX_NOW = j.current || null;
     (d.time || []).forEach((k, i) => WX[k] = {code:d.weather_code[i], mm:d.precipitation_sum[i], t:d.temperature_2m_max[i]}); render(); })
     .catch(() => { WX_AT = 0; });
+}
+/** v1.7.185 (chủ quán 11/11): "Xin chào, [tên] !!!" + icon mặt trời / mây / mưa / mặt trăng theo giờ và thời tiết lúc này. */
+function chaoHtml(){
+  const ten = TEN_DN || USER || 'chủ quán', h = new Date().getHours(), c = WX_NOW ? WX_NOW.weather_code : ((WX[today()] || {}).code);
+  const dem = WX_NOW && WX_NOW.is_day != null ? !WX_NOW.is_day : (h < 6 || h >= 18);
+  const ic = c == null ? (dem ? '🌙' : '☀️') : c >= 95 ? '⛈️' : c >= 51 ? '🌧️' : c >= 45 ? '🌫️' : dem ? (c >= 3 ? '☁️' : '🌙') : c === 0 ? '☀️' : c <= 2 ? '🌤️' : '☁️';
+  return `Xin chào, <b>${esc(ten)}</b> !!! <span aria-hidden="true">${ic}</span>`;
 }
 const wxIcon = c => c == null ? '' : c === 0 ? '☀️' : c <= 3 ? '⛅' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 82 ? '🌦️' : '⛈️';
 const wxTxt = k => { const w = WX[k]; return w ? `${wxIcon(w.code)} ${w.mm >= 0.5 ? (+w.mm).toLocaleString('vi-VN', {maximumFractionDigits:1}) + 'mm' : 'khô'}${w.t != null ? ' · ' + Math.round(w.t) + '°' : ''}` : ''; };
@@ -3334,6 +3354,7 @@ function taoDeXuat(B, par, mua, nsGio, pl){
 }
 
 function renderPlan(){
+  try { $('planNv').innerHTML = goiYNVHtml(); } catch(e){ console.warn(e); }
   const B = nenTangKH(), dat = (id, v) => { const e = $(id); if (!e.dataset.touched) e.value = v == null ? '' : v; };
   // v1.3: ô kịch bản tự điền đúng tham số chung (làm tròn đồng); không có ngày bán trong cửa sổ → để trống, không dùng 60 mặc định
   dat('plLy', B.A.ly ? Math.round(B.lyNgay) : null); dat('plTang', 0); dat('plGia', B.HV.gia); dat('plCogs', B.HV.cogs);
@@ -3392,7 +3413,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.184';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.185';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3450,6 +3471,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.185', ngay:'11/11/2026', nd:['Thanh bên: dòng địa chỉ đổi thành “Xin chào, [tên người đăng nhập] !!!” kèm icon mặt trời / mây / mưa / mặt trăng theo giờ và thời tiết hiện tại; ngày đang xem xuống dòng dưới.', 'Tài khoản nhân viên: ẩn nốt số quỹ tiền quán (thẻ “Quỹ còn lại” ở Tổng quan, “tiền quỹ hiện tại” ở Kho, link sang Thu chi); doanh thu bot, chốt ca, két vẫn giữ.', 'Nhân viên thấy “Gợi ý bán hàng” thay cho đề xuất của chủ (tab Báo cáo, Kế hoạch): giới thiệu món ít người gọi, mời lên size L, mời làm thẻ thành viên, giờ đông cần chuẩn bị, món gợi ý cho khách mới.', 'Nhật ký dashboard nhân viên (chỉ chủ thấy, cuối tab Nhân sự + tab Sheet NhatKyDash): ai mở lúc nào, dùng bao lâu, xem tab nào, lần đăng nhập sai (chủ quán 11/11).']},
   {v:'v1.7.184', ngay:'11/11/2026', nd:['Tài khoản nhân viên: ẩn nốt dòng phụ có số lãi (vd “lãi ước tính” ở Tổng quan); thêm mã đăng nhập cho 4 tài khoản trong tab TaiKhoanDash.']},
   {v:'v1.7.183', ngay:'11/11/2026', nd:['Chân thanh bên (chỉ chủ): nút “🔑 Mã đăng nhập nhân viên” — gõ tên đăng nhập + mật khẩu của nhân viên, ra 1 dòng mã hoá gửi Claude để người đó đăng nhập được trên máy mới.', 'Tài khoản nhân viên: ẩn nốt khối lãi lỗ ở Hôm nay, khối hoà vốn / quỹ ở Tổng quan, biểu đồ lãi theo khung giờ và tiền công theo người.']},
   {v:'v1.7.182', ngay:'11/11/2026', nd:['Tài khoản nhân viên: ẩn hết lãi, lương, giá vốn, hoà vốn, thu hồi vốn, công nợ ở mọi tab còn xem được (thẻ số, cột bảng, dòng ghi chú, mục Dự phóng / Độ nhạy / Món cần chỉnh giá). Server không gửi thêm cột lương (ChamCong, NhanVien), tab ThuongPhat, giá tham chiếu tab Kho và bảng bậc lương (chủ quán 11/11: “ẩn hết lãi/lương”).']},
@@ -3461,16 +3483,6 @@ const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều 
   {v:'v1.7.176', ngay:'10/11/2026', nd:['Nhẹ trang: nhật ký "Có gì mới" chỉ giữ 12 bản gần nhất trong trang, các bản cũ hơn chuyển sang file riêng và tự tải khi mở tab Kiểm chứng (index.html nhẹ đi ~95 KB).']},
   {v:'v1.7.175', ngay:'10/11/2026', nd:['Tài liệu: dọn bản cũ (chủ quán 10/11) — bỏ 4 ảnh bìa không dùng (theo menu, như bìa cũ, theo vòm, menu 3 món giá cũ), bỏ Công thức pha chế bản 31/10 (đã có bản size M │ L 10/11) và ảnh mô phỏng kiosk. Giữ 3 cỡ ảnh bìa Tối giản.']},
   {v:'v1.7.174', ngay:'10/11/2026', nd:['PNL · Lãi lỗ theo ngày, chế độ "Lãi sau lương + vận hành": chi vận hành của tháng chia đều cho các ngày có bán nên cộng các ngày = đúng chi vận hành của kỳ (trước đây thiếu phần của ngày không bán, T10 thiếu ~455.000). Bot @222 sửa Tiền công ChamCong của nhân viên cũ (bị tính lại với lương nền 0) → biểu đồ theo ngày không còn báo lãi ảo.']},
-  {v:'v1.7.173', ngay:'10/11/2026', nd:['PNL · Lãi lỗ theo ngày có ô chọn "Lãi sau lương" / "Lãi sau lương + vận hành" (chủ quán 10/11): chế độ mới trừ thêm hàng cho kèm và chi vận hành chia theo ngày (cùng cách tính lãi vận hành của PNL cho 1 ngày), áp cho cột mỗi ngày, đường lũy kế và cột Lãi/ly; bảng thêm cột Vận hành (chia theo ngày) và Lãi sau lương + vận hành.']},
-  {v:'v1.7.172', ngay:'10/11/2026', nd:['Tài liệu: nhóm mới “Ấn phẩm” ngay sau Ảnh bìa — chỉ bản đang dùng: Menu cầm tay (bản món mới, chữ Courier New), Standee vòm (giá M │ L), Bảng món mới A3, Bảng công thức M │ L (có ảnh và bản ngắn); bỏ Menu có ảnh bản cũ.']},
-  {v:'v1.7.171', ngay:'11/11/2026', nd:['Tài liệu · Bảng công thức M │ L: món cà phê, bạc xỉu ghi “lắc 10 lần”; matcha, Phindi ghi “đánh bằng máy”.']},
-  {v:'v1.7.170', ngay:'11/11/2026', nd:['Tài liệu · Bảng công thức M │ L (2 bản): chân trang thêm khối Sơ chế — kem muối, nước đường, cà phê phin, shot máy, matcha, cacao.']},
-  {v:'v1.7.169', ngay:'11/11/2026', nd:['Tài liệu · Bảng công thức M │ L (bản ngắn và bản có ảnh): thêm ghi chú thứ tự rót cho món nhiều lớp — rưới cà phê / cà phê phin / matcha / cacao lên trên, kem muối trên cùng.']},
-  {v:'v1.7.168', ngay:'10/11/2026', nd:['Tài liệu: thêm Bảng công thức size M │ L có ảnh món (A3, kiểu thẻ như bảng món mới, chữ Courier New đã phá nét).']},
-  {v:'v1.7.167', ngay:'10/11/2026', nd:['Tài liệu: thêm Bảng công thức size M │ L (bản ngắn cho nhân viên, A4, chữ Courier New đã phá nét) — đủ món đang bán gồm 4 món mới, cà phê theo ml chủ chốt 10/11.']},
-  {v:'v1.7.166', ngay:'10/11/2026', nd:['Bán 4 món mới từ 10/11 (Menu Sheet): Cà phê caramel cfc, Cà phê chocolate cfch, Matcha coffee mtc, Trà sữa gạo rang tsg (M 20K │ L 25K); bật lại Phindi caramel. Size lớn cà phê: cà phê caramel / chocolate 40 → 50 ml, matcha coffee 20 → 30 ml (cùng bot sizecf-v1b, Sheet Giá vốn ly). Trà sữa gạo rang chưa có công thức nên chưa tính giá vốn.']},
-  {v:'v1.7.165', ngay:'10/11/2026', nd:['Size lớn (chủ chốt 10/11): từ ly bán 10/11, cà phê tính theo ml chủ chốt từng món thay cho × 1,3 — máy 45 → 60 ml, phin 40 → 50, bạc xỉu / bạc xỉu muối / cà phê sữa tươi 20 → 30, cà phê muối 30 → 40; nguyên liệu khác vẫn × 1,3. Giá vốn ly L, tồn kho và nhịp dùng cà phê đổi theo; cùng bot (sizecf-v1) và Sheet Giá vốn ly.']},
-  {v:'v1.7.164', ngay:'09/11/2026', nd:['Tài liệu · Standee vòm: nhãn giá mỗi món ghi M │ L như bảng món mới (L = M + 5K, vd M 15K │ L 20K); ảnh, ảnh dán sticker và PDF in (phá nét) làm lại.']}
 ];
 /** Còn treo: nhóm · việc (chuỗi hoặc hàm) · cần gì / từ ai · xong() tự kiểm theo dữ liệu (không có thì chỉ xoá tay khỏi danh sách này khi đã giải quyết) · tt() chữ trạng thái */
 const BACKLOG = [
@@ -4529,6 +4541,7 @@ function renderTl(){
       + `<div class="act"><a href="${u(x.anh)}" target="_blank" rel="noopener">Xem ảnh</a>${(x.file || []).map(([l, f]) => `<a href="${u(f)}" target="_blank" rel="noopener" download>${esc(l)}</a>`).join('')}</div></div></div>`).join('') + '</div>').join('');
 }
 function renderHr(){
+  try { renderNhatKy(); } catch(e){ console.warn(e); }
   renderHoSo();
   renderAiLam();
   renderChuyenCan();
@@ -5204,6 +5217,7 @@ function deXuatBaoCao(K){
   return R;
 }
 function renderBc(){
+  try { $('bcNv').innerHTML = goiYNVHtml(); } catch(e){ console.warn(e); }
   const tk = today(), K0 = kyBaoCao(S.bcKy, tk), K = Object.assign(soKyBaoCao(K0.tu, K0.den), K0), KT = soKyBaoCao(K0.tuT, K0.denT);
   document.querySelectorAll('#bcKy button').forEach(b => { b.setAttribute('aria-pressed', b.dataset.k === S.bcKy); b.onclick = () => { S.bcKy = b.dataset.k; try { localStorage.setItem('kai_bcky', S.bcKy); } catch(e){} render(); }; });
   const kyTxt = `${BC_KY[S.bcKy]}: ${thu(K.tu)} ${dShort(K.tu)} → ${thu(K.den)} ${dShort(K.den)}/${K.den.slice(0, 4)}${K.dangChay ? ` · đang chạy dở, số tới ${dShort(K.denThuc)}` : ''} · so với ${dShort(K.tuT)} → ${dShort(K.denT)} (${KT.nd ? KT.nd + ' ngày bán' : 'chưa có dữ liệu'}${KT.nd && KT.nd < 3 ? ', dưới 3 ngày nên không so' : ''})`;
@@ -5344,6 +5358,7 @@ function setView(v){
   if (VAI !== 'chu' && NV_AN_VIEW.includes(v)) v = 'today';   // v1.7.181: nhân viên không mở tab tiền
   S.view = v; try { localStorage.setItem('kai_view', v); } catch(e){}
   if (!VIEWS.includes(v)) v = S.view = 'ov';
+  if (VAI === 'nhanvien' && NK_V !== v){ const dau = NK_V === null; NK_V = v; if (!dau && KEY) apiGet({api:'nk', k:KEY, u:USER, v}).catch(() => {}); }   // v1.7.185: nhật ký tab đã xem
   const info = VIEW_INFO[v]; $('mTitle').textContent = info[0]; $('mTopT').textContent = info[0]; syncBnav(v); $('mSub').innerHTML = info[1]; document.title = `${info[0]} · Kai Café`;
   VIEWS.forEach(x => { $('v-' + x).hidden = !D || x !== v; $('tab-' + x).setAttribute('aria-selected', x === v); });
   const coLoc = ['sales', 'dtt', 'mon', 'perf', 'pnl', 'hr'].includes(v);   // tab dùng bộ lọc kỳ / nhân viên / món
@@ -5414,6 +5429,7 @@ new MutationObserver(() => { clearTimeout(ganIconKpi.t); ganIconKpi.t = setTimeo
 function render(){
   if (!D) return;
   chartBase();
+  $('hdrChao').innerHTML = chaoHtml();
   $('hdrRange').textContent = S.view === 'today' ? (S.tdKy !== 'ngay' ? (Q => `${TD_KY[Q.ky].toLowerCase()} ${dShort(Q.tu)} → ${dShort(Q.den)}/${Q.den.slice(0,4)}`)(tdKy()) : `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`)
     : S.view === 'bc' ? (K => `${dShort(K.tu)}/${K.tu.slice(0,4)} → ${dShort(K.den)}/${K.den.slice(0,4)}`)(kyBaoCao(S.bcKy, today()))   // v1.7.43
     : ['ov', 'fin', 'kho', 'tb', 'hh', 'plan', 'kc', 'new', 'qo', 'tl'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
@@ -5493,7 +5509,7 @@ try { API = localStorage.getItem('kai_dash_api') || ''; KEY = localStorage.getIt
 const NV_AN_VIEW = ['pnl', 'kc', 'fin', 'tb', 'hh'];   // Phân tích chỉ chừa Hiệu suất + Kế hoạch; Tiền & kho chỉ chừa Kho
 const NV_BO_TAB = ['Vốn & Thu', 'Tổng hợp', 'Quỹ tiền', 'Chi cố định', 'Thiết bị', 'LuongDaChot', 'ThuongPhat'], NV_CHI_XOA_COT = [5, 6, 8, 9, 11, 12];
 const NV_XOA_COT = {ChamCong:[13, 14, 15, 16, 18], NhanVien:[5, 9, 10, 15], Kho:[17]};   // v1.7.182: = DASH_NV_XOA_COT (cột lương, giá mua)
-let VAI = 'chu', XEM_NV = false, RES_GOC = null;
+let VAI = 'chu', XEM_NV = false, RES_GOC = null, NK = [], NK_V = null, TEN_DN = '';
 function locNV(res){
   const names = [], sheets = {};
   (res.names || []).forEach(n => { if (NV_BO_TAB.includes(n)) return; let rows = (res.sheets || {})[n];
@@ -5504,7 +5520,7 @@ function locNV(res){
 }
 /* v1.7.182 (chủ quán 11/11: "ẩn hết lãi/lương") — nhân viên: sau mỗi lần vẽ, ẩn thẻ số / cột bảng / dòng chữ / mục có lãi, lương, giá vốn, hoà vốn, vốn, nợ.
    Server đã không gửi số gốc (giá mua, lương, chi) nên các số này dù hiện cũng sai — ẩn cho gọn. Về tài khoản chủ thì trả lại hết (data-annv). */
-const NV_RE = /lãi|lời gộp|lương|tiền công|phụ cấp|thưởng|phạt|hoà vốn|hòa vốn|hoàn vốn|giá vốn|vốn góp|lợi nhuận|tỉ suất|tỷ suất|biên gộp|giá trị hàng|thu hồi|công nợ|còn nợ|chi cố định|chi vận hành/i;
+const NV_RE = /quỹ|dòng tiền|lãi|lời gộp|lương|tiền công|phụ cấp|thưởng|phạt|hoà vốn|hòa vốn|hoàn vốn|giá vốn|vốn góp|lợi nhuận|tỉ suất|tỷ suất|biên gộp|giá trị hàng|thu hồi|công nợ|còn nợ|chi cố định|chi vận hành/i;
 const NV_AN_MUC = /^(Cơ cấu món và lãi|Món cần chỉnh giá|Dự phóng 12 tháng|Độ nhạy)/i;
 function anTienNV(){
   const an = el => { if (el.dataset.annv) return; el.dataset.annv = '1'; el.style.display = 'none'; };
@@ -5526,7 +5542,71 @@ function anTienNV(){
   v.querySelectorAll('.jnav a').forEach(a => { const id = (a.getAttribute('href') || '').replace(/^#/, ''), t = id && document.getElementById(id); if ((t && t.dataset.annv) || NV_AN_MUC.test(a.textContent)) an(a); });
   v.querySelectorAll('span').forEach(el => { if (!el.children.length && !el.closest('.jnav') && NV_RE.test(el.textContent) && /\d/.test(el.textContent)) an(el); });   // v1.7.184: dòng phụ có số (vd "lãi ước tính … đ")
   v.querySelectorAll('p, li').forEach(el => { if (!el.closest('.kpi, table') && !el.querySelector('.kpi, table, canvas') && NV_RE.test(el.textContent)) an(el); });
+  v.querySelectorAll('a.lnk').forEach(a => { if (NV_RE.test(a.textContent)) an(a); });   // v1.7.185: link sang tab tiền (vd "… dòng tiền ở tab Thu chi →")
   v.querySelectorAll('[title]').forEach(el => { if (NV_RE.test(el.title)){ el.dataset.annvt = el.title; el.title = ''; } });
+}
+/* ---- nhatky-v1 (v1.7.185, chủ quán 11/11: "thêm log nhân viên: login, dùng dash thời gian nào… cho chủ biết").
+   NK = dòng tab NhatKyDash: [bắt đầu, lần cuối, phút, tên đăng nhập, tên, vai trò, lượt tải, tab đã xem, kết quả]. Server (Dashboard.gs) ghi, trang chỉ đọc. */
+function renderNhatKy(){
+  if (VAI !== 'chu'){ $('sec-hr-nk').hidden = true; return; }
+  $('sec-hr-nk').hidden = false;
+  const rows = NK.map(r => ({bd:toDate(r[0]), lc:toDate(r[1]), phut:+r[2] || 0, u:String(r[3] || ''), ten:String(r[4] || r[3] || ''), tabs:String(r[7] || ''), kq:String(r[8] || '')})).filter(r => r.bd);
+  const tu7 = addDays(today(), -6), r7 = rows.filter(r => dk(r.bd) >= tu7), ok7 = r7.filter(r => r.kq === 'OK'), sai7 = r7.filter(r => r.kq !== 'OK');
+  const nguoi = [...groupBy(ok7, r => r.ten)].map(([ten, l]) => `<b>${esc(ten)}</b> ${l.length} lần · ${fmt(l.reduce((s, r) => s + r.phut, 0))} phút`);
+  $('hrNkTom').innerHTML = rows.length ? `7 ngày qua: ${nguoi.length ? nguoi.join(' · ') : 'chưa nhân viên nào mở'}${sai7.length ? ` · <span class="dn">${sai7.length} lần đăng nhập sai</span> (${esc([...new Set(sai7.map(r => r.u))].join(', '))})` : ''}.`
+    : 'Chưa có lượt nào. Từ bản này, mỗi lần nhân viên mở dashboard (và mỗi lần ai đó gõ sai mật khẩu) sẽ ghi vào tab Sheet NhatKyDash.';
+  const hm = d => d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : '—';
+  table({id:'tHrNk', rows:rows.map(r => Object.assign(r, {bdS:+r.bd})), sortDefault:{k:'bdS', d:-1}, cols:[
+    {k:'bdS', l:'Bắt đầu', f:(v, r) => `${thu(dk(r.bd))} ${dShort(dk(r.bd))} ${hm(r.bd)}`},
+    {k:'ten', l:'Người', f:(v, r) => esc(v) + (r.u && r.u !== v.toLowerCase() ? ` <span class="muted">(${esc(r.u)})</span>` : '')},
+    {k:'phut', l:'Phút dùng', f:(v, r) => r.kq === 'OK' ? `${fmt(v)} <span class="muted">→ ${hm(r.lc)}</span>` : '—'},
+    {k:'tabs', l:'Tab đã xem', f:v => esc(v || '—')},
+    {k:'kq', l:'Kết quả', f:v => v === 'OK' ? '<span class="pill ok">OK</span>' : `<span class="pill bad">${esc(v)}</span>`}]});
+}
+/* ---- goiynv-v1 (v1.7.185, chủ quán 11/11: "đề xuất dành cho nhân viên như giới thiệu món, gợi ý up size, tặng thẻ member…").
+   Chỉ dùng đơn bot 14 ngày gần nhất + Menu (không dùng số tiền quán). Chữ tránh từ khoá NV_RE để anTienNV không ẩn nhầm. */
+function goiYNV(){
+  const tk = today(), tu = addDays(tk, -13), L = D.orders.filter(o => o.k >= tu && o.k <= tk && o.pt !== 'BE' && o.pt !== 'XANH');
+  const R = [], lyMon = {}, lyL = {}, tong = L.reduce((s, o) => s + o.sl, 0);
+  if (!tong) return R;
+  L.forEach(o => { lyMon[o.mon] = (lyMon[o.mon] || 0) + o.sl; if (o.hs > 1 && o.hs < 2) lyL[o.mon] = (lyL[o.mon] || 0) + o.sl; });
+  const menu = Object.entries(D.menu).filter(([, m]) => m.ban && !m.tat).map(([mon, m]) => ({mon, gia:m.gia, nhom:m.nhom, ly:lyMon[mon] || 0}));
+  const top = menu.slice().sort((a, b) => b.ly - a.ly), k = n => fmt(Math.round(n / 1000)) + 'K';
+  const t3 = top.filter(m => m.ly).slice(0, 3);
+  // 1. món ít người gọi → giới thiệu, ghép với món bán chạy cùng nhóm
+  const it = menu.filter(m => m.ly <= Math.max(2, tong * 0.01)).sort((a, b) => a.ly - b.ly).slice(0, 4);
+  if (it.length && t3.length) R.push({muc:'ok', t:`Giới thiệu món ít người biết: ${it.map(m => m.mon).join(', ')}`,
+    ev:`14 ngày qua: ${it.map(m => `${m.mon} ${m.ly} ly`).join(' · ')}.`,
+    ac:it.slice(0, 3).map(m => { const ban = top.find(x => x.nhom === m.nhom && x.mon !== m.mon && x.ly) || t3[0]; return `Khách gọi ${ban.mon} → “Hôm nay thử ${m.mon} không ạ? ${k(m.gia)} thôi”`; }).join('. ') + '.'});
+  // 2. lên size L
+  const nL = Object.values(lyL).reduce((s, x) => s + x, 0), cl = {};
+  L.filter(o => o.hs > 1 && o.hs < 2 && D.menu[o.mon] && o.gia > D.menu[o.mon].gia).forEach(o => { const d = o.gia - D.menu[o.mon].gia; cl[d] = (cl[d] || 0) + o.sl; });
+  const them = +(Object.entries(cl).sort((a, b) => b[1] - a[1])[0] || [5000])[0];
+  if (t3.length) R.push({muc:nL / tong < 0.15 ? 'warn' : 'ok', t:`Mời lên size L (+${k(them)})`,
+    ev:`Đang có ${fmt(nL)}/${fmt(tong)} ly size L (${pct(nL / tong, 0)}); món gọi nhiều: ${t3.map(m => `${m.mon} ${pct((lyL[m.mon] || 0) / m.ly, 0)} lấy L`).join(' · ')}.`,
+    ac:`Khi khách gọi ${t3.map(m => m.mon).join(' / ')}, hỏi luôn: “Anh/chị lấy size L thêm ${k(them)} cho nhiều hơn nha?” — nhất là khách mua mang đi làm.`});
+  // 3. thẻ thành viên
+  const tv = L.filter(o => o.tv).reduce((s, o) => s + o.sl, 0), dow = new Date(tk + 'T00:00:00').getDay(), cuoiTuan = dow === 0 || dow === 6;
+  R.push({muc:'ok', t:'Mời khách quen làm thẻ thành viên',
+    ev:`${fmt(tv)}/${fmt(tong)} ly 14 ngày qua là khách có thẻ (${pct(tv / tong, 0)}). Thẻ giảm 2.000đ/ly từ T2 đến T6.`,
+    ac:(cuoiTuan ? 'Hôm nay cuối tuần (đồng giá, thẻ không giảm) — vẫn mời làm thẻ để tuần sau được giảm. ' : 'Hôm nay thẻ đang được giảm 2K/ly. ')
+      + 'Khách đến lần 2–3, khách gọi 2 ly trở lên: “Anh/chị làm thẻ thành viên không ạ, mỗi ly giảm 2K từ thứ 2 tới thứ 6.” Nhớ ghi “tv” khi nhập đơn bot (vd “csm tv”).'});
+  // 4. giờ đông
+  const gio = {}; L.forEach(o => { if (o.h != null) gio[o.h] = (gio[o.h] || 0) + o.sl; });
+  const nd = new Set(L.map(o => o.k)).size || 1, g2 = Object.entries(gio).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([h, n]) => ({h:+h, n}));
+  if (g2.length && t3.length) R.push({muc:'', t:`Giờ đông: ${g2.map(g => `${g.h}h–${g.h + 1}h`).join(', ')}`,
+    ev:g2.map(g => `${g.h}h trung bình ${(g.n / nd).toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/ngày`).join(' · ') + ` (${nd} ngày bán).`,
+    ac:`Trước ${Math.min(...g2.map(g => g.h))}h: đủ đá, ly, nắp, sữa đã pha; chuẩn bị sẵn cho ${t3.slice(0, 2).map(m => m.mon).join(' và ')}. Lúc đông vẫn nhớ hỏi size L và thẻ.`});
+  // 5. khách mới
+  if (t3.length) R.push({muc:'', t:'Khách mới chưa biết gọi gì', ev:`3 món được gọi nhiều nhất: ${t3.map(m => `${m.mon} (${pct(m.ly / tong, 0)})`).join(' · ')}.`,
+    ac:`Gợi ý ${t3[0].mon} cho khách quen vị cà phê; khách không uống cà phê thì ${(top.find(m => /không cà phê/i.test(m.nhom) && m.ly) || {mon:'cacao / matcha'}).mon}. Hỏi ngọt ít / ngọt vừa để lần sau pha đúng ý.`});
+  return R;
+}
+function goiYNVHtml(){
+  if (!D) return '';
+  const R = goiYNV();
+  return R.length ? R.map(x => `<div class="km ${x.muc}" role="group"><span class="t">Gợi ý</span><p><b>${esc(x.t)}.</b> <span class="d">${esc(x.ev)}</span> ${esc(x.ac)}</p></div>`).join('')
+    : '<p class="muted" style="margin:0;font-size:12.5px">Chưa có đơn trong 14 ngày gần nhất.</p>';
 }
 /** vai: 'chu' · 'nhanvien' (tài khoản nhân viên) · 'xem' (chủ bấm Xem như nhân viên) */
 function apVaiTro(vai, ten){
@@ -5535,6 +5615,8 @@ function apVaiTro(vai, ten){
   $('xemNvBtn').textContent = vai === 'xem' ? '👁 Thôi xem như nhân viên' : '👁 Xem như nhân viên';
   $('openSheet').hidden = nv; $('maNvBtn').hidden = nv;
   $('vaiInfo').hidden = !nv;
+  $('sec-plan-nv').hidden = $('sec-bc-nv').hidden = !nv; $('sec-plan-dx').hidden = $('sec-bc-dexuat').hidden = nv;   // v1.7.185
+  $('sec-hr-nk').hidden = nv;
   $('vaiInfo').innerHTML = vai === 'nhanvien' ? `Đăng nhập: <b>${esc(ten || USER)}</b> · nhân viên` : vai === 'xem' ? '👁 Đang xem như nhân viên: số liệu đã lọc y như tài khoản nhân viên nhận.' : '';
   if (vai === VAI) return;
   VAI = vai;
@@ -5596,6 +5678,7 @@ function onData(res, manual, offlineAt, xemTruoc){   // xemTruoc (v1.7.102): v�
   if (res.err){ if (D){ setUpd('err', 'Lỗi tải'); toast('⚠ ' + esc(res.err), true); } else { hideViews(); showState('Không đọc được sheet', esc(res.err)); setUpd('err', 'Lỗi'); } return; }
   try { localStorage.setItem('kai_dash_key', KEY); localStorage.setItem('kai_dash_api', API); localStorage.setItem('kai_dash_user', USER); } catch(e){}
   if (res.vai !== 'nhanvien') RES_GOC = res; else XEM_NV = false;
+  NK = res.vai === 'nhanvien' ? [] : (res.nk || []); TEN_DN = res.ten || '';   // v1.7.185: nhật ký (server chỉ gửi cho chủ) · tên cho lời chào
   const R = res.vai !== 'nhanvien' && XEM_NV ? locNV(res) : res;   // R = số đem vẽ; res (bản gốc) mới là bản lưu trên máy
   apVaiTro(res.vai === 'nhanvien' ? 'nhanvien' : XEM_NV ? 'xem' : 'chu', res.ten);
   const before = D ? D.orders.length : 0, first = !D;
@@ -5623,7 +5706,7 @@ function load(manual){
   if (!HAS_API() || !KEY){ askKey(); return; }
   if (BUSY) return;
   setBusy(true); if (manual) setUpd('', 'Đang tải lại sheet…');
-  apiGet({api:'data', k:KEY, u:USER}).then(r => onData(r, manual)).catch(e => {
+  apiGet({api:'data', k:KEY, u:USER, v:S.view}).then(r => onData(r, manual)).catch(e => {
     setBusy(false); const m = esc((e && e.message) || 'Lỗi không rõ');
     const cu = !D && docGanNhat();
     if (cu && cu.res){ onData(cu.res, false, cu.at); toast('📴 Không kết nối được, đang hiện số liệu lần trước. Có mạng sẽ tự cập nhật.', true); }
@@ -5637,7 +5720,7 @@ document.addEventListener('keydown', e => { if ((e.key === 'r' || e.key === 'R')
 setInterval(tickAgo, 30000);
 setInterval(() => { if (D && !document.hidden) load(false); }, 60000);                 // tự cập nhật mỗi phút khi đang mở
 document.addEventListener('visibilitychange', () => { if (!document.hidden && D && LOADED_AT && Date.now() - LOADED_AT.getTime() > 60000) load(false); });
-function logout(){ try { localStorage.removeItem('kai_dash_key'); localStorage.removeItem('kai_last'); } catch(e){} KEY = ''; XEM_NV = false; RES_GOC = null; askKey('Đã đăng xuất trên máy này.'); }
+function logout(){ NK_V = null; try { localStorage.removeItem('kai_dash_key'); localStorage.removeItem('kai_last'); } catch(e){} KEY = ''; XEM_NV = false; RES_GOC = null; askKey('Đã đăng xuất trên máy này.'); }
 
 /* ---- Giao diện: Tự động (theo máy) → Sáng → Tối; máy nhớ lựa chọn. Đổi data-theme thì biểu đồ tự vẽ lại (MutationObserver ở trên). ---- */
 const THEME_NHAN = {auto:'🌓 Tự động', light:'☀️ Sáng', dark:'🌙 Tối'};
