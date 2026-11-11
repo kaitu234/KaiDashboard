@@ -3470,7 +3470,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.196';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.197';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3528,6 +3528,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.197', ngay:'11/11/2026', nd:['Ảnh món Matcha latte đổi sang ảnh mới (ly 2 tầng xanh – trắng); hiện ở bảng có cột Món, công thức pha chế và kiểm tra công thức.', 'Cacao đường cát (bảng công thức) dùng ảnh Cacao sữa.']},
   {v:'v1.7.196', ngay:'11/11/2026', nd:['Ai làm ngày nào: ✓ cạnh tên khi đã làm (có chốt ca / check-out), ✗ khi vắng hoặc ngày đã qua mà không chốt ca.', 'Lương đã trả cho chủ gốc (Khoa Từ: 839.167 + 1.595.000 đ tháng 10) vẫn tính vào chi phí lương ở PNL / Hiệu suất — ẩn khỏi lịch và giờ công không làm mất lương; thêm phép tự kiểm khoá điều này.']},
   {v:'v1.7.195', ngay:'11/11/2026', nd:['Của tôi: “⚠ chưa xác nhận” ở ô Sổ tay và nút bên dưới mở thẳng mục Xác nhận đã đọc của tab Sổ tay.']},
   {v:'v1.7.194', ngay:'11/11/2026', nd:['Công thức pha chế: mỗi món chỉ 1 ảnh (bỏ ảnh nhỏ gắn thêm); ảnh món tải lại bản vuông mới (trình duyệt hết giữ ảnh cũ bị cắt).', 'Chủ gốc ẩn khỏi lịch làm; giờ công quán (Hiệu suất, Báo cáo, khung giờ, năng lực 1 người) không tính chủ gốc; thâm niên chủ gốc = 5 giờ mỗi ngày bán đã qua (bot chuao-v1).']},
@@ -4678,7 +4679,7 @@ let DD = [];
 const ddLuc = r => { const d = toDate(r[0]); return d ? d.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}) : esc(r[0]); };
 function renderSt(){ renderSoTay(); renderDaDoc(); renderQuizLs(); renderDanhBa(); }
 const ANH_CT = {'Cà phê đen máy':'ca-phe-den-may', 'Cà phê sữa máy':'ca-phe-sua-may', 'Cà phê đen phin':'ca-phe-den-may', 'Cà phê sữa phin':'ca-phe-sua-may', 'Bạc xỉu':'bac-xiu', 'Cà phê sữa tươi':'ca-phe-sua-tuoi', 'Cà phê caramel':'ca-phe-caramel',
-  'Cà phê chocolate':'ca-phe-chocolate', 'Cà phê muối':'ca-phe-muoi', 'Bạc xỉu muối':'bac-xiu-muoi', 'Cacao muối':'cacao-muoi', 'Matcha latte muối':'matcha-muoi', 'Cacao sữa':'cacao-sua',
+  'Cà phê chocolate':'ca-phe-chocolate', 'Cà phê muối':'ca-phe-muoi', 'Bạc xỉu muối':'bac-xiu-muoi', 'Cacao muối':'cacao-muoi', 'Matcha latte muối':'matcha-muoi', 'Cacao sữa':'cacao-sua', 'Cacao đường cát':'cacao-sua',
   'Cacao latte':'cacao-latte', 'Matcha latte':'matcha-latte', 'Matcha coffee':'matcha-coffee', 'Trà sữa gạo rang':'tra-sua-gao-rang', 'Phindi':'phindi-hanh-nhan'};   // ảnh trong tai-lieu/mon (v1.7.191: 128×128 cắt từ ảnh vuông 1:1 nguyên ly ở 05_Anh mon - anh ly/31_anh-mon-1x1; cà phê phin dùng ảnh cà phê máy)
 /* Lịch sử thay đổi chính sách (nguồn: chú thích hằng trong bot + bộ nhớ chốt của chủ). Thêm bản mới lên ĐẦU; đổi nội quy / chính sách thì tăng SO_TAY_BAN. */
 const LS_CS = [
@@ -5794,7 +5795,7 @@ function ganIconKpi(){
 }
 /** v1.7.154 (chủ nhờ 08/11): ảnh nhỏ của món (ảnh phiên Marketing, tai-lieu/mon/*.jpg 112 px) trước tên món trong mọi bảng có cột "Món".
  *  Món chưa có ảnh riêng: cacao nóng/đá dùng ảnh cacao sữa, cà phê phin dùng ảnh cà phê máy cùng loại. */
-const ANH_V = 2;   // v1.7.194: đổi số này mỗi lần thay ảnh tai-lieu/mon (cùng tên file → trình duyệt giữ ảnh cũ)
+const ANH_V = 3;   // v1.7.194: đổi số này mỗi lần thay ảnh tai-lieu/mon (cùng tên file → trình duyệt giữ ảnh cũ)
 const ANH_MON = {csm:'ca-phe-sua-may', cfm:'ca-phe-muoi', cdm:'ca-phe-den-may', csp:'ca-phe-sua-may', cdp:'ca-phe-den-may', cst:'ca-phe-sua-tuoi', bx:'bac-xiu', bxm:'bac-xiu-muoi',
   ccs:'cacao-sua', cc:'cacao-sua', ccl:'cacao-latte', ccm:'cacao-muoi', mt:'matcha-latte', mtm:'matcha-muoi', pdh:'phindi-hanh-nhan', pdp:'phindi-hat-phi', pdch:'phindi-chocolate', pdc:'phindi-caramel',
   cfc:'ca-phe-caramel', cfch:'ca-phe-chocolate', mtc:'matcha-coffee', tsg:'tra-sua-gao-rang'};   // món mới bán từ 10/11
