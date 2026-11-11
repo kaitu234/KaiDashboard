@@ -3469,7 +3469,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.192';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.193';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3527,6 +3527,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.193', ngay:'11/11/2026', nd:['Thêm tài khoản đăng nhập dashboard cho nhân viên quynhchi.']},
   {v:'v1.7.192', ngay:'11/11/2026', nd:['Ống hút to Phindi tự trừ khi bán phindi (1 cái/ly) chỉ TỪ 11/11: ly bán tới hết 10/11 không trừ (mốc DINH_LUONG_CU ongt = 0, cùng Sheet Giá vốn ly mục 5 và bot).']},
   {v:'v1.7.191', ngay:'11/11/2026', nd:['Dự báo ngày mai (Tổng quan, Hiệu suất, bot): chỉ lấy ngày cùng loại giá với ngày mai, bỏ ngày khai trương 10K — trước đây lẫn ngày 10K nên luôn dự báo cao (57 ly); hệ số mưa cũng chỉ so trong cùng nhóm ngày.', 'Nguyên liệu cho ngày mai: chỉ liệt kê cà phê hạt, cà phê bột, sữa đặc, sữa tươi, ly.', 'Nhân sự: bỏ thẻ Lịch làm (trùng Lịch làm theo đợt); Lịch làm theo đợt hiện cả các ngày đã qua của tuần với ✓ có chấm công / ✗ vắng, dòng tóm tắt 14 ngày tới chuyển vào thẻ này.', 'Bỏ thẻ Gợi ý bán hàng (trùng đề xuất cho nhân viên); Sổ tay bỏ thẻ Lịch sử thay đổi.', 'Ảnh món trong công thức: ảnh vuông nguyên ly (không bị cắt); cà phê phin dùng ảnh cà phê máy.']},
   {v:'v1.7.190', ngay:'11/11/2026', nd:['Luật mới từ 12/11 (bot tretru-v1): check-in trễ quá 30 phút trừ 50% lương 1 giờ — bot tự trừ vào cột Tiền công ChamCong nên bảng lương dashboard khớp; Sổ tay sửa Nội quy, Chính sách, Lịch sử thay đổi.', 'Giờ dọn quầy: 10:00 bắt đầu dọn + /kiemxe, 10:30 xong (Nội quy, Checklist, Quy trình).', 'Sổ tay lên bản 12/11/2026 — nhân viên cần xác nhận đã đọc lại.']},
@@ -5870,6 +5871,9 @@ const API_ENC_NV = [
   {s:'2bhicD8O87zkC/iHGyGAYg==', iv:'ccnFUXC/XgHH9x9j', c:'CUyER7zlvDR5WaBbr+BpEIi2Ywo6kNXVPRmcUK73bOL/9JlKPMil7aZ6EUedHAE2dx5255gTwiDOiNnPZknzg+4DMhZW7LrAYAMZWsTHrjrjj6YJIIG02u1vqfrPLnG2wk5A/JGpeD5o7OhJPSNuxThRJyq9QuamvRlOm4jVhBY=', n:310000},   // quynhnga
   {s:'RE3HS9iFgOU9+eDA9+2zRQ==', iv:'uuS9UdTuOmb1AJnz', c:'sJHrNfUNZHaw/jAfnwVTsEX4fSqZ0i+3ikzHCAl47WAybG0QQH+oLgJfJIqrkIe9Asp2TtiNx2WUTtSqkBn1UgRkoD3pNWgCrqPtlbY5WT4KCF485qggXQxAcAxQMHEgjGim41xDCzWtn8GLvJyCEP8F3BqW4U15+WOz1FSHOrU=', n:310000},   // khoatu
   {s:'oiq0gJRFyk1EpgB3NE/yGg==', iv:'QrhR8fya/l8svrNY', c:'A5Cdv1x0BzE0YM5Ka/+UYCxXFeOxoLvzV31+gFaFWkUI2I9CJqT2E/Dg4Zgk0OEdrV1CtXcMVQb8sw1bTk5UCsJjXg6qkb3Iio0J0y6DTbrzqIOiFlD8RdkFjlhyrgm3zPV5McmiPAXQnWyTKoIU/tXhIvpyNXs9G6TMXpoQpHU=', n:310000},   // nghiale
+  {s:'MzbYNQy+1cQmXT6YgrEXVA==', iv:'WIFZHUcv2IcxCPhO', c:'0jlZciIsei9vfDmT7eh7IVAYfyC3NxOE9xSvT0qr51lissptTkH4MoXp0/unfEzv0jBDJJaXukzmL8fXPfKPUkz+CTielhStH7/VLbtEJah3UmK0jm5wLDzjzHFcYpAc+MEBIk0ISAeqBix8x0kwdZuMgAN0W4obyjuYc7XKD0Q=', n:310000},   // quynhchi
+  {s:'lJJ5O1OfM0lHGcm5n9mRWg==', iv:'QdRszv1W8m7CRhD8', c:'lZAMmoQ/VDPFSaXKOQV4EYv63uSQZyqvxLEaZwVoCJkGkmSNxb11VxTz8nslNbfKga2aLJMLYrsW+HAfBh2Q+7T67rbAzF3HQUufnPeWbb4ReFk2q/sXpKH9G2k7SgBjhGqfZ5g90hgW1zQWo6Q0jNSUB1rTWIvFq9lQ4rfYvV4=', n:310000},   // quynhchi
+  {s:'ysJNCBD8LW9QzWTUI2dTXA==', iv:'LQagu2FIxELYo7Zj', c:'Ehe0Y2QXFHzpfEs48iMzmb5wpwFBoB23YGuwKr8a8fympi0rZHD0AatN58hZcG/Us1B6fnmcxMeEFWmspu9JSuS5CglRQtvUJGxYYRsNazWRwuZqF6vbF+HFuo2e8vC3ZkE33ULbRMRdYb84P2+NmpxzY5v3unvGv+XVVp5R+Q8=', n:310000},   // quynhchi
 ];
 const b64d = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
 async function unlockApi(acc, pw){
