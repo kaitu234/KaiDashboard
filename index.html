@@ -3413,7 +3413,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.185';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.186';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3471,6 +3471,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.186', ngay:'11/11/2026', nd:['Gợi ý bán hàng cho nhân viên: sửa lỗi chỉ hiện 1 gợi ý (thẻ thành viên) — nay đủ giới thiệu món, size L, giờ đông, khách mới.']},
   {v:'v1.7.185', ngay:'11/11/2026', nd:['Thanh bên: dòng địa chỉ đổi thành “Xin chào, [tên người đăng nhập] !!!” kèm icon mặt trời / mây / mưa / mặt trăng theo giờ và thời tiết hiện tại; ngày đang xem xuống dòng dưới.', 'Tài khoản nhân viên: ẩn nốt số quỹ tiền quán (thẻ “Quỹ còn lại” ở Tổng quan, “tiền quỹ hiện tại” ở Kho, link sang Thu chi); doanh thu bot, chốt ca, két vẫn giữ.', 'Nhân viên thấy “Gợi ý bán hàng” thay cho đề xuất của chủ (tab Báo cáo, Kế hoạch): giới thiệu món ít người gọi, mời lên size L, mời làm thẻ thành viên, giờ đông cần chuẩn bị, món gợi ý cho khách mới.', 'Nhật ký dashboard nhân viên (chỉ chủ thấy, cuối tab Nhân sự + tab Sheet NhatKyDash): ai mở lúc nào, dùng bao lâu, xem tab nào, lần đăng nhập sai (chủ quán 11/11).']},
   {v:'v1.7.184', ngay:'11/11/2026', nd:['Tài khoản nhân viên: ẩn nốt dòng phụ có số lãi (vd “lãi ước tính” ở Tổng quan); thêm mã đăng nhập cho 4 tài khoản trong tab TaiKhoanDash.']},
   {v:'v1.7.183', ngay:'11/11/2026', nd:['Chân thanh bên (chỉ chủ): nút “🔑 Mã đăng nhập nhân viên” — gõ tên đăng nhập + mật khẩu của nhân viên, ra 1 dòng mã hoá gửi Claude để người đó đăng nhập được trên máy mới.', 'Tài khoản nhân viên: ẩn nốt khối lãi lỗ ở Hôm nay, khối hoà vốn / quỹ ở Tổng quan, biểu đồ lãi theo khung giờ và tiền công theo người.']},
@@ -5570,7 +5571,7 @@ function goiYNV(){
   const R = [], lyMon = {}, lyL = {}, tong = L.reduce((s, o) => s + o.sl, 0);
   if (!tong) return R;
   L.forEach(o => { lyMon[o.mon] = (lyMon[o.mon] || 0) + o.sl; if (o.hs > 1 && o.hs < 2) lyL[o.mon] = (lyL[o.mon] || 0) + o.sl; });
-  const menu = Object.entries(D.menu).filter(([, m]) => m.ban && !m.tat).map(([mon, m]) => ({mon, gia:m.gia, nhom:m.nhom, ly:lyMon[mon] || 0}));
+  const menu = Object.entries(D.menu).filter(([, m]) => m.ban).map(([mon, m]) => ({mon, gia:m.gia, nhom:m.nhom, ly:lyMon[mon] || 0}));
   const top = menu.slice().sort((a, b) => b.ly - a.ly), k = n => fmt(Math.round(n / 1000)) + 'K';
   const t3 = top.filter(m => m.ly).slice(0, 3);
   // 1. món ít người gọi → giới thiệu, ghép với món bán chạy cùng nhóm
