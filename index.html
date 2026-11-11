@@ -3469,7 +3469,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.191';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.192';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3527,6 +3527,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.192', ngay:'11/11/2026', nd:['Ống hút to Phindi tự trừ khi bán phindi (1 cái/ly) chỉ TỪ 11/11: ly bán tới hết 10/11 không trừ (mốc DINH_LUONG_CU ongt = 0, cùng Sheet Giá vốn ly mục 5 và bot).']},
   {v:'v1.7.191', ngay:'11/11/2026', nd:['Dự báo ngày mai (Tổng quan, Hiệu suất, bot): chỉ lấy ngày cùng loại giá với ngày mai, bỏ ngày khai trương 10K — trước đây lẫn ngày 10K nên luôn dự báo cao (57 ly); hệ số mưa cũng chỉ so trong cùng nhóm ngày.', 'Nguyên liệu cho ngày mai: chỉ liệt kê cà phê hạt, cà phê bột, sữa đặc, sữa tươi, ly.', 'Nhân sự: bỏ thẻ Lịch làm (trùng Lịch làm theo đợt); Lịch làm theo đợt hiện cả các ngày đã qua của tuần với ✓ có chấm công / ✗ vắng, dòng tóm tắt 14 ngày tới chuyển vào thẻ này.', 'Bỏ thẻ Gợi ý bán hàng (trùng đề xuất cho nhân viên); Sổ tay bỏ thẻ Lịch sử thay đổi.', 'Ảnh món trong công thức: ảnh vuông nguyên ly (không bị cắt); cà phê phin dùng ảnh cà phê máy.']},
   {v:'v1.7.190', ngay:'11/11/2026', nd:['Luật mới từ 12/11 (bot tretru-v1): check-in trễ quá 30 phút trừ 50% lương 1 giờ — bot tự trừ vào cột Tiền công ChamCong nên bảng lương dashboard khớp; Sổ tay sửa Nội quy, Chính sách, Lịch sử thay đổi.', 'Giờ dọn quầy: 10:00 bắt đầu dọn + /kiemxe, 10:30 xong (Nội quy, Checklist, Quy trình).', 'Sổ tay lên bản 12/11/2026 — nhân viên cần xác nhận đã đọc lại.']},
   {v:'v1.7.189', ngay:'11/11/2026', nd:['Thẻ “Của tôi”: ca sắp tới không tính ca hôm nay khi đã qua 10:30.']},
@@ -5343,7 +5344,7 @@ function giaNL(){
 const heSoHaoHut = dvTinh => /^ly/i.test(String(dvTinh || '').trim()) ? 1 : 1 + HAO_HUT;
 /** v1.7.2 — Lịch sử định lượng (chủ quán chốt 13/10/2026): tab CongThuc luôn là số HIỆN HÀNH; ly bán tới hết ngày `den` dùng lượng cũ `luong` cho nguyên liệu `nl` ở mọi món có nguyên liệu đó.
  *  Cacao: 10 g/ly tới hết 12/10/2026, từ 13/10/2026 là 7 g. Thêm dòng mới ở đây khi định lượng đổi tiếp. */
-const DINH_LUONG_CU = [{den:'2026-10-15', nl:'cc', luong:7}, {den:'2026-10-12', nl:'cc', luong:10}];   // v1.7.47: cacao 7 g từ 13/10 tới nay (CongThuc; 17/10 chủ chốt bỏ mức 4,9 g đã định cho 16/10 → mốc 15/10 = 7 g trùng CongThuc, giữ cũng không sai); tới 12/10 = 10 g. Cùng lịch với Sheet 'Giá vốn ly' mục 5 (I54:K60) — thêm mốc ở đây thì báo phiên Thu/Chi / thêm 1 dòng ở đó. Mốc mới đứng trước vì mốc sau ghi đè
+const DINH_LUONG_CU = [{den:'2026-11-10', nl:'ongt', luong:0}, {den:'2026-10-15', nl:'cc', luong:7}, {den:'2026-10-12', nl:'cc', luong:10}];   // v1.7.47: cacao 7 g từ 13/10 tới nay (CongThuc; 17/10 chủ chốt bỏ mức 4,9 g đã định cho 16/10 → mốc 15/10 = 7 g trùng CongThuc, giữ cũng không sai); tới 12/10 = 10 g. Cùng lịch với Sheet 'Giá vốn ly' mục 5 (I54:K60) — thêm mốc ở đây thì báo phiên Thu/Chi / thêm 1 dòng ở đó. Mốc mới đứng trước vì mốc sau ghi đè
 /** Công thức của 1 món (ct = {nl: lượng/ly}) tại ngày k theo lịch sử hist; không đổi ct gốc */
 function ctTheoNgay(ct, hist, k){
   if (!ct || !k) return ct;
