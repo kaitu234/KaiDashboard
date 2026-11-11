@@ -3486,7 +3486,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.188';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.189';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3544,6 +3544,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.189', ngay:'11/11/2026', nd:['Thẻ “Của tôi”: ca sắp tới không tính ca hôm nay khi đã qua 10:30.']},
   {v:'v1.7.188', ngay:'11/11/2026', nd:['Nội quy, Chính sách, Công thức pha chế, Checklist ca chuyển ra tab riêng “Sổ tay” trong nhóm Vận hành (tab Nhân sự trở lại như cũ).', 'Xác nhận đã đọc: nhân viên tick “đã đọc, hiểu và đồng ý” rồi bấm xác nhận — ghi tab Sheet DaDocNoiQuy; chưa xác nhận thì vào trang được nhắc. Chủ thấy bảng ai đã / chưa xác nhận bản hiện hành.', 'Sổ tay thêm: ảnh món trong bảng công thức · Kiểm tra công thức 10 câu (nhân viên làm xong tự lưu, chủ xem kết quả — tab Sheet QuizCongThuc) · Lịch sử thay đổi chính sách · Danh bạ (tab Sheet DanhBa, chủ điền số) + xử lý sự cố.', 'Tab Nhân sự: thẻ Nhật ký dashboard nhân viên (chủ xem ai mở dash lúc nào, bao lâu, tab nào) chuyển lên đầu tab.', 'Tab Nhân sự: thẻ “Của tôi” cho tài khoản nhân viên — bậc, giờ thâm niên, ca tháng này, chuỗi chuyên cần, ca sắp tới, đã đọc sổ tay chưa (không có số tiền).']},
   {v:'v1.7.187', ngay:'11/11/2026', nd:['Tab Nhân sự thêm sổ tay nhân viên: Nội quy (bản 25/10 sửa theo luật bot từ 01/11), Chính sách lương thưởng (như /chinhsach) + bán hàng tại quầy, Công thức pha chế size M │ L có ô tìm món + sơ chế, Checklist ca + lệnh bot hay dùng.', 'Tài khoản nhân viên thấy đủ 4 thẻ này (không bị ẩn chữ lương/thưởng/phạt).', 'Tự kiểm: ml cà phê size M/L trong công thức khớp hệ số size L của bot.']},
   {v:'v1.7.186', ngay:'11/11/2026', nd:['Gợi ý bán hàng cho nhân viên: sửa lỗi chỉ hiện 1 gợi ý (thẻ thành viên) — nay đủ giới thiệu món, size L, giờ đông, khách mới.']},
@@ -4761,7 +4762,7 @@ function renderCuaToi(){
   card.hidden = !me; if (!me) return;
   const tk = today(), m0 = tk.slice(0, 7), th = D.cong.filter(c => c.id === me.id && c.k.slice(0, 7) === m0), CC = CHUYEN_CAN;
   const cc = Object.values(D.ccRes || {}).find(o => o.id === me.id), thu = k => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][new Date(k + 'T12:00:00').getDay()];
-  const lich = D.lich ? D.lich.dk.filter(x => x.id === me.id && x.k >= tk && x.tt === 'OK').map(x => x.k).sort() : [];
+  const lich = D.lich ? D.lich.dk.filter(x => x.id === me.id && (x.k > tk || (x.k === tk && new Date().getHours() * 60 + new Date().getMinutes() < 630)) && x.tt === 'OK').map(x => x.k).sort() : [];
   const daDoc = DD.some(x => x[3] === SO_TAY_BAN), qz = QZ.slice().sort((a, b) => b[3] / (b[4] || 1) - a[3] / (a[4] || 1))[0];
   const o = (lb, v, sub) => '<div><span class="lb">' + lb + '</span><span class="v">' + v + '</span>' + (sub ? '<span class="s">' + sub + '</span>' : '') + '</div>';
   $('hrToiNt').textContent = '· ' + me.ten + ' · chỉ bạn thấy';
