@@ -1667,7 +1667,8 @@ function parseWorkbook(wb){
   D.nhanNv = c => (c.id && idCuaTen[c.nv] && idCuaTen[c.nv].size > 1) ? `${c.nv} (…${String(c.id).slice(-4)})` : c.nv;
   D.tenTrung = Object.keys(idCuaTen).filter(n => idCuaTen[n].size > 1);
   const chuId = new Set((CHU_SV || []).map(x => String(x.id)));
-  D.cong.forEach(c => c.chu = chuId.has(c.id));
+  const gocIdSet = new Set((CHU_SV || []).filter(x => x.goc).map(x => String(x.id)));
+  D.cong.forEach(c => { c.chu = chuId.has(c.id); c.goc = gocIdSet.has(String(c.id)); });   // v1.7.194 (bot chuao-v1, chủ chốt 11/11): chủ gốc ẩn khỏi lịch / Ai làm, không tính vào giờ công quán (lương, PNL giữ nguyên)
   D.chuTen = new Set([...(CHU_SV || []).map(x => ten(x.ten)), ...D.cong.filter(c => c.chu).map(c => c.nv)]);
   D.chotAll = D.chot; D.chot = chotHieuLucCore(D.chotAll, n => D.chuTen.has(n));   // v1.7.12 (bot chotca-v3): mỗi ngày CHỈ 1 dòng ChotCa có hiệu lực, không cộng dồn các lần chốt
   // v1.7.5 — Lịch làm do bot ghi (/lichca · /dangkyca): Ca = mã · tên · bắt đầu · kết thúc · số người cần · DangKyCa = ngày · mã ca · Telegram ID · tên · lúc đăng ký · trạng thái (OK nhận · CHO chờ chủ duyệt · HUY / TUCHOI bỏ) · người xếp
@@ -3327,7 +3328,7 @@ function nenTangKH(){
 function nhanSuTheoGio(B){
   const days = [...new Set(B.L.map(o => o.k))], nd = days.length || 1, slot = {}, now = new Date();
   B.L.forEach(o => { if (o.h != null) (slot[o.h] ??= {ly:0, ng:0, tien:0}).ly += o.sl; });
-  D.cong.filter(c => days.includes(c.k)).forEach(c => { const het = c.ra || (c.k === today() ? now : null); if (!het) return;
+  D.cong.filter(c => days.includes(c.k) && !c.goc).forEach(c => { const het = c.ra || (c.k === today() ? now : null); if (!het) return;
     for (let h = 0; h < 24; h++){ const d0 = fromKey(c.k); d0.setHours(h, 0, 0, 0); const d1 = new Date(d0.getTime() + 36e5), ov = Math.max(0, Math.min(het, d1) - Math.max(c.vao, d0)) / 36e5;
       if (ov){ const s = (slot[h] ??= {ly:0, ng:0, tien:0}); s.ng += ov; s.tien += ov * (c.luongGio || 0); } } });
   return Object.keys(slot).map(Number).sort((a, b) => a - b).map(h => { const s = slot[h]; return {h, ly:s.ly / nd, ng:s.ng / nd, luongGio:s.ng ? s.tien / s.ng : 0}; });
@@ -3469,7 +3470,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.193';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.194';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3527,6 +3528,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.194', ngay:'11/11/2026', nd:['Công thức pha chế: mỗi món chỉ 1 ảnh (bỏ ảnh nhỏ gắn thêm); ảnh món tải lại bản vuông mới (trình duyệt hết giữ ảnh cũ bị cắt).', 'Chủ gốc ẩn khỏi lịch làm; giờ công quán (Hiệu suất, Báo cáo, khung giờ, năng lực 1 người) không tính chủ gốc; thâm niên chủ gốc = 5 giờ mỗi ngày bán đã qua (bot chuao-v1).']},
   {v:'v1.7.193', ngay:'11/11/2026', nd:['Thêm tài khoản đăng nhập dashboard cho nhân viên quynhchi.']},
   {v:'v1.7.192', ngay:'11/11/2026', nd:['Ống hút to Phindi tự trừ khi bán phindi (1 cái/ly) chỉ TỪ 11/11: ly bán tới hết 10/11 không trừ (mốc DINH_LUONG_CU ongt = 0, cùng Sheet Giá vốn ly mục 5 và bot).']},
   {v:'v1.7.191', ngay:'11/11/2026', nd:['Dự báo ngày mai (Tổng quan, Hiệu suất, bot): chỉ lấy ngày cùng loại giá với ngày mai, bỏ ngày khai trương 10K — trước đây lẫn ngày 10K nên luôn dự báo cao (57 ly); hệ số mưa cũng chỉ so trong cùng nhóm ngày.', 'Nguyên liệu cho ngày mai: chỉ liệt kê cà phê hạt, cà phê bột, sữa đặc, sữa tươi, ly.', 'Nhân sự: bỏ thẻ Lịch làm (trùng Lịch làm theo đợt); Lịch làm theo đợt hiện cả các ngày đã qua của tuần với ✓ có chấm công / ✗ vắng, dòng tóm tắt 14 ngày tới chuyển vào thẻ này.', 'Bỏ thẻ Gợi ý bán hàng (trùng đề xuất cho nhân viên); Sổ tay bỏ thẻ Lịch sử thay đổi.', 'Ảnh món trong công thức: ảnh vuông nguyên ly (không bị cắt); cà phê phin dùng ảnh cà phê máy.']},
@@ -4439,11 +4441,11 @@ function renderLichDot(){
   if (!coLich.length){ el.innerHTML = '<div class="muted">Chưa xếp ca nào từ hôm nay trở đi.</div>'; return; }
   const den = coLich[coLich.length - 1], luongMap = {}; (D.nhanVien || []).forEach(n => { luongMap[n.ten] = n.luongNay || n.luong; });
   const ccNow = nv => { const o = Object.values(D.ccRes || {}).find(x => x.nv === nv); return {chuoi:o ? o.chuoi : 0, co:new Set(o ? o.ds.map(e => e.k) : [])}; };
-  const R = lichDotCore(L.dk, L.ca, tk, den, nv => luongMap[nv], ccNow), ten = Object.keys(R.tong.reduce((o, t) => (o[t.nv] = 1, o), {}));
+  const R = lichDotCore(L.dk.filter(x => !(x.id && L.gocId.has(String(x.id)))), L.ca, tk, den, nv => luongMap[nv], ccNow), ten = Object.keys(R.tong.reduce((o, t) => (o[t.nv] = 1, o), {}));
   const MAU = ['#F4C04D', '#7DB7EA', '#93CF9F', '#E8A5A5', '#C9A8E0', '#9FD3D6'], mau = nv => MAU[Math.max(0, ten.indexOf(nv)) % MAU.length];
   const chip = (nv, tt) => `<span style="display:inline-block;background:${mau(nv)};color:#5E3B25;border-radius:6px;padding:3px 8px;margin:1px 2px;font-weight:600">${esc(nv)}${tt === 'xong' || tt === 'dang' ? ' ✓' : tt === 'vang' ? ' ✗' : ''}</span>`;
   // v1.7.191 (chủ nhờ 11/11): ngày đã qua + hôm nay lấy từ lịch đối chiếu chấm công (✓ có chấm công · ✗ vắng), như thẻ Lịch làm cũ
-  const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes(), daLam = k => lichCaNgay(L, D.cong, k, tk, nowMin).flatMap(c => c.nghi ? [] : c.ai);
+  const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes(), daLam = k => lichCaNgay(L, D.cong, k, tk, nowMin).flatMap(c => c.nghi ? [] : c.ai).filter(a => !a.goc);   // v1.7.194: ẩn chủ gốc
   const dots = R.dots.map(d => `<span style="display:inline-block;background:${mau(d.nv)};color:#5E3B25;border-radius:8px;padding:6px 10px;margin:3px;text-align:center;font-size:13px"><b>${esc(d.nv)}</b><br>${d.tu === d.den ? dShort(d.tu) : dShort(d.tu) + '–' + dShort(d.den)}<br><small>${d.n} ngày</small></span>`).join('');
   const t2 = addDays(tk, -((THU.indexOf(thu(tk)) + 6) % 7)), tuan = Math.ceil((new Date(den) - new Date(t2)) / 86400000 / 7 + 0.01);
   let grid = '<thead><tr>' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(t => '<th style="text-align:center">' + t + '</th>').join('') + '</tr></thead><tbody>';
@@ -4550,11 +4552,11 @@ function renderAiLam(){
   sel.innerHTML = ms.map(m => `<option value="${m}"${m === S.hrThang ? ' selected' : ''}>${mlabel(m)}</option>`).join('');
   sel.onchange = () => { S.hrThang = sel.value; renderAiLam(); };
   const m = S.hrThang, dau = m + '-01', cuoi = `${m}-${p2(ngayTrongThang(m))}`, gioHm = d => d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : '';
-  const C = D.cong.filter(c => c.k >= dau && c.k <= cuoi).sort((a, b) => (a.vao || 0) - (b.vao || 0));
+  const C = D.cong.filter(c => c.k >= dau && c.k <= cuoi && !c.goc).sort((a, b) => (a.vao || 0) - (b.vao || 0));   // v1.7.194: ẩn chủ gốc
   const ten = c => D.nhanNv ? D.nhanNv(c) : c.nv, ds = [...new Set(C.map(ten))];
   const MAU = ['#7DB7EA', '#93CF9F', '#E8A5A5', '#C9A8E0', '#9FD3D6', '#F2B880'], conLam = new Set((D.nhanVien || []).filter(n => !n.cu).map(n => n.ten)), laChuT = nv => D.chuTen && D.chuTen.has(nv), dsNV = ds.filter(n => !laChuT(n) && (!D.nhanVien || !D.nhanVien.length || conLam.has(n)));
   const mau = nv => laChuT(nv) ? '#F4C04D' : !dsNV.includes(nv) ? '#D3CEC8' : MAU[dsNV.indexOf(nv) % MAU.length];   // v1.7.141: chủ quán vàng, người đã nghỉ xám
-  const vang = D.lich ? D.lich.dk.filter(x => x.tt === 'OK' && x.k >= dau && x.k <= cuoi && x.k < tk && !C.some(c => c.k === x.k && (c.id && x.id ? c.id === x.id : c.nv === x.nv))) : [];
+  const vang = D.lich ? D.lich.dk.filter(x => x.tt === 'OK' && !(x.id && D.lich.gocId.has(String(x.id))) && x.k >= dau && x.k <= cuoi && x.k < tk && !C.some(c => c.k === x.k && (c.id && x.id ? c.id === x.id : c.nv === x.nv))) : [];
   const theoNgay = groupBy(C, c => c.k), t2 = addDays(dau, -((THU.indexOf(thu(dau)) + 6) % 7)), tuan = Math.ceil((rangeDays(t2, cuoi).length) / 7);
   let g = '<thead><tr>' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(t => '<th style="text-align:center">' + t + '</th>').join('') + '</tr></thead><tbody>';
   for (let w = 0; w < tuan; w++){
@@ -4720,7 +4722,7 @@ function veQuiz(){
   }
   const c = q.cau[q.i];
   el.innerHTML = '<div class="muted" style="font-size:12px">Câu ' + (q.i + 1) + '/' + q.cau.length + ' · đúng ' + q.dung + '</div>'
-    + '<div class="qzq">' + (ANH_CT[c.ten] ? '<img src="tai-lieu/mon/' + ANH_CT[c.ten] + '.jpg" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;float:left;margin-right:10px">' : '') + '<b>' + esc(c.ten) + '</b> — size <b>' + c.sz + '</b> (' + (c.sz === 'M' ? '360' : '500') + ' ml): công thức nào đúng?</div>'
+    + '<div class="qzq">' + (ANH_CT[c.ten] ? '<img src="tai-lieu/mon/' + ANH_CT[c.ten] + '.jpg?v=' + ANH_V + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;float:left;margin-right:10px">' : '') + '<b>' + esc(c.ten) + '</b> — size <b>' + c.sz + '</b> (' + (c.sz === 'M' ? '360' : '500') + ' ml): công thức nào đúng?</div>'
     + '<div class="qzo" style="clear:both">' + c.chon.map((o, k) => '<button type="button" data-k="' + k + '">' + esc(o) + '</button>').join('') + '</div><div id="qzSau"></div>';
   el.querySelectorAll('.qzo button').forEach(b => b.onclick = () => {
     const o = c.chon[+b.dataset.k], ok = o === c.dung;
@@ -4886,7 +4888,7 @@ function renderSoTay(){
       '<b>Đơn app</b> (be, Xanh SM): ghi đúng loại app khi bấm đơn; tiền app <b>không</b> vào két, không tính trong /chotca.',
     ]) + '</ul>');
 
-  const nhom = CONG_THUC_IN.map(([n, ds]) => '<tr class="nh"><td colspan="3">' + esc(n) + '</td></tr>' + ds.map(([t, m, l, gc]) => '<tr data-tim="' + esc((n + ' ' + t).toLowerCase()) + '"><td class="mn">' + (ANH_CT[t] ? '<img src="tai-lieu/mon/' + ANH_CT[t] + '.jpg" alt="" loading="lazy">' : '') + esc(t) + (gc ? '<small>' + esc(gc) + '</small>' : '') + '</td><td>' + esc(m) + '</td><td><b>' + esc(l) + '</b></td></tr>').join('')).join('');
+  const nhom = CONG_THUC_IN.map(([n, ds]) => '<tr class="nh"><td colspan="3">' + esc(n) + '</td></tr>' + ds.map(([t, m, l, gc]) => '<tr data-tim="' + esc((n + ' ' + t).toLowerCase()) + '"><td class="mn">' + (ANH_CT[t] ? '<img src="tai-lieu/mon/' + ANH_CT[t] + '.jpg?v=' + ANH_V + '" alt="" loading="lazy">' : '') + esc(t) + (gc ? '<small>' + esc(gc) + '</small>' : '') + '</td><td>' + esc(m) + '</td><td><b>' + esc(l) + '</b></td></tr>').join('')).join('');
   $('hrCt').innerHTML = '<input type="search" id="hrCtTim" placeholder="Tìm món: muối, matcha, phin…" aria-label="Tìm món trong công thức">'
     + '<div class="tblwrap" style="max-height:none"><table id="tHrCt"><thead><tr><th>Món</th><th>Size M · 360 ml</th><th>Size L · 500 ml</th></tr></thead><tbody>' + nhom + '</tbody></table></div>'
     + '<ul>' + li(['<b>Viết tắt:</b> cf = cà phê (máy hoặc phin) · SĐ = sữa đặc · ST = sữa tươi · đường = nước đường (1 nhấn = 10 ml) · muỗng = muỗng kem muối.',
@@ -4926,7 +4928,7 @@ function renderHr(){
   try { renderCuaToi(); } catch(e){ console.warn(e); }
   renderLich(); renderLichDot();
   renderKetNguoi();
-  const C = D.cong.filter(c => c.k >= S.from && c.k <= S.to && dayOk(c.k) && (!S.nv || c.nv === S.nv));
+  const C = D.cong.filter(c => !c.goc && c.k >= S.from && c.k <= S.to && dayOk(c.k) && (!S.nv || c.nv === S.nv));   // v1.7.194: bảng giờ công / ly trong ca bỏ chủ gốc
   // Ly trong ca = đơn có giờ nằm giữa giờ vào và giờ ra của ca đó (chưa checkout: tới hiện tại nếu là hôm nay, hết ngày nếu ngày cũ).
   // Hai người làm chung giờ thì cùng thấy các đơn đó, nhưng dòng Tổng chỉ đếm mỗi đơn 1 lần.
   const trongCa = c => { const het = c.ra || (c.k === today() ? new Date() : fromKey(addDays(c.k, 1)));
@@ -5308,7 +5310,7 @@ function nangLucCore(src){
 }
 function nangLuc30p(){
   if (_nl30 && _nl30.d === D && _nl30.tk === today()) return _nl30;
-  return (_nl30 = Object.assign({d:D, tk:today()}, nangLucCore({orders:D.orders, cong:D.cong, today:today()})));
+  return (_nl30 = Object.assign({d:D, tk:today()}, nangLucCore({orders:D.orders, cong:D.cong.filter(c => !c.goc), today:today()})));
 }
 const NL30 = () => nangLuc30p().v;   // null = chưa đo được
 const NL30_TXT = () => NL30() != null ? `${NL30().toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/30 phút` : 'chưa đo được';
@@ -5408,7 +5410,7 @@ function renderPerf(){
     const n = nDays(S.from, S.to), m0 = S.from.slice(0, 7), thang = S.gKy === 'thang', pmm = thang ? mkey(addDays(m0 + '-01', -1)) : '';
     const pf = thang ? pmm + '-01' : addDays(S.from, -n), pt = thang ? (n >= ngayTrongThang(pmm) ? cuoiThang(pmm) : `${pmm}-${p2(Math.min(n, ngayTrongThang(pmm)))}`) : addDays(S.from, -1);
     const B = agg(sel(new Set(), pf, pt)), nhan = S.gKy === 'ngay' ? 'hôm trước' : S.gKy === 'tuan' ? 'tuần trước' : thang ? 'cùng kỳ tháng trước' : `${n} ngày trước đó`;
-    const gioCong = (a, b) => D.cong.filter(c => c.k >= a && c.k <= b && dayOk(c.k) && (!S.nv || c.nv === S.nv)).reduce((x, c) => x + (c.gio || 0), 0), gA = gioCong(S.from, S.to), gB = gioCong(pf, pt);
+    const gioCong = (a, b) => D.cong.filter(c => !c.goc && c.k >= a && c.k <= b && dayOk(c.k) && (!S.nv || c.nv === S.nv)).reduce((x, c) => x + (c.gio || 0), 0), gA = gioCong(S.from, S.to), gB = gioCong(pf, pt);
     const ss = (a, b) => `${dlt(a, b)} vs ${nhan}`, f1 = v => v == null ? '—' : (+v).toLocaleString('vi-VN', {maximumFractionDigits:1});
     $('perfKpis').innerHTML = `<div class="kpi main"><span class="lb">Doanh thu (đơn bot)</span><span class="v">${fmt(A.dt)}</span><span class="s">${ss(A.dt, B.dt)}${A.nd > 1 ? ` · TB ${fmt(A.dt / A.nd)}/ngày bán` : ''}</span></div>
       <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${ss(A.ly, B.ly)}${A.nd > 1 ? ` · TB ${f1(A.ly / A.nd)}/ngày bán` : ''}</span></div>
@@ -5460,7 +5462,7 @@ function renderPerf(){
   (() => {
     const tk = today(), now = new Date(), cogsLy = cogs, asp = A.asp || 0, slot = {}, ngay = ngayKy;
     L.forEach(o => { if (o.min == null) return; const b = Math.floor(o.min / 30) * 30; (slot[b] ??= {ly:0, luong:0, nguoi:0}).ly += o.sl; });
-    ngay.forEach(k => D.cong.filter(c => c.k === k).forEach(c => { const het = c.ra || (k === tk ? now : null); if (!het) return;
+    ngay.forEach(k => D.cong.filter(c => c.k === k && !c.goc).forEach(c => { const het = c.ra || (k === tk ? now : null); if (!het) return;
       Object.keys(slot).forEach(b => { const d0 = fromKey(k); d0.setMinutes(+b); const d1 = new Date(d0.getTime() + 30 * 6e4);
         const ov = Math.max(0, (Math.min(het, d1) - Math.max(c.vao, d0)) / 6e4); if (!ov) return; slot[b].nguoi += ov / 30; slot[b].luong += ov * (c.luongGio || 0) / 60; }); }));
     const nd = ngay.length || 1, coCong = D.cong.some(c => ngay.includes(c.k));
@@ -5569,7 +5571,7 @@ function soKyBaoCao(tu, den){
     const P = coKy && L.length ? tinhPnl(tu, denThuc) : null;
     const NT = nguonTien(), days = coKy ? rangeDays(tu, denThuc) : [], T = nguonTienTong(NT, days);
     const cong = D.cong.filter(c => c.k >= tu && c.k <= denThuc), congNV = cong;   // v1.7.44: tính cả giờ chủ quán đứng ca (chủ quán chốt 17/10, cùng /tuan của bot); tên biến giữ cho gọn diff
-    const gioNgay = {}; congNV.forEach(c => gioNgay[c.k] = (gioNgay[c.k] || 0) + (c.gio || 0));
+    const gioNgay = {}; congNV.filter(c => !c.goc).forEach(c => gioNgay[c.k] = (gioNgay[c.k] || 0) + (c.gio || 0));   // v1.7.194: giờ công quán bỏ chủ gốc (cùng /tuan bot chuao-v1)
     const lyNgay = {}; L.forEach(o => lyNgay[o.k] = (lyNgay[o.k] || 0) + o.sl);
     const ca = Object.keys(gioNgay).sort().map(k => ({k, gio:gioNgay[k], ly:lyNgay[k] || 0, soCa:congNV.filter(c => c.k === k).length, lyGio: gioNgay[k] > 0 ? (lyNgay[k] || 0) / gioNgay[k] : null}));
     const cancel = D.cancel.filter(c => c.k >= tu && c.k <= denThuc);
@@ -5783,6 +5785,7 @@ function ganIconKpi(){
 }
 /** v1.7.154 (chủ nhờ 08/11): ảnh nhỏ của món (ảnh phiên Marketing, tai-lieu/mon/*.jpg 112 px) trước tên món trong mọi bảng có cột "Món".
  *  Món chưa có ảnh riêng: cacao nóng/đá dùng ảnh cacao sữa, cà phê phin dùng ảnh cà phê máy cùng loại. */
+const ANH_V = 2;   // v1.7.194: đổi số này mỗi lần thay ảnh tai-lieu/mon (cùng tên file → trình duyệt giữ ảnh cũ)
 const ANH_MON = {csm:'ca-phe-sua-may', cfm:'ca-phe-muoi', cdm:'ca-phe-den-may', csp:'ca-phe-sua-may', cdp:'ca-phe-den-may', cst:'ca-phe-sua-tuoi', bx:'bac-xiu', bxm:'bac-xiu-muoi',
   ccs:'cacao-sua', cc:'cacao-sua', ccl:'cacao-latte', ccm:'cacao-muoi', mt:'matcha-latte', mtm:'matcha-muoi', pdh:'phindi-hanh-nhan', pdp:'phindi-hat-phi', pdch:'phindi-chocolate', pdc:'phindi-caramel',
   cfc:'ca-phe-caramel', cfch:'ca-phe-chocolate', mtc:'matcha-coffee', tsg:'tra-sua-gao-rang'};   // món mới bán từ 10/11
@@ -5792,7 +5795,7 @@ function tenMonAnh(){
   ((D && D.orders) || []).forEach(o => { if (o.mon && ANH_MON[o.ma] && !m[o.mon.toLowerCase()]) m[o.mon.toLowerCase()] = o.ma; });
   tenMonAnh.d = D; return tenMonAnh.ds = Object.entries(m).sort((a, b) => b[0].length - a[0].length);
 }
-const anhMonImg = ma => `<img class="amon" src="tai-lieu/mon/${ANH_MON[ma]}.jpg" alt="" loading="lazy" width="26" height="26">`;
+const anhMonImg = ma => `<img class="amon" src="tai-lieu/mon/${ANH_MON[ma]}.jpg?v=${ANH_V}" alt="" loading="lazy" width="26" height="26">`;
 /** Ảnh món theo danh sách mã (dòng đơn có nhiều món: tối đa 3 ảnh) */
 const anhMonHtml = mas => [...new Set(mas || [])].filter(m => ANH_MON[m]).slice(0, 3).map(anhMonImg).join('');
 /** v1.7.155: mọi bảng có cột chứa chữ "món" (Món, Cặp món cùng đơn…); ô có nút ＋ mở rộng thì ảnh nằm sau nút; ô "A + B" gắn ảnh từng món */
@@ -5801,7 +5804,7 @@ function ganAnhMon(){
   const tim = t => { t = t.trim().toLowerCase(); const h = ds.find(([ten]) => t === ten || t.startsWith(ten + ' ') || t.startsWith(ten + ' (')); return h ? h[1] : null; };
   document.querySelectorAll('table').forEach(tb => {
     const i = [...tb.querySelectorAll('thead th')].findIndex(th => /món/i.test(th.textContent) && !/mã món|số món/i.test(th.textContent)); if (i < 0) return;
-    tb.querySelectorAll('tbody tr').forEach(tr => { const td = tr.children[i]; if (!td || td.colSpan > 1 || td.querySelector('.amon')) return;
+    tb.querySelectorAll('tbody tr').forEach(tr => { const td = tr.children[i]; if (!td || td.colSpan > 1 || td.querySelector('.amon, img')) return;   // v1.7.194: ô đã có ảnh (bảng công thức Sổ tay) thì không gắn thêm
       const t = [...td.childNodes].filter(n => !(n.nodeType === 1 && n.tagName === 'BUTTON')).map(n => n.textContent).join('');
       const mas = t.includes(' + ') ? t.split(' + ').map(tim) : [tim(t)]; if (!mas.every(Boolean)) return;
       const html = mas.map(anhMonImg).join(''), nut = td.querySelector(':scope > button');
