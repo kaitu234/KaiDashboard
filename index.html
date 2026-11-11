@@ -2392,14 +2392,14 @@ function tdPnlHtml(P, days, mot){
   if (!P) return '<span class="muted" style="grid-column:1/-1">Kỳ này chưa có đơn nên chưa tính lãi lỗ.</span>';
   const tru = v => v ? '−' + fmt(v) + ' đ' : '0 đ', dau = v => `<b class="${v < 0 ? 'dn' : 'up'}">${v >= 0 ? '+' : ''}${fmt(v)} đ</b>`;
   const sauLuong = P.laiGop - P.luong, lp = days.reduce((a, k) => { const x = luongNgayPnl(k); a.so += x.so || 0; a.bot += x.bot || 0; return a; }, {so:0, bot:0}), vhSo = P.vhTong - P.coDinhUoc;   // v1.7.62: lương tách đã chốt / tạm tính
-  const vhTxt = Object.entries(P.vh).filter(([, v]) => v).map(([c, v]) => `${esc(c)} ${fmt(v)}`).join(' · ');
+  const vhTxt = Object.entries(P.vh).filter(([, v]) => Math.round(v)).sort((a, b) => b[1] - a[1]).map(([c, v]) => `${esc(c)} ${fmt(v)}`).join(' · ');   // v1.7.179 (chủ quán 11/11): hiện luôn trong ngoặc, không chỉ khi rê chuột
   return `<span>Doanh thu theo đơn bot · ${fmt(P.A.ly)} ly · ${fmt(P.A.don)} đơn</span><b>${fmt(P.dt)} đ</b>
     <span>Giá vốn theo món đã bán · TB ${P.A.ly ? fmt(P.gv / P.A.ly) : '—'} đ/ly${P.khongGiaVon ? ` <span class="dn">(${fmt(P.khongGiaVon)} ly chưa có giá vốn)</span>` : ''}</span><b>${tru(P.gv)}</b>
     <span><b style="text-align:left">Lãi gộp</b> <span class="muted">(doanh thu − giá vốn · biên ${pct(P.dt ? P.laiGop / P.dt : null)})</span></span>${dau(P.laiGop)}
     <span>Lương${lp.so && lp.bot ? ` <span class="muted">· đã chốt ${fmt(lp.so)} + tạm tính ${fmt(lp.bot)}</span>` : lp.so ? ' <span class="muted">· đã chốt (sổ chi)</span>' : ' <span class="muted">· tạm tính từ chấm công</span>'}${P.luongTam ? ' <span class="muted">· có ca đang làm</span>' : ''}</span><b>${tru(P.luong)}</b>
     <span><b style="text-align:left">Lãi sau lương</b></span>${dau(sauLuong)}
     <span>Hàng cho kèm (ly trà, trà sâm dứa…)${P.boQuaCK ? ` <span class="muted">· bỏ qua ${fmt(P.boQuaCK)} đ T10 (chủ chốt)</span>` : ''}</span><b>${tru(P.choKem)}</b>
-    <span${vhTxt ? ` title="${vhTxt}"` : ''}>Chi vận hành khác (sổ chi)</span><b>${tru(vhSo)}</b>
+    <span>Chi vận hành khác (sổ chi)${vhTxt ? ` <span class="muted">(${vhTxt})</span>` : ''}</span><b>${tru(vhSo)}</b>
     <span>Chi cố định chưa ghi sổ (tạm tính)${P.coDinhUoc ? ` <span class="muted">· ${Object.keys(P.coDinhTam).map(esc).join(', ')}</span>` : ''}</span><b>${tru(P.coDinhUoc)}</b>
     <span><b style="text-align:left">Lãi vận hành</b></span>${dau(P.laiVH)}
 `;
@@ -3375,7 +3375,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.178';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.179';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3433,6 +3433,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.179', ngay:'11/11/2026', nd:['Hôm nay · Lãi lỗ: dòng "Chi vận hành khác (sổ chi)" ghi luôn trong ngoặc là mục gì và bao nhiêu (vd Vận hành hệ thống, Thuê vị trí…), xếp mục lớn trước — trước đây phải rê chuột mới thấy (chủ quán 11/11).']},
   {v:'v1.7.178', ngay:'11/11/2026', nd:['Ảnh nhỏ món cho 4 món mới (cà phê caramel, cà phê chocolate, matcha coffee, trà sữa gạo rang) trong các bảng có cột Món (PNL, Bán hàng…).']},
   {v:'v1.7.177', ngay:'10/11/2026', nd:['Tài liệu: 4 file PDF in nặng (menu A3, standee vòm, bảng món mới A3, công thức M │ L có ảnh – tổng 31 MB) không để trên dashboard nữa, chỉ giữ ảnh xem trước; cần file in thì lấy ở phiên Marketing (chủ quán 10/11).']},
   {v:'v1.7.176', ngay:'10/11/2026', nd:['Nhẹ trang: nhật ký "Có gì mới" chỉ giữ 12 bản gần nhất trong trang, các bản cũ hơn chuyển sang file riêng và tự tải khi mở tab Kiểm chứng (index.html nhẹ đi ~95 KB).']},
