@@ -2388,6 +2388,18 @@ function hvTxt(P, nd, loai){
   const can = loai === 'luong' ? P.luong / lgLy / n : (P.luong + P.vhTong + P.choKem) / lgLy / n, ten = loai === 'luong' ? 'Đủ trả lương cần' : 'Hoà vốn vận hành cần';
   return '<br>' + ten + ' <b>' + fmt(Math.ceil(can)) + don + '</b> · đang bán ' + fmt(dang) + don + (dang >= can ? ' <span class="up">✓ đã qua</span>' : ' · thiếu ' + fmt(Math.ceil(can - dang)) + don);
 }
+/* v1.7.180 (chủ quán 11/11): thẻ "Lãi sau vận hành & mặt bằng" = P.laiVH (cùng số dòng "Lãi vận hành" của khối lãi lỗ); mặt bằng = hạng mục Thuê vị trí / Điện, nước (sổ chi + chi cố định tạm tính) */
+const MAT_BANG_RE = /^(Thuê vị trí|Điện, nước)/;
+function matBangCua(P){
+  let mb = 0; Object.entries(P.vh || {}).forEach(([c, v]) => { if (MAT_BANG_RE.test(c)) mb += v; });
+  Object.entries(P.coDinhTam || {}).forEach(([t, v]) => { const d = (D.coDinh || []).find(x => x.ten === t); if (d && MAT_BANG_RE.test(d.cat)) mb += v; });
+  return mb;
+}
+function kpiLaiVH(P, nd){
+  if (!P) return '<div class="kpi tgt"><span class="lb">Lãi sau vận hành & mặt bằng</span><span class="v">—</span><span class="s">chưa có đơn</span></div>';
+  const mb = matBangCua(P), vhKhac = P.vhTong - mb;
+  return `<div class="kpi tgt"><span class="lb">Lãi sau vận hành & mặt bằng</span><span class="v ${P.laiVH < 0 ? 'dn' : 'up'}">${fmt(P.laiVH)}</span><span class="s">sau lương − cho kèm ${fmt(P.choKem)} − vận hành ${fmt(vhKhac)} − mặt bằng ${fmt(mb)}${hvTxt(P, nd, 'vh')}</span></div>`;
+}
 function tdPnlHtml(P, days, mot){
   if (!P) return '<span class="muted" style="grid-column:1/-1">Kỳ này chưa có đơn nên chưa tính lãi lỗ.</span>';
   const tru = v => v ? '−' + fmt(v) + ' đ' : '0 đ', dau = v => `<b class="${v < 0 ? 'dn' : 'up'}">${v >= 0 ? '+' : ''}${fmt(v)} đ</b>`;
@@ -2454,7 +2466,8 @@ function renderTdKy(){
     <div class="kpi main"><span class="lb">Doanh thu (đơn bot)</span><span class="v">${fmt(A.dt)}</span><span class="s">${ss(A.dt, KT.A.dt)}${tb(A.dt)}</span></div>
     <div class="kpi main"><span class="lb">Thực thu (sau chốt ca)</span><span class="v">${fmt(K.T.tt)}</span><span class="s">${(() => { let tm = 0, ck = 0, chua = 0, app = 0; const N = nguonTien(); (K.denThuc >= Q.tu ? rangeDays(Q.tu, K.denThuc) : []).forEach(d => { const n = N[d]; if (!n) return; app += n.app || 0; if (n.chot){ tm += n.tm; ck += n.ck; } else chua += (n.bot || 0) - (n.app || 0); }); return `💵 ${fmt(tm)} · 🏦 ${fmt(ck)}${chua ? ` · chưa chốt ${fmt(chua)} (đơn bot)` : ''}${app ? ` · 🛵 app ${fmt(app)}` : ''}`; })()}</span></div>
     <div class="kpi tgt"><span class="lb">Lãi gộp</span><span class="v ${P && P.laiGop < 0 ? 'dn' : 'up'}">${P ? fmt(P.laiGop) : '—'}</span><span class="s">${P ? `biên ${pct(P.dt ? P.laiGop / P.dt : null)} · ${ss(P.laiGop, KT.P ? KT.P.laiGop : null)}${hvTxt(P, K.nd, 'luong')}` : 'chưa có đơn'}</span></div>
-    <div class="kpi tgt"><span class="lb">Lãi sau lương</span><span class="v ${sauL != null && sauL < 0 ? 'dn' : 'up'}">${sauL == null ? '—' : fmt(sauL)}</span><span class="s">${P ? `lương ${fmt(P.luong)} · lãi vận hành ${fmt(P.laiVH)}${hvTxt(P, K.nd, 'vh')}` : 'chưa có đơn'}</span></div>
+    <div class="kpi tgt"><span class="lb">Lãi sau lương</span><span class="v ${sauL != null && sauL < 0 ? 'dn' : 'up'}">${sauL == null ? '—' : fmt(sauL)}</span><span class="s">${P ? `lương ${fmt(P.luong)}${hvTxt(P, K.nd, 'luong')}` : 'chưa có đơn'}</span></div>
+    ${kpiLaiVH(P, K.nd)}
     <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${ss(A.ly, KT.A.ly)}${tb(A.ly)}</span></div>
     <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${ss(A.don, KT.A.don)}${huy ? ` · ${huy} đơn huỷ (${fmt(K.cancel.reduce((x, c) => x + c.tt, 0))} đ)` : ''}</span></div>
     <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${dlt(A.aov, KT.A.aov)} vs ${Q.nhanT} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
@@ -2561,7 +2574,8 @@ function renderToday(){
     <div class="kpi main"><span class="lb">Doanh thu (đơn bot)</span><span class="v">${fmt(A.dt)}</span><span class="s">${cmpTxt(A.dt, W.dt, Y.dt, M && M.dt, T30.dt)}</span></div>
     <div class="kpi main"><span class="lb">Thực thu (sau chốt ca)</span><span class="v">${fmt(nt ? nt.tt : A.dt)}</span><span class="s">${nt && nt.chot ? `🔒 đã chốt · 💵 ${fmt(nt.tm)} · 🏦 ${fmt(nt.ck)}${nt.chenh ? ` · lệch két ${nt.chenh > 0 ? '+' : '−'}${fmt(Math.abs(nt.chenh))}` : ''}` : A.ly ? '⏳ chưa chốt ca · đang tạm theo đơn bot' : 'chưa có đơn'}</span></div>
     <div class="kpi tgt"><span class="lb">Lãi gộp</span><span class="v ${PN && PN.laiGop < 0 ? 'dn' : 'up'}">${PN ? fmt(PN.laiGop) : '—'}</span><span class="s">${PN ? `doanh thu − giá vốn · biên ${pct(PN.dt ? PN.laiGop / PN.dt : null)}${hvTxt(PN, 1, 'luong')}` : 'chưa có đơn'}</span></div>
-    <div class="kpi tgt"><span class="lb">Lãi sau lương</span><span class="v ${sauLN != null && sauLN < 0 ? 'dn' : 'up'}">${sauLN == null ? '—' : fmt(sauLN)}</span><span class="s">${PN ? `lương ${fmt(PN.luong)}${PN.luongTam ? ' (tạm tính)' : ''} · lãi vận hành ${fmt(PN.laiVH)}${hvTxt(PN, 1, 'vh')}` : 'chưa có đơn'}</span></div>
+    <div class="kpi tgt"><span class="lb">Lãi sau lương</span><span class="v ${sauLN != null && sauLN < 0 ? 'dn' : 'up'}">${sauLN == null ? '—' : fmt(sauLN)}</span><span class="s">${PN ? `lương ${fmt(PN.luong)}${PN.luongTam ? ' (tạm tính)' : ''}${hvTxt(PN, 1, 'luong')}` : 'chưa có đơn'}</span></div>
+    ${kpiLaiVH(PN, 1)}
     <div class="kpi main"><span class="lb">Số ly</span><span class="v">${fmt(A.ly)}</span><span class="s">${cmpTxt(A.ly, W.ly, Y.ly, M && M.ly, T30.ly)}</span></div>
     <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${cmpTxt(A.don, W.don, Y.don, M && M.don, T30.don)}${nHuy ? ` · ${nHuy} đơn huỷ (${fmt(cancel.reduce((s, c) => s + c.tt, 0))} đ)` : ''}</span></div>
     <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${cmpTxt(A.aov, W.aov, Y.aov, M && M.aov, T30.don ? T30.dt / T30.don : null)} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN',{maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
@@ -3375,7 +3389,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.179';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.180';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3433,6 +3447,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.180', ngay:'11/11/2026', nd:['Hôm nay: thêm thẻ “Lãi sau vận hành & mặt bằng” ngay sau Lãi sau lương (xem 1 ngày và xem theo kỳ) — = lãi sau lương − hàng cho kèm − chi vận hành − mặt bằng (thuê vị trí, điện nước), cùng số dòng “Lãi vận hành” của khối lãi lỗ, kèm mốc hoà vốn; thẻ Lãi sau lương giờ ghi mốc đủ trả lương (chủ quán 11/11).']},
   {v:'v1.7.179', ngay:'11/11/2026', nd:['Hôm nay · Lãi lỗ: dòng "Chi vận hành khác (sổ chi)" ghi luôn trong ngoặc là mục gì và bao nhiêu (vd Vận hành hệ thống, Thuê vị trí…), xếp mục lớn trước — trước đây phải rê chuột mới thấy (chủ quán 11/11).']},
   {v:'v1.7.178', ngay:'11/11/2026', nd:['Ảnh nhỏ món cho 4 món mới (cà phê caramel, cà phê chocolate, matcha coffee, trà sữa gạo rang) trong các bảng có cột Món (PNL, Bán hàng…).']},
   {v:'v1.7.177', ngay:'10/11/2026', nd:['Tài liệu: 4 file PDF in nặng (menu A3, standee vòm, bảng món mới A3, công thức M │ L có ảnh – tổng 31 MB) không để trên dashboard nữa, chỉ giữ ảnh xem trước; cần file in thì lấy ở phiên Marketing (chủ quán 10/11).']},
