@@ -386,6 +386,18 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .side .updchip{background:var(--surface);border-color:var(--brand);font-size:10.5px}
 .side #verChip{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin:5px 0 6px;padding:3px 11px;border-radius:99px;background:var(--brand);color:var(--brand-ink);font-weight:700;letter-spacing:.04em;text-decoration:none!important;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:filter .15s}   /* v1.7.108: chip phiên bản nổi bật */
 .tlh{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;margin:14px 0 8px;color:var(--brand)}   /* v1.7.110: tab Tài liệu */
+.st{display:grid;gap:2px}   /* v1.7.187: sổ tay nhân viên (tab Nhân sự) */
+.st details{border-top:1px solid var(--line);padding:7px 0 3px}
+.st details:first-child{border-top:0;padding-top:0}
+.st summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:14.5px;color:var(--ink);padding:2px 0}
+.st ol,.st ul{margin:6px 0;padding-left:22px;display:grid;gap:5px;font-size:13.5px;line-height:1.5;max-width:110ch}
+.st h4{margin:10px 0 0;font-family:var(--f-display);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--brand)}
+.st .qt{display:inline-block;font-size:10px;font-weight:700;padding:0 6px;border-radius:99px;background:var(--brand);color:var(--surface);margin-left:4px;vertical-align:1px;white-space:nowrap}
+.st td small{display:block;color:var(--muted);font-style:italic;font-size:11.5px;font-weight:400}
+.st tr.nh td{background:var(--surface-2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:12px}
+.st td.mn{font-weight:700}
+.st code{font-size:12.5px;background:var(--surface-2);padding:0 4px;border-radius:4px}
+.st input[type=search]{width:100%;max-width:320px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit}
 .tlg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .tlc{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
 .tlc .th{display:block;aspect-ratio:4/3;background:var(--surface-2);overflow:hidden;border-bottom:1px solid var(--line)}
@@ -588,7 +600,7 @@ html.mcap{background:var(--paper)}
     <button role="tab" id="tab-bc" aria-selected="false" data-v="bc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="nm">Báo cáo<small>tuần · tháng · so kỳ trước</small></span></button>
     <div class="sgrp">Vận hành</div>
     <button role="tab" id="tab-today" aria-selected="false" data-v="today"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="nm">Hôm nay<small>ca đang bán · két</small></span></button>
-    <button role="tab" id="tab-hr" aria-selected="false" data-v="hr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.6 3.5 6"/></svg><span class="nm">Nhân sự<small>ca · giờ công · lương</small></span></button>
+    <button role="tab" id="tab-hr" aria-selected="false" data-v="hr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.6 3.5 6"/></svg><span class="nm">Nhân sự<small>ca · lương · nội quy · công thức</small></span></button>
     <div class="sgrp">Bán hàng</div>
     <button role="tab" id="tab-sales" aria-selected="true" data-v="sales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="nm">Bán hàng<small>doanh thu · ngày · giờ</small></span></button>
     <button role="tab" id="tab-dtt" aria-selected="false" data-v="dtt"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.6-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.6-3.1-1.6M12 6.5v11"/></svg><span class="nm">Doanh thu thuần<small>thực thu · tiền mặt · CK</small></span></button>
@@ -1353,6 +1365,22 @@ html.mcap{background:var(--paper)}
       <div class="ct">Két theo người chốt ca <span class="nt">· cộng dồn chênh lệch /chotca</span></div>
       <div class="cw sm"><canvas id="cHrKet" aria-label="Tổng chênh két theo người chốt ca"></canvas></div>
       <div class="tblwrap" style="max-height:320px"><table id="tHrKet"></table></div>
+    </div>
+    <div class="card" id="sec-hr-nq" data-nvok>
+      <div class="ct">Nội quy làm việc <span class="nt">· bản 11/11 = nội quy 25/10 cập nhật theo luật bot từ 01/11 · bản in ở tab Tài liệu</span></div>
+      <div class="st" id="hrNq"></div>
+    </div>
+    <div class="card" id="sec-hr-cs" data-nvok>
+      <div class="ct">Chính sách <span class="nt">· lương thưởng (như /chinhsach của bot) · bán hàng tại quầy</span></div>
+      <div class="st" id="hrCs"></div>
+    </div>
+    <div class="card" id="sec-hr-ct" data-nvok>
+      <div class="ct">Công thức pha chế <span class="nt">· size M 360 ml │ L 500 ml · bản 10/11 (như bảng in dán xe)</span></div>
+      <div class="st" id="hrCt"></div>
+    </div>
+    <div class="card" id="sec-hr-cl" data-nvok>
+      <div class="ct">Checklist ca &amp; lệnh bot <span class="nt">· checklist xe + bảng ghi nhớ · lệnh hay dùng</span></div>
+      <div class="st" id="hrCl"></div>
     </div>
     <div class="card" id="sec-hr-nk" hidden>
       <div class="ct">Nhật ký dashboard nhân viên <span class="nt">· chỉ chủ thấy · tab Sheet NhatKyDash · trang đang mở tự tải mỗi phút nên “phút dùng” ≈ thời gian để trang mở</span></div>
@@ -3413,7 +3441,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.186';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.187';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3471,6 +3499,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.187', ngay:'11/11/2026', nd:['Tab Nhân sự thêm sổ tay nhân viên: Nội quy (bản 25/10 sửa theo luật bot từ 01/11), Chính sách lương thưởng (như /chinhsach) + bán hàng tại quầy, Công thức pha chế size M │ L có ô tìm món + sơ chế, Checklist ca + lệnh bot hay dùng.', 'Tài khoản nhân viên thấy đủ 4 thẻ này (không bị ẩn chữ lương/thưởng/phạt).', 'Tự kiểm: ml cà phê size M/L trong công thức khớp hệ số size L của bot.']},
   {v:'v1.7.186', ngay:'11/11/2026', nd:['Gợi ý bán hàng cho nhân viên: sửa lỗi chỉ hiện 1 gợi ý (thẻ thành viên) — nay đủ giới thiệu món, size L, giờ đông, khách mới.']},
   {v:'v1.7.185', ngay:'11/11/2026', nd:['Thanh bên: dòng địa chỉ đổi thành “Xin chào, [tên người đăng nhập] !!!” kèm icon mặt trời / mây / mưa / mặt trăng theo giờ và thời tiết hiện tại; ngày đang xem xuống dòng dưới.', 'Tài khoản nhân viên: ẩn nốt số quỹ tiền quán (thẻ “Quỹ còn lại” ở Tổng quan, “tiền quỹ hiện tại” ở Kho, link sang Thu chi); doanh thu bot, chốt ca, két vẫn giữ.', 'Nhân viên thấy “Gợi ý bán hàng” thay cho đề xuất của chủ (tab Báo cáo, Kế hoạch): giới thiệu món ít người gọi, mời lên size L, mời làm thẻ thành viên, giờ đông cần chuẩn bị, món gợi ý cho khách mới.', 'Nhật ký dashboard nhân viên (chỉ chủ thấy, cuối tab Nhân sự + tab Sheet NhatKyDash): ai mở lúc nào, dùng bao lâu, xem tab nào, lần đăng nhập sai (chủ quán 11/11).']},
   {v:'v1.7.184', ngay:'11/11/2026', nd:['Tài khoản nhân viên: ẩn nốt dòng phụ có số lãi (vd “lãi ước tính” ở Tổng quan); thêm mã đăng nhập cho 4 tài khoản trong tab TaiKhoanDash.']},
@@ -3686,6 +3715,10 @@ function tuKiem(){
     const cg1 = [{k:'2026-10-02', vao:new Date(2026, 9, 2, 6), ra:new Date(2026, 9, 2, 11)}], od1 = [{k:'2026-10-02', min:8 * 60, sl:9}];
     const n1 = nangLucCore({orders:od1, cong:cg1, today:'2026-10-06'}), n2 = nangLucCore({orders:od1, cong:[{k:'2026-10-02', vao:new Date(2026, 9, 2, 6), ra:null}], today:'2026-10-06'});
     ok('Năng lực 1 người: ca đủ giờ ra → 9 ly/30 phút; ca thiếu giờ ra ngày cũ → loại cả ngày → chưa đo được', gan(n1.v, 9, 1e-9) && n2.v == null && n2.ngayLoai.length === 1, `${n1.v} · ${n2.v == null ? 'chưa đo được' : n2.v}`);
+    // v1.7.187: công thức sổ tay (ml cà phê M/L) khớp hệ số size L của bot (SIZE_L_CF) — đủ món, đúng tỉ lệ
+    { const ctMa = {}; CONG_THUC_IN.forEach(([, ds]) => ds.forEach(r => { if (r[4]) ctMa[r[4]] = mlCfIn(r[2]) / mlCfIn(r[1]); }));
+      const lech = Object.keys(SIZE_L_CF.mon).filter(m => !(Math.abs((ctMa[m] || 0) - SIZE_L_CF.mon[m]) < 1e-9));
+      ok('Công thức sổ tay: ml cà phê L ÷ M của ' + Object.keys(SIZE_L_CF.mon).length + ' món = hệ số SIZE_L_CF (bot)', !lech.length && Object.keys(ctMa).length === Object.keys(SIZE_L_CF.mon).length, lech.length ? 'lệch: ' + lech.join(', ') : 'khớp đủ'); }
     // 19. Phiên bản ghi đủ chỗ: hằng BAN_DASH = bản đầu "Có gì mới" = chip thanh bên = tiêu đề thẻ "Có gì mới"
     ok('Phiên bản: BAN_DASH = bản đầu "Có gì mới" = chip thanh bên = tiêu đề thẻ "Có gì mới" (bump đủ chỗ)', CHANGELOG[0].v === BAN_DASH && ($('verChip').textContent || '').includes(BAN_DASH) && ($('kcVerNt').textContent || '').includes(BAN_DASH), `${BAN_DASH} · ${CHANGELOG[0].v} · ${($('verChip').textContent || '').trim()} · ${($('kcVerNt').textContent || '').trim()}`);
     // 20. Xe + kho tính tại chỗ khớp ca biết trước (cùng đáp án với bot, test/t-kho.js)
@@ -4530,7 +4563,7 @@ const TAI_LIEU = [
   {nhom:'Vận hành', ten:'Checklist xe', mo:'Tồn tối thiểu trên xe, đầu ca · trong ca · cuối ca · cuối tuần · in A4 ép plastic', ngay:'15/10/2026', anh:'checklist-xe.png'},
   {nhom:'Vận hành', ten:'Bảng ghi nhớ', mo:'12 điều nhân viên quầy đọc kỹ đầu mỗi ca · in A5', ngay:'15/10/2026', anh:'bang-ghi-nho.png'},
   {nhom:'Vận hành', ten:'Checklist kiểm kho tổng', mo:'Chủ kiểm kho tổng 1–2 lần/tuần · in A4 ép plastic', ngay:'16/10/2026', anh:'checklist-kiem-kho-tong.png', file:[['PDF in A4', 'checklist-kiem-kho-tong.pdf']]},
-  {nhom:'Nhân sự', ten:'Nội quy làm việc', mo:'Thời gian, lương thưởng, quy trình, kiểm kê, vi phạm · bản 25/10 (chưa cập nhật luật chuyên cần từ 01/11)', ngay:'25/10/2026', anh:'noi-quy-lam-viec.png', file:[['PDF A4', 'noi-quy-lam-viec.pdf'], ['PDF A3 dán tường', 'noi-quy-lam-viec_A3.pdf']]},
+  {nhom:'Nhân sự', ten:'Nội quy làm việc', mo:'Thời gian, lương thưởng, quy trình, kiểm kê, vi phạm · bản in 25/10 (chưa cập nhật luật từ 01/11 — bản mới nhất xem tab Nhân sự → Nội quy)', ngay:'25/10/2026', anh:'noi-quy-lam-viec.png', file:[['PDF A4', 'noi-quy-lam-viec.pdf'], ['PDF A3 dán tường', 'noi-quy-lam-viec_A3.pdf']]},
   {nhom:'Nhân sự', ten:'Tuyển dụng nhân viên ca sáng', mo:'Ca 05:30–10:30, thu nhập theo giờ, công việc, yêu cầu · đăng nhóm / dán quầy', ngay:'24/10/2026', anh:'tuyen-dung-ca-sang.png'}
 ];
 function renderTl(){
@@ -4541,8 +4574,180 @@ function renderTl(){
       + `<div class="bd"><span class="tt">${esc(x.ten)}</span><span class="muted">${esc(x.mo)}</span><span class="muted" style="font-size:11.5px">Cập nhật ${esc(x.ngay)}</span>`
       + `<div class="act"><a href="${u(x.anh)}" target="_blank" rel="noopener">Xem ảnh</a>${(x.file || []).map(([l, f]) => `<a href="${u(f)}" target="_blank" rel="noopener" download>${esc(l)}</a>`).join('')}</div></div></div>`).join('') + '</div>').join('');
 }
+/* v1.7.187 — Sổ tay nhân viên trong tab Nhân sự (chủ quán 11/11: nhân viên đã dùng dashboard → thêm nội quy, chính sách, công thức pha chế).
+   Nguồn: nội quy 25/10 (OneDrive 06_Zalo…/noi-quy-lam-viec.html) sửa theo luật bot đang chạy từ 01/11 (đi trễ không trừ tiền, có lại phụ cấp dậy sớm, OT chỉ vào sớm, chuyên cần cs11) ·
+   chính sách = /chinhsach của bot (chinhSachDayDu_ + GHI_CHU_CHINH_SACH) · công thức = bảng in 10/11 (04_Cong thuc…/34_cong-thuc-M-L_tao.js) · checklist = Checklist xe + Bảng ghi nhớ 15/10.
+   Số dùng chung lấy thẳng từ CHUYEN_CAN, OT_TOI_DA, DONG_GIA_TUAN, SIZE_L_CF; phần còn lại là bản sao hằng bot trong CS_BOT — đổi bot thì đổi đây.
+   Thẻ có data-nvok: anTienNV KHÔNG ẩn (nhân viên phải đọc được chính sách lương, như /chinhsach trên bot). Tự kiểm: ml cà phê M/L ở công thức khớp SIZE_L_CF. */
+const CS_BOT = {luong:25000, som:{han:'05:30', tien:10000, tu:'2026-11-01'}, thuViec:100000, tre:5, treNang:30, banKinh:200, traNgay:3, quenMien:3, loi:10000, loiMax:3, tuanToi:2, sizeL:5000, thanhVien:2000,
+  thamNien:[[100, 1000], [300, 2000], [600, 3000], [900, 4000], [1200, 5000], [1500, 6000], [1900, 7000], [2400, 8000]],   // = THAM_NIEN bot [giờ, +đ/giờ]
+  tenLv:['🔩 Iron', '🥉 Bronze', '🥈 Silver', '🥇 Gold', '💠 Platinum', '💎 Diamond', '🔮 Master', '🔥 Grandmaster', '👑 Challenger']};
+const CONG_THUC_IN = [   // [tên, size M, size L, cách pha, mã món (chỉ món có cà phê, để tự kiểm với SIZE_L_CF)]
+  ['Cà phê', [
+    ['Cà phê đen máy', '45 ml cf · 10 ml đường', '60 ml cf · 13 ml đường', 'lắc 10 lần', 'cdm'],
+    ['Cà phê sữa máy', '45 ml cf · 25 ml SĐ', '60 ml cf · 33 ml SĐ', 'lắc 10 lần', 'csm'],
+    ['Cà phê đen phin', '40 ml cf phin · 10 ml đường', '50 ml cf phin · 13 ml đường', 'lắc 10 lần', 'cdp'],
+    ['Cà phê sữa phin', '40 ml cf phin · 25 ml SĐ', '50 ml cf phin · 33 ml SĐ', 'lắc 10 lần', 'csp'],
+    ['Bạc xỉu', '20 ml cf · 25 SĐ · 40 ST', '30 ml cf · 33 SĐ · 50 ST', 'lắc 10 lần · sữa trước · rưới cf lên trên', 'bx'],
+    ['Cà phê sữa tươi', '20 ml cf · 60 ST · 15 ml đường', '30 ml cf · 80 ST · 20 ml đường', 'lắc 10 lần · sữa trước · rưới cf lên trên', 'cst'],
+    ['Cà phê caramel', '40 ml cf · 25 SĐ · 20 ml siro caramel', '50 ml cf · 33 SĐ · 26 ml siro', 'lắc 10 lần', 'cfc'],
+    ['Cà phê chocolate', '40 ml cf · 25 SĐ · 20 ml siro choco', '50 ml cf · 33 SĐ · 26 ml siro', 'lắc 10 lần', 'cfch'],
+  ]],
+  ['Muối · kem muối phủ trên cùng', [
+    ['Cà phê muối', '30 ml cf · 25 ml SĐ · 2 muỗng', '40 ml cf · 33 ml SĐ · 2,5 muỗng', 'lắc 10 lần · cf + SĐ · kem phủ trên · rắc cacao', 'cfm'],
+    ['Bạc xỉu muối', '20 ml cf · 25 SĐ · 40 ST · 2 muỗng', '30 ml cf · 33 SĐ · 50 ST · 2,5 muỗng', 'lắc 10 lần · sữa · rưới cf · kem trên cùng', 'bxm'],
+    ['Cacao muối', '7 g cacao · 25 SĐ · 20 ST · 2 muỗng', '9 g cacao · 33 SĐ · 26 ST · 2,5 muỗng', 'cacao + sữa · kem trên cùng'],
+    ['Matcha latte muối', 'Matcha latte + 2 muỗng', 'Matcha latte L + 2,5 muỗng', 'đánh bằng máy · sữa · rưới matcha · kem trên cùng'],
+  ]],
+  ['Cacao · đánh tan cacao với 40 ml nước sôi', [
+    ['Cacao đường cát', '7 g cacao · 10 ml đường', '9 g cacao · 13 ml đường'],
+    ['Cacao sữa', '7 g cacao · 25 ml SĐ · 20 ml ST', '9 g cacao · 33 ml SĐ · 26 ml ST'],
+    ['Cacao latte', '7 g cacao · 60 ml ST · 10 ml đường', '9 g cacao · 80 ml ST · 13 ml đường', 'sữa trước · rưới cacao lên trên'],
+  ]],
+  ['Matcha · đánh bằng máy với 30 ml nước nóng', [
+    ['Matcha latte', '3 g matcha · 25 ml SĐ · 60 ml ST', '4 g matcha · 33 ml SĐ · 80 ml ST', 'đánh bằng máy · sữa trước · rưới matcha lên trên'],
+    ['Matcha coffee', 'Matcha latte + 20 ml cf', 'Matcha latte L + 30 ml cf', 'đánh bằng máy · sữa · rưới matcha · rưới cf trên cùng', 'mtc'],
+    ['Trà sữa gạo rang', 'đang cập nhật', 'đang cập nhật'],
+  ]],
+  ['Phindi · 4 vị: hạnh nhân, caramel, hạt phỉ, chocolate', [
+    ['Phindi', '15 ml cf phin · 5 SĐ · 60 ST · 25 ml siro · 1 thạch', '20 ml cf phin · 7 SĐ · 80 ST · 33 ml siro · 1 thạch', 'đánh bằng máy · thạch + sữa + siro · rưới cf phin lên trên · ống hút to'],
+  ]],
+];
+const SO_CHE_IN = [
+  ['Kem muối', '100 g kem Rich + 1,5 g muối hồng, đánh bông · để ngăn mát, dùng trong ngày'],
+  ['Nước đường', '1 kg đường + 500 ml nước sôi, khuấy tan (không nấu bếp) · 1 nhấn bình = 10 ml'],
+  ['Cà phê phin', '150 g cà phê bột → 300 ml cà phê phin (pha sẵn đầu ca)'],
+  ['Cà phê máy', '1 shot ≈ 40–45 ml (gồm crema) · L 60 ml ≈ 1,5 shot'],
+  ['Matcha', '3 g bột + 30 ml nước nóng, đánh bằng máy cho tan'],
+  ['Cacao', '7 g bột + 40 ml nước sôi, đánh tan'],
+];
+const mlCfIn = t => { const m = /(\d+(?:,\d+)?) ml cf/.exec(t); return m ? +m[1].replace(',', '.') : null; };
+let _soTay = false;
+function renderSoTay(){
+  if (_soTay) return; _soTay = true;
+  const d = n => n.toLocaleString('vi-VN') + 'đ', QT = '<span class="qt">quan trọng</span>';
+  const li = a => a.map(x => '<li>' + x + '</li>').join(''), muc = (t, body, mo) => '<details' + (mo ? ' open' : '') + '><summary>' + t + '</summary>' + body + '</details>';
+  const CC = CHUYEN_CAN, thuDG = DONG_GIA_TUAN.thu.map(t => t === 0 ? 'CN' : 'T' + (t + 1)).join(', ');
+  $('hrNq').innerHTML =
+    muc('I. Thời gian làm việc', '<ol>' + li([
+      'Ca làm việc <b>05:30–10:30</b>, mỗi ca 1 người. Bắt đầu dọn quầy từ 10:00.',
+      '<b>/checkin</b> khi tới xe, <b>/checkout</b> khi xong hết việc cuối ca — gửi vị trí trong ' + CS_BOT.banKinh + ' m quanh xe.',
+      'Lương tính theo <b>từng phút</b> từ lúc check-in. Vào sớm được trả tối đa ' + OT_TOI_DA + ' phút/ca; <b>ở lại sau giờ ca không trả</b> (từ 01/11). /chotca trước 10:30 thì bot ghi giờ ra 10:30.',
+      'Đi trễ <b>không trừ tiền</b>: trễ quá ' + CS_BOT.tre + ' phút bot ghi nhận, quá ' + CS_BOT.treNang + ' phút báo chủ. Nhưng check-in sau ' + CS_BOT.som.han + ' thì mất phụ cấp dậy sớm hôm đó và ảnh hưởng chuỗi chuyên cần (xem Chính sách).',
+      'Xin nghỉ / đổi ca: <b>báo trước 2 ngày</b>. Nhờ người làm thay bằng <code>/doica T4 @tên</code> — người nhận đồng ý và chủ duyệt thì lịch mới đổi; trước đó ca vẫn là của bạn.',
+      'Đăng ký ca mà không đến: ghi nhận vắng. Chủ huỷ bán (lễ, mưa bão…) thì không tính vắng.',
+    ]) + '</ol>', true) +
+    muc('II. Quy trình bắt buộc mỗi ca', '<h4>A · Đầu ca</h4><ol>' + li([
+      '<b>Setup quầy:</b> mang bàn ghế, bảng giá, dụng cụ pha chế ra đặt trên bàn trước khi đẩy xe ra. Hạn chế tối đa bỏ quầy lâu.',
+      '<b>Kiểm nguyên liệu, dụng cụ:</b> đủ nguyên liệu, ly, dụng cụ theo checklist đầu ca.',
+      '<b>Lấy hàng từ kho:</b> mọi lần lấy đều kiểm và ghi bằng <code>/laykho</code>.' + QT,
+      '<b>Khu bán hàng đủ:</b> quầy pha chế, can nước, 02 bảng giá, bàn ghế, dây điện, chặn xe, loa báo chuyển khoản.',
+    ]) + '</ol><h4>B · Trong ca</h4><ol start="5">' + li([
+      '<b>Phục vụ:</b> chủ động chào khách, đưa menu, giới thiệu món khi cần; lịch sự, nghiêm túc, chuyên nghiệp.',
+      '<b>Bấm đơn</b> trên bot sau khi khách order và <b>trước khi pha</b>.' + QT,
+      '<b>Giao nước & nhận tiền:</b> kiểm đúng hình thức thanh toán, nhất là chuyển khoản (nghe loa / xem app). Không bỏ bước xác nhận.' + QT,
+    ]) + '</ol><h4>C · Cuối ca</h4><ol start="8">' + li([
+      '<b>Kiểm kê & chốt tiền:</b> đếm ly + cà phê trên xe bằng <code>/kiemxe</code>; kiểm tiền mặt và chuyển khoản bằng <code>/chotca</code>; đóng gói tiền, ghi “ngày + số tiền”.' + QT,
+      '<b>Vệ sinh & xếp xe:</b> sữa đặc, sữa tươi, cà phê, syrup, kem muối… vào thùng đá lớn; cacao, matcha, loa, mèo và dụng cụ khác vào hộp nhựa. Xong xe rồi mới dọn rửa trong nhà hàng.',
+      '<b>Rửa dụng cụ:</b> gom vào thùng đỏ nhỏ, nhờ bảo vệ trông xe, rửa sạch, cất đúng khu của Café trong nhà hàng.',
+      '<b>Cất xe & máy:</b> bọc máy cà phê, bọc xe, nhờ bảo vệ đẩy xe vào chỗ cất.',
+      '<b>Check-out</b> chỉ sau khi xong đủ các bước cuối ca.',
+    ]) + '</ol>') +
+    muc('III. Vi phạm & bảo quản tài sản', '<ol>' + li([
+      'Mọi vi phạm ghi trên bot; bạn xem lỗi của mình trong tháng bằng <code>/vipham</code>.',
+      '<b>Lỗi quy trình</b> (Mục II): ' + d(CS_BOT.loi) + '/lần. Trên ' + CS_BOT.loiMax + ' lỗi bị phạt trong tháng → mất thưởng chuyên cần tháng đó. Không chấp nhận lý do “quên”.',
+      '<b>Quên check-in/out:</b> bù ngay trong ngày bằng <code>/quencong</code> thì không tính. Sang hôm sau mới bù: ' + CS_BOT.quenMien + ' lần đầu/tháng chỉ ghi nhận, từ lần thứ ' + (CS_BOT.quenMien + 1) + ' mỗi lần trừ 1 giờ công.',
+      '<b>Quên bấm đơn</b> bị phát hiện khi đối soát (camera + số bán): ' + d(CS_BOT.loi) + '/đơn bỏ sót.',
+      '<b>Kho & nguyên liệu:</b> lấy hàng không ghi <code>/laykho</code> dẫn tới chênh lệch thì chủ kiểm dữ liệu, xác minh trách nhiệm trước khi xử lý.',
+      '<b>Mất mát, hao hụt:</b> chủ đối chiếu số liệu, camera, lịch sử xuất kho, bàn giao; bồi thường theo mức lỗi, thiệt hại thực tế và pháp luật. Không mặc định người làm ca phải chịu toàn bộ.',
+      '<b>Bàn giao tiền</b> cho chủ 2 lần/tuần: <b>Thứ 4 và Chủ nhật</b>. Không đúng quy trình → không xét thưởng chuyên cần tháng đó.',
+      '<b>Vi phạm nghiêm trọng</b> (ảnh hưởng lớn tới kinh doanh, tài sản, uy tín): quán có quyền chấm dứt thoả thuận làm việc theo pháp luật.',
+    ]) + '</ol>') +
+    muc('IV. Tăng lương & thâm niên', '<ol>' + li([
+      'Tăng lương xét theo tác phong, thái độ, trách nhiệm, chăm chỉ, chủ động, cầu tiến.',
+      'Thưởng, phụ cấp theo mục Chính sách bên dưới và thông báo bổ sung của quán.',
+      'Thâm niên có thể được xem lại nếu thường xuyên vi phạm quy trình hoặc không đảm bảo chất lượng công việc.',
+    ]) + '</ol>') +
+    muc('V. Cam kết', '<ol>' + li([
+      'Đọc, hiểu và làm đúng nội quy.',
+      'Có vấn đề phải báo chủ ngay; không tự bỏ qua quy trình, sửa số liệu hay che giấu sai lệch.',
+      'Nội quy áp dụng như nhau cho mọi người; xử lý, khấu trừ phải có căn cứ.',
+      'Thắc mắc về nội quy: hỏi trực tiếp chủ quán.',
+    ]) + '</ol>');
+
+  const lv = [['L0 · ' + CS_BOT.tenLv[0], 'dưới ' + CS_BOT.thamNien[0][0] + ' giờ', 0]].concat(CS_BOT.thamNien.map(([g, c], i) => ['L' + (i + 1) + ' · ' + CS_BOT.tenLv[i + 1], 'từ ' + g + ' giờ', c]));
+  $('hrCs').innerHTML =
+    muc('1. Lương giờ', '<ul>' + li([
+      'Lương/giờ = <b>căn bản ' + d(CS_BOT.luong) + '</b> + <b>thâm niên</b> (bảng dưới). Tính đúng số phút thực tế. Căn bản chủ xét tăng định kỳ.',
+      '<b>Phụ cấp dậy sớm: +' + d(CS_BOT.som.tien) + '/ca</b> nếu check-in đến hết phút ' + CS_BOT.som.han + ' (tức trước ' + CS_BOT.som.han.replace(/30$/, '31') + '). Check-in sau đó không có.',
+      'Không bonus theo số ly, không phụ cấp ca 1 người (từ 01/11).',
+      'Ví dụ L1, check-in 05:30, ra 10:30 (5 giờ): (' + d(CS_BOT.luong) + ' + ' + d(CS_BOT.thamNien[0][1]) + ') × 5 = ' + d((CS_BOT.luong + CS_BOT.thamNien[0][1]) * 5) + ' + dậy sớm ' + d(CS_BOT.som.tien) + ' = <b>' + d((CS_BOT.luong + CS_BOT.thamNien[0][1]) * 5 + CS_BOT.som.tien) + '</b>.',
+    ]) + '</ul>', true) +
+    muc('2. Thâm niên (cộng dồn giờ đã làm, không reset)', '<div class="tblwrap" style="max-height:none"><table><thead><tr><th>Bậc</th><th>Mốc giờ</th><th class="r">Cộng thêm</th><th class="r">Mỗi giờ (căn bản ' + d(CS_BOT.luong) + ')</th></tr></thead><tbody>'
+      + lv.map(([t, g, c]) => '<tr><td>' + t + '</td><td>' + g + '</td><td class="r">' + (c ? '+' + d(c) : '—') + '</td><td class="r"><b>' + d(CS_BOT.luong + c) + '</b></td></tr>').join('')
+      + '</tbody></table></div><ul>' + li(['Áp dụng từ <b>ca kế tiếp</b> sau khi đạt mốc. Xem giờ thâm niên và bậc của bạn: <code>/canhan</code> · bảng bậc cả quán: <code>/bac</code>.']) + '</ul>') +
+    muc('3. Thưởng chuyên cần', '<ul>' + li([
+      'Đủ <b>' + CC.soCa + ' ca liên tiếp</b> check-in đến hết phút <b>' + CC.gio + '</b> → <b>+' + d(CC.tien) + '</b>, rồi đếm lại từ đầu. Tháng đủ bao nhiêu chuỗi thưởng bấy nhiêu.',
+      'Mỗi chuỗi được <b>trễ 1 lần</b> mà chuỗi vẫn giữ (ca trễ đó không được đếm). Trễ lần thứ 2 trong cùng chuỗi hoặc vắng ca đã nhận → đếm lại từ 0.',
+      'Ngày không có lịch không làm đứt chuỗi.',
+      'Mất chuyên cần cả tháng nếu: trên ' + CS_BOT.loiMax + ' lỗi bị phạt trong tháng, hoặc bàn giao tiền không đúng quy trình.',
+      'Xem chuỗi của bạn: <code>/canhan</code> · cả quán: thẻ Chuyên cần ở trên.',
+    ]) + '</ul>') +
+    muc('4. Trả lương · thưởng · phạt', '<ul>' + li([
+      'Trả <b>1 lần/tháng</b>: chốt công ngày cuối tháng, trả <b>ngày ' + String(CS_BOT.traNgay).padStart(2, '0') + ' tháng sau</b>.',
+      'Thực nhận = lương giờ + phụ cấp dậy sớm + chuyên cần + thưởng − phạt. Thưởng/phạt chủ ghi qua bot, bạn nhận tin ngay.',
+      '<b>Thử việc:</b> ' + d(CS_BOT.thuViec) + '/ngày làm. Đạt → tính lại như chính thức cho cả các ngày thử việc; không đạt → giữ ' + d(CS_BOT.thuViec) + '/ngày. Chủ báo kết quả cuối thử việc.',
+      'Không có phụ cấp ngày lễ, thưởng sinh nhật. Thưởng khác chủ xét theo tinh thần, thái độ, trách nhiệm; trả cùng kỳ lương.',
+      'Xem phiếu lương: <code>/luong</code> (kỳ này) · <code>/luongtruoc</code> (kỳ trước).',
+    ]) + '</ul>') +
+    muc('5. Đăng ký ca', '<ul>' + li([
+      'Đăng ký trước bằng <code>/dangkyca</code> (bấm nút, hoặc gõ <code>/dangkyca T2 T4 T6</code>), tối đa ' + CS_BOT.tuanToi + ' tuần tới. Ca trống: nhận ngay; ca đã có người: chủ quyết.',
+      'Ca hôm nay đã khoá — cần đổi thì báo chủ. Lịch đã xếp xem ở thẻ Lịch làm phía trên hoặc <code>/lichca</code>.',
+    ]) + '</ul>') +
+    muc('6. Bán hàng tại quầy', '<ul>' + li([
+      '<b>Size L</b> (500 ml): +' + d(CS_BOT.sizeL) + '/ly — gõ <code>L</code> sau món, vd <code>csp L</code>.',
+      '<b>' + thuDG + ' đồng giá ' + d(DONG_GIA_TUAN.gia) + '</b> (từ ' + dShort(DONG_GIA_TUAN.tu) + ') — bot tự tính giá.',
+      '<b>Thẻ thành viên: −' + d(CS_BOT.thanhVien) + '/ly</b>, chỉ T2–T6 (T7, CN đồng giá không áp dụng). Gõ <code>tv</code> trong đơn.',
+      '<b>Mua 5 tặng 1:</b> mua 5 ly trong cùng 1 đơn, tặng 1 món tự chọn.',
+      '<b>Đơn app</b> (be, Xanh SM): ghi đúng loại app khi bấm đơn; tiền app <b>không</b> vào két, không tính trong /chotca.',
+      'Gợi ý món, size L, giờ đông: thẻ Gợi ý bán hàng ở tab Báo cáo / Kế hoạch.',
+    ]) + '</ul>');
+
+  const nhom = CONG_THUC_IN.map(([n, ds]) => '<tr class="nh"><td colspan="3">' + esc(n) + '</td></tr>' + ds.map(([t, m, l, gc]) => '<tr data-tim="' + esc((n + ' ' + t).toLowerCase()) + '"><td class="mn">' + esc(t) + (gc ? '<small>' + esc(gc) + '</small>' : '') + '</td><td>' + esc(m) + '</td><td><b>' + esc(l) + '</b></td></tr>').join('')).join('');
+  $('hrCt').innerHTML = '<input type="search" id="hrCtTim" placeholder="Tìm món: muối, matcha, phin…" aria-label="Tìm món trong công thức">'
+    + '<div class="tblwrap" style="max-height:none"><table id="tHrCt"><thead><tr><th>Món</th><th>Size M · 360 ml</th><th>Size L · 500 ml</th></tr></thead><tbody>' + nhom + '</tbody></table></div>'
+    + '<ul>' + li(['<b>Viết tắt:</b> cf = cà phê (máy hoặc phin) · SĐ = sữa đặc · ST = sữa tươi · đường = nước đường (1 nhấn = 10 ml) · muỗng = muỗng kem muối.',
+      '<b>Chung:</b> pha xong cho <b>đá đầy ly</b>; size L thêm đá cho đầy ly 500 ml.']) + '</ul>'
+    + muc('Sơ chế', '<ul>' + li(SO_CHE_IN.map(([t, n]) => '<b>' + esc(t) + ':</b> ' + esc(n))) + '</ul>', true);
+  $('hrCtTim').addEventListener('input', e => { const q = e.target.value.trim().toLowerCase();
+    $('tHrCt').querySelectorAll('tbody tr').forEach(r => { r.hidden = !!q && (r.classList.contains('nh') || !r.dataset.tim.includes(q)); }); });
+
+  $('hrCl').innerHTML =
+    muc('Tồn tối thiểu trên xe (đếm đầu ca)', '<div class="tblwrap" style="max-height:none"><table><thead><tr><th>Nguyên liệu</th><th>Tối thiểu</th></tr></thead><tbody>'
+      + [['Sữa đặc', '02 hộp'], ['Sữa tươi', '02 hộp'], ['Cà phê hạt (đếm mỗi ngày)', '2 kg'], ['Cacao bột', '0,5 hũ (1 hũ ≈ 0,5 kg)'], ['Ly cà phê (đếm mỗi ngày)', '100 cái (2 cây)'], ['Nắp', '100 cái (2 cây)'], ['Ống hút', '2 bịch'], ['Túi quai chữ T', '2 bịch']]
+        .map(([a, b]) => '<tr><td>' + a + '</td><td><b>' + b + '</b></td></tr>').join('') + '</tbody></table></div>', true) +
+    muc('Đầu ca', '<ul>' + li(['Check-in trước ca (vào làm 05:30).' + QT, 'Gạt ON ở bánh xe, khoá xe — tránh trượt ra đường.' + QT, 'Cắm điện máy trước để khởi động; chuẩn bị 2 can nước 10 L.' + QT,
+      'Đọc tin nhắn cũ trong group để biết số lượng đầu ngày.' + QT, 'Đếm tồn xe (bảng trên); thiếu thì lấy từ kho 1 lần, ghi <code>/laykho</code>.' + QT]) + '</ul>') +
+    muc('Trong ca', '<ul>' + li(['Luôn có ít nhất 1 người ở quầy; có việc thì nhờ bảo vệ trông giúp.' + QT, 'Thay nước mỗi <b>60 ly</b> để tránh cháy máy.' + QT,
+      'Cà phê kẹt: bỏ bớt ra, ấn xay tay. Chỉnh độ mịn thì vừa xay vừa chỉnh.' + QT, 'Pha thử, đổ bỏ: ghi <code>/dungnoibo</code> để không tính vào hao hụt.']) + '</ul>') +
+    muc('Cuối ca', '<ul>' + li(['Dọn quầy: 1 bạn rửa dụng cụ, bỏ gọn vào góc; 1 bạn dọn đồ ở xe.', 'Bọc nguyên liệu pha chế dư, cất ngăn tủ mát.', 'Vệ sinh xe, máy.',
+      'Đếm ly, kg cà phê: <code>/kiemxe ly 120 cf 2,4</code>.' + QT, 'Kiểm tiền mặt / chuyển khoản: <code>/chotca tm 745 ck 220</code>; bọc giấy, ghi “ngày + số tiền”.' + QT,
+      'Khoá tủ tiền, khoá xe, cất chìa khoá cẩn thận.' + QT, 'Check-out sau ca.' + QT]) + '</ul>') +
+    muc('Cuối tuần', '<ul>' + li(['Kiểm lại dụng cụ pha chế, báo mua thêm nếu cần.' + QT, 'Vệ sinh máy bằng bột vệ sinh.' + QT, 'Đếm lại đủ các món còn lại trên xe (ngày thường chỉ đếm ly + cà phê).']) + '</ul>') +
+    muc('Lệnh bot hay dùng', '<ul>' + li([
+      '<code>/checkin</code> · <code>/checkout</code> — bấm 📍 gửi vị trí.',
+      'Bấm đơn: <code>/order</code> hoặc gõ nhanh <code>csp 2 bx</code>, <code>sữa phin 2 bạc xỉu ck</code> (thêm <code>ck</code> nếu chuyển khoản). Nhầm: bấm ↩️ Huỷ dưới tin, hoặc <code>/huydon</code>.',
+      'Mua đá/sữa bằng tiền két: <code>/chiphi 85 đá sữa</code>.',
+      'Hết ca: <code>/chotca tm … ck …</code> rồi <code>/checkout</code>.',
+      'Quên chấm công: <code>/quencong vào 5:25</code> · <code>/quencong ra 10:35</code> — chủ duyệt.',
+      'Kho: <code>/kho</code> xem tồn · <code>/laykho ly 250 cf 4</code> lấy kho ra xe · <code>/kiemxe</code> đếm xe.',
+      'Của bạn: <code>/canhan</code> · <code>/luong</code> · <code>/vipham</code> · <code>/homnay</code> · <code>/chinhsach</code>.',
+      'Ca: <code>/dangkyca</code> · <code>/doica</code> · <code>/lichca</code>. Đủ lệnh: <code>/help</code>.',
+    ]) + '</ul>');
+}
 function renderHr(){
   try { renderNhatKy(); } catch(e){ console.warn(e); }
+  try { renderSoTay(); } catch(e){ console.warn(e); }
   renderHoSo();
   renderAiLam();
   renderChuyenCan();
@@ -5524,7 +5729,7 @@ function locNV(res){
 const NV_RE = /quỹ|dòng tiền|lãi|lời gộp|lương|tiền công|phụ cấp|thưởng|phạt|hoà vốn|hòa vốn|hoàn vốn|giá vốn|vốn góp|lợi nhuận|tỉ suất|tỷ suất|biên gộp|giá trị hàng|thu hồi|công nợ|còn nợ|chi cố định|chi vận hành/i;
 const NV_AN_MUC = /^(Cơ cấu món và lãi|Món cần chỉnh giá|Dự phóng 12 tháng|Độ nhạy)/i;
 function anTienNV(){
-  const an = el => { if (el.dataset.annv) return; el.dataset.annv = '1'; el.style.display = 'none'; };
+  const an = el => { if (el.dataset.annv || el.closest('[data-nvok]')) return; el.dataset.annv = '1'; el.style.display = 'none'; };
   if (VAI === 'chu'){ document.querySelectorAll('[data-annv]').forEach(el => { el.style.display = ''; delete el.dataset.annv; });
     document.querySelectorAll('[data-annvt]').forEach(el => { el.title = el.dataset.annvt; delete el.dataset.annvt; }); return; }
   const v = $('v-' + S.view); if (!v) return;
@@ -5544,7 +5749,7 @@ function anTienNV(){
   v.querySelectorAll('span').forEach(el => { if (!el.children.length && !el.closest('.jnav') && NV_RE.test(el.textContent) && /\d/.test(el.textContent)) an(el); });   // v1.7.184: dòng phụ có số (vd "lãi ước tính … đ")
   v.querySelectorAll('p, li').forEach(el => { if (!el.closest('.kpi, table') && !el.querySelector('.kpi, table, canvas') && NV_RE.test(el.textContent)) an(el); });
   v.querySelectorAll('a.lnk').forEach(a => { if (NV_RE.test(a.textContent)) an(a); });   // v1.7.185: link sang tab tiền (vd "… dòng tiền ở tab Thu chi →")
-  v.querySelectorAll('[title]').forEach(el => { if (NV_RE.test(el.title)){ el.dataset.annvt = el.title; el.title = ''; } });
+  v.querySelectorAll('[title]').forEach(el => { if (!el.closest('[data-nvok]') && NV_RE.test(el.title)){ el.dataset.annvt = el.title; el.title = ''; } });
 }
 /* ---- nhatky-v1 (v1.7.185, chủ quán 11/11: "thêm log nhân viên: login, dùng dash thời gian nào… cho chủ biết").
    NK = dòng tab NhatKyDash: [bắt đầu, lần cuối, phút, tên đăng nhập, tên, vai trò, lượt tải, tab đã xem, kết quả]. Server (Dashboard.gs) ghi, trang chỉ đọc. */
