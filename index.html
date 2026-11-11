@@ -3470,7 +3470,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.194';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.195';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3528,6 +3528,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.195', ngay:'11/11/2026', nd:['Của tôi: “⚠ chưa xác nhận” ở ô Sổ tay và nút bên dưới mở thẳng mục Xác nhận đã đọc của tab Sổ tay.']},
   {v:'v1.7.194', ngay:'11/11/2026', nd:['Công thức pha chế: mỗi món chỉ 1 ảnh (bỏ ảnh nhỏ gắn thêm); ảnh món tải lại bản vuông mới (trình duyệt hết giữ ảnh cũ bị cắt).', 'Chủ gốc ẩn khỏi lịch làm; giờ công quán (Hiệu suất, Báo cáo, khung giờ, năng lực 1 người) không tính chủ gốc; thâm niên chủ gốc = 5 giờ mỗi ngày bán đã qua (bot chuao-v1).']},
   {v:'v1.7.193', ngay:'11/11/2026', nd:['Thêm tài khoản đăng nhập dashboard cho nhân viên quynhchi.']},
   {v:'v1.7.192', ngay:'11/11/2026', nd:['Ống hút to Phindi tự trừ khi bán phindi (1 cái/ly) chỉ TỪ 11/11: ly bán tới hết 10/11 không trừ (mốc DINH_LUONG_CU ongt = 0, cùng Sheet Giá vốn ly mục 5 và bot).']},
@@ -4766,10 +4767,10 @@ function renderCuaToi(){
     + o('Tháng này', th.length + ' ca', th.reduce((s, c) => s + (c.gio || 0), 0).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ làm')
     + o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? (cc.chuoi ? 'còn ' + (CC.soCa - cc.chuoi) + ' ca nữa đạt' : 'đang đếm lại từ đầu') + ' · đạt ' + cc.thuong.filter(k => String(k).slice(0, 7) === m0).length + ' lần tháng này' : 'chưa có ca')
     + o('Ca sắp tới', lich.length ? lich.length + ' ca' : 'chưa đăng ký', lich.slice(0, 6).map(k => thu(k) + ' ' + dShort(k)).join(' · ') || 'đăng ký: /dangkyca')
-    + o('Sổ tay', daDoc ? '✓ đã đọc' : '⚠ chưa xác nhận', 'bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : ''))
+    + o('Sổ tay', daDoc ? '✓ đã đọc' : '<a class="lnk toiStLnk" href="#sec-st-dd">⚠ chưa xác nhận</a>', 'bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : ''))
     + o('Vi phạm', '/vipham', 'xem lỗi tháng này trên bot')
-    + '</div>' + (daDoc ? '' : '<p style="margin:8px 0 0"><a class="lnk" href="#" id="toiSt">Mở tab Sổ tay để đọc và xác nhận →</a></p>');
-  const a = $('toiSt'); if (a) a.onclick = e => { e.preventDefault(); $('tab-st').click(); };
+    + '</div>' + (daDoc ? '' : '<p style="margin:8px 0 0"><a class="lnk toiStLnk" href="#sec-st-dd" id="toiSt">Đọc và xác nhận Sổ tay →</a></p>');
+  $('hrToi').querySelectorAll('.toiStLnk').forEach(a => a.onclick = e => { e.preventDefault(); $('tab-st').click(); setTimeout(() => hienThe('sec-st-dd'), 60); });   // v1.7.195 (chủ nhờ 11/11): mở thẳng mục Xác nhận đã đọc
 }
 function renderDaDoc(){
   const el = $('stDd'); if (!el) return;
