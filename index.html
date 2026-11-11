@@ -615,6 +615,7 @@ html.mcap{background:var(--paper)}
       <button class="lnk" id="themeBtn" title="Đổi giao diện sáng / tối">🌓 Tự động</button>
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
       <button class="lnk" id="openSheet" aria-haspopup="dialog">🔒 Mở sheet</button>
+      <button class="lnk" id="maNvBtn" hidden title="Tạo dòng mã hoá để nhân viên đăng nhập được trên máy mới">🔑 Mã đăng nhập nhân viên</button>
       <button class="lnk" id="xemNvBtn" hidden title="Xem dashboard y như tài khoản nhân viên (chỉ trên máy này)">👁 Xem như nhân viên</button>
       <button class="lnk" id="newBtn" title="Có gì mới · việc còn treo">🆕 Có gì mới</button>
       <button class="lnk" id="logoutBtn" title="Quên mật khẩu trên máy này">Đăng xuất</button>
@@ -3391,7 +3392,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.182';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.183';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3449,6 +3450,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.183', ngay:'11/11/2026', nd:['Chân thanh bên (chỉ chủ): nút “🔑 Mã đăng nhập nhân viên” — gõ tên đăng nhập + mật khẩu của nhân viên, ra 1 dòng mã hoá gửi Claude để người đó đăng nhập được trên máy mới.', 'Tài khoản nhân viên: ẩn nốt khối lãi lỗ ở Hôm nay, khối hoà vốn / quỹ ở Tổng quan, biểu đồ lãi theo khung giờ và tiền công theo người.']},
   {v:'v1.7.182', ngay:'11/11/2026', nd:['Tài khoản nhân viên: ẩn hết lãi, lương, giá vốn, hoà vốn, thu hồi vốn, công nợ ở mọi tab còn xem được (thẻ số, cột bảng, dòng ghi chú, mục Dự phóng / Độ nhạy / Món cần chỉnh giá). Server không gửi thêm cột lương (ChamCong, NhanVien), tab ThuongPhat, giá tham chiếu tab Kho và bảng bậc lương (chủ quán 11/11: “ẩn hết lãi/lương”).']},
   {v:'v1.7.181', ngay:'11/11/2026', nd:['Tài khoản nhân viên: mỗi người một tên đăng nhập (chủ quản lý ở tab Sheet TaiKhoanDash). Nhân viên không thấy PNL, Kiểm chứng, Thu chi, Hao hụt, nút Mở sheet; server không gửi các tab tiền (vốn, quỹ, chi cố định, thiết bị, lương đã chốt) và sổ chi chỉ còn số lượng cho tab Kho.', 'Chủ có nút “👁 Xem như nhân viên” ở chân thanh bên để xem trước đúng phần nhân viên thấy (chủ quán 11/11).']},
   {v:'v1.7.180', ngay:'11/11/2026', nd:['Hôm nay: thêm thẻ “Lãi sau vận hành & mặt bằng” ngay sau Lãi sau lương (xem 1 ngày và xem theo kỳ) — = lãi sau lương − hàng cho kèm − chi vận hành − mặt bằng (thuê vị trí, điện nước), cùng số dòng “Lãi vận hành” của khối lãi lỗ, kèm mốc hoà vốn; thẻ Lãi sau lương giờ ghi mốc đủ trả lương (chủ quán 11/11).']},
@@ -5512,6 +5514,10 @@ function anTienNV(){
     if (!idx.length) return;
     [...t.rows].forEach(r => { if (r.cells.length === n) idx.forEach(i => an(r.cells[i])); });
   });
+  v.querySelectorAll('.pk').forEach(k => { if (NV_RE.test((k.querySelector('.lb') || {}).textContent || '')) an(k); });
+  v.querySelectorAll('.kv > *, .muted, .cmt, details').forEach(el => { if (!el.closest('.kpi, table') && !el.querySelector('.kpi, .pk, table, canvas') && NV_RE.test(el.tagName === 'DETAILS' ? ((el.querySelector('summary') || {}).textContent || '') : el.textContent)) an(el); });
+  v.querySelectorAll('.lbl').forEach(el => { if (NV_RE.test(el.textContent) && el.parentElement && !el.parentElement.classList.contains('card')) an(el.parentElement); });
+  v.querySelectorAll('.jnav a').forEach(a => { const id = (a.getAttribute('href') || '').replace(/^#/, ''), t = id && document.getElementById(id); if ((t && t.dataset.annv) || NV_AN_MUC.test(a.textContent)) an(a); });
   v.querySelectorAll('p, li').forEach(el => { if (!el.closest('.kpi, table') && !el.querySelector('.kpi, table, canvas') && NV_RE.test(el.textContent)) an(el); });
   v.querySelectorAll('[title]').forEach(el => { if (NV_RE.test(el.title)){ el.dataset.annvt = el.title; el.title = ''; } });
 }
@@ -5520,7 +5526,7 @@ function apVaiTro(vai, ten){
   const nv = vai !== 'chu';
   $('xemNvBtn').hidden = vai === 'nhanvien';
   $('xemNvBtn').textContent = vai === 'xem' ? '👁 Thôi xem như nhân viên' : '👁 Xem như nhân viên';
-  $('openSheet').hidden = nv;
+  $('openSheet').hidden = nv; $('maNvBtn').hidden = nv;
   $('vaiInfo').hidden = !nv;
   $('vaiInfo').innerHTML = vai === 'nhanvien' ? `Đăng nhập: <b>${esc(ten || USER)}</b> · nhân viên` : vai === 'xem' ? '👁 Đang xem như nhân viên: số liệu đã lọc y như tài khoản nhân viên nhận.' : '';
   if (vai === VAI) return;
@@ -5717,6 +5723,34 @@ function shOpen(){ $('shDlg').hidden = false; $('shOk').hidden = true; $('shForm
 function shClose(){ $('shDlg').hidden = true; $('shPw').value = ''; $('shOk').innerHTML = ''; $('openSheet').focus(); }
 $('openSheet').onclick = shOpen;
 $('logoutBtn').onclick = logout;
+/* v1.7.183 — chủ tạo dòng API_ENC_NV ngay trên dashboard (máy chủ đã biết link API): gõ tên đăng nhập + mật khẩu giống tab TaiKhoanDash → ra 1 dòng, gửi Claude dán vào index.html.
+   Dòng này chỉ là link API mã hoá bằng tài khoản đó, không chứa mật khẩu; chạy trên máy, không gửi đi đâu. */
+async function maHoaNV(acc, pw){
+  const b64 = u => btoa(String.fromCharCode(...u)), N = API_ENC.n;
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const raw = new TextEncoder().encode(acc.trim().toLowerCase() + String.fromCharCode(0) + pw.trim());
+  const base = await crypto.subtle.importKey('raw', raw, 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt, iterations:N}, base, {name:'AES-GCM', length:256}, false, ['encrypt']);
+  const c = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(API)));
+  return `  {s:'${b64(salt)}', iv:'${b64(iv)}', c:'${b64(c)}', n:${N}},   // ${acc.trim().toLowerCase()}`;
+}
+$('maNvBtn').onclick = () => {
+  if (!$('maNvDlg')){
+    const o = 'font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);min-width:0';
+    document.body.insertAdjacentHTML('beforeend', `<dialog id="maNvDlg" style="max-width:min(560px,calc(100vw - 32px));border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:16px">
+      <form id="maNvF" style="display:grid;gap:8px"><b>🔑 Mã đăng nhập nhân viên</b>
+      <p class="muted" style="margin:0">Gõ <b>tên đăng nhập</b> và <b>mật khẩu</b> giống hệt cột A và D tab TaiKhoanDash. Bấm Tạo → copy dòng kết quả gửi Claude. Dòng này không chứa mật khẩu.</p>
+      <input id="maNvU" placeholder="Tên đăng nhập (vd baoduy)" autocomplete="off" autocapitalize="off" spellcheck="false" style="${o}">
+      <input id="maNvP" type="password" placeholder="Mật khẩu của người đó" autocomplete="new-password" style="${o}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="reload" type="submit">Tạo</button><button class="lnk" type="button" id="maNvCp">Copy kết quả</button><button class="lnk" type="button" id="maNvX">Đóng</button></div>
+      <textarea id="maNvOut" readonly rows="4" style="${o};font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea></form></dialog>`);
+    $('maNvF').onsubmit = async e => { e.preventDefault(); const u = $('maNvU').value.trim(), p = $('maNvP').value.trim(); if (!u || !p || !HAS_API()) return;
+      const dong = await maHoaNV(u, p); $('maNvP').value = ''; $('maNvOut').value = ($('maNvOut').value ? $('maNvOut').value + String.fromCharCode(10) : '') + dong; };
+    $('maNvCp').onclick = () => { $('maNvOut').select(); try { navigator.clipboard.writeText($('maNvOut').value); toast('Đã copy — dán gửi Claude.'); } catch(e){ document.execCommand('copy'); } };
+    $('maNvX').onclick = () => $('maNvDlg').close();
+  }
+  $('maNvDlg').showModal(); $('maNvU').focus();
+};
 $('xemNvBtn').onclick = () => { if (!RES_GOC) return; XEM_NV = !XEM_NV; onData(RES_GOC); toast(XEM_NV ? '👁 Đang xem như nhân viên — bấm lại để về tài khoản chủ.' : 'Đã về tài khoản chủ.'); };
 $('shClose').onclick = shClose;
 $('shDlg').addEventListener('click', e => { if (e.target === $('shDlg')) shClose(); });
