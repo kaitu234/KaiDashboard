@@ -615,9 +615,11 @@ html.mcap{background:var(--paper)}
       <button class="lnk" id="themeBtn" title="Đổi giao diện sáng / tối">🌓 Tự động</button>
       <button class="lnk" id="installBtn" hidden>📲 Cài app</button>
       <button class="lnk" id="openSheet" aria-haspopup="dialog">🔒 Mở sheet</button>
+      <button class="lnk" id="xemNvBtn" hidden title="Xem dashboard y như tài khoản nhân viên (chỉ trên máy này)">👁 Xem như nhân viên</button>
       <button class="lnk" id="newBtn" title="Có gì mới · việc còn treo">🆕 Có gì mới</button>
       <button class="lnk" id="logoutBtn" title="Quên mật khẩu trên máy này">Đăng xuất</button>
     </div>
+    <p id="vaiInfo" hidden></p>
     <p id="layoutInfo" style="opacity:.8"></p>
     <p>Số liệu: Google Sheet qua bot Telegram · tự cập nhật mỗi phút</p>
   </div>
@@ -3389,7 +3391,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.180';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.181';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3447,6 +3449,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'TB các ngày cùng thứ gần nhất (thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.181', ngay:'11/11/2026', nd:['Tài khoản nhân viên: mỗi người một tên đăng nhập (chủ quản lý ở tab Sheet TaiKhoanDash). Nhân viên không thấy PNL, Kiểm chứng, Thu chi, Hao hụt, nút Mở sheet; server không gửi các tab tiền (vốn, quỹ, chi cố định, thiết bị, lương đã chốt) và sổ chi chỉ còn số lượng cho tab Kho.', 'Chủ có nút “👁 Xem như nhân viên” ở chân thanh bên để xem trước đúng phần nhân viên thấy (chủ quán 11/11).']},
   {v:'v1.7.180', ngay:'11/11/2026', nd:['Hôm nay: thêm thẻ “Lãi sau vận hành & mặt bằng” ngay sau Lãi sau lương (xem 1 ngày và xem theo kỳ) — = lãi sau lương − hàng cho kèm − chi vận hành − mặt bằng (thuê vị trí, điện nước), cùng số dòng “Lãi vận hành” của khối lãi lỗ, kèm mốc hoà vốn; thẻ Lãi sau lương giờ ghi mốc đủ trả lương (chủ quán 11/11).']},
   {v:'v1.7.179', ngay:'11/11/2026', nd:['Hôm nay · Lãi lỗ: dòng "Chi vận hành khác (sổ chi)" ghi luôn trong ngoặc là mục gì và bao nhiêu (vd Vận hành hệ thống, Thuê vị trí…), xếp mục lớn trước — trước đây phải rê chuột mới thấy (chủ quán 11/11).']},
   {v:'v1.7.178', ngay:'11/11/2026', nd:['Ảnh nhỏ món cho 4 món mới (cà phê caramel, cà phê chocolate, matcha coffee, trà sữa gạo rang) trong các bảng có cột Món (PNL, Bán hàng…).']},
@@ -5334,6 +5337,7 @@ function renderChips(){
 }
 function setView(v){
   if (v === 'tb'){ v = 'fin'; setTimeout(() => { const c = $('sec-fin-tb'); if (c) c.scrollIntoView({block:'start'}); }, 80); }   // v1.7.107: tab Thiết bị gộp vào Thu chi
+  if (VAI !== 'chu' && NV_AN_VIEW.includes(v)) v = 'today';   // v1.7.181: nhân viên không mở tab tiền
   S.view = v; try { localStorage.setItem('kai_view', v); } catch(e){}
   if (!VIEWS.includes(v)) v = S.view = 'ov';
   const info = VIEW_INFO[v]; $('mTitle').textContent = info[0]; $('mTopT').textContent = info[0]; syncBnav(v); $('mSub').innerHTML = info[1]; document.title = `${info[0]} · Kai Café`;
@@ -5457,16 +5461,50 @@ $('plReset').onclick = () => { PLAN_IDS.forEach(id => delete $(id).dataset.touch
    Đổi tài khoản / mật khẩu / link: mở tools/ma-hoa-link.html trên máy, dán kết quả đè dòng API_ENC bên dưới. */
 const API_ENC = {s:'1lfngolqoIDymNqHxI7n9Q==', iv:'/4nRv2jE2Q/+rZYS', c:'DXTxUgHjxbdracCi0Fgg+7Qteni6/AaofMYpN7KbitQ8I3MC0wRs+4jLcN/zTQNx1gHaWbAQlNzz708tqvTXNBCTd01ac3rBB4DkVsnVYx6FA+VdDQo0lK92Cjs+1GQaPdjA3rf6JZHcUTLakMzHU/gBF2O2nBXlf5ZKMrwhgv4=', n:310000};
 const API_DEFAULT = '';
+/* vaitro-v1 (v1.7.181): mỗi tài khoản nhân viên 1 dòng {s, iv, c, n} — tạo bằng tools/ma-hoa-link.html (tên đăng nhập + mật khẩu của người đó, giống ô D tab TaiKhoanDash).
+   Chỉ là link API đã mã hoá; quyền xem do server kiểm (tab TaiKhoanDash). Thiếu dòng của ai thì người đó chỉ đăng nhập được trên máy đã từng mở dashboard. */
+const API_ENC_NV = [];
 const b64d = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
 async function unlockApi(acc, pw){
   const raw = new TextEncoder().encode(acc.trim().toLowerCase() + '\u0000' + pw.trim());
   const base = await crypto.subtle.importKey('raw', raw, 'PBKDF2', false, ['deriveKey']);
-  const key = await crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt:b64d(API_ENC.s), iterations:API_ENC.n}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
-  const out = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64d(API_ENC.iv)}, key, b64d(API_ENC.c));   // sai tài khoản/mật khẩu → lỗi
-  return new TextDecoder().decode(out);
+  for (const E of [API_ENC, ...API_ENC_NV]){
+    try {
+      const key = await crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt:b64d(E.s), iterations:E.n}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+      const out = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64d(E.iv)}, key, b64d(E.c));   // sai tài khoản/mật khẩu → lỗi, thử dòng kế
+      return new TextDecoder().decode(out);
+    } catch(e){}
+  }
+  throw new Error('sai');
 }
-let API = '', KEY = '', LOADED_AT = null, BUSY = false;
-try { API = localStorage.getItem('kai_dash_api') || ''; KEY = localStorage.getItem('kai_dash_key') || ''; } catch(e){}
+let API = '', KEY = '', USER = '', LOADED_AT = null, BUSY = false;
+try { API = localStorage.getItem('kai_dash_api') || ''; KEY = localStorage.getItem('kai_dash_key') || ''; USER = localStorage.getItem('kai_dash_user') || ''; } catch(e){}
+/* ---- vaitro-v1 (v1.7.181, chủ quán 11/11): vai trò nhân viên. Server (Dashboard.gs) kiểm tài khoản ở tab TaiKhoanDash và KHÔNG gửi tab tiền cho nhân viên;
+   trang chỉ ẩn tab tương ứng. NV_BO_TAB / NV_CHI_XOA_COT là bản sao y hệt DASH_NV_BO_TAB / DASH_NV_CHI_XOA_COT của server (dùng cho nút "Xem như nhân viên" của chủ) — đổi một bên thì đổi bên kia. */
+const NV_AN_VIEW = ['pnl', 'kc', 'fin', 'tb', 'hh'];   // Phân tích chỉ chừa Hiệu suất + Kế hoạch; Tiền & kho chỉ chừa Kho
+const NV_BO_TAB = ['Vốn & Thu', 'Tổng hợp', 'Quỹ tiền', 'Chi cố định', 'Thiết bị', 'LuongDaChot'], NV_CHI_XOA_COT = [5, 6, 8, 9, 11, 12];
+let VAI = 'chu', XEM_NV = false, RES_GOC = null;
+function locNV(res){
+  const names = [], sheets = {};
+  (res.names || []).forEach(n => { if (NV_BO_TAB.includes(n)) return; let rows = (res.sheets || {})[n];
+    if (/^Chi\s*T\d{1,2}-\d{4}$/i.test(n) && rows) rows = rows.map((r, i) => { if (i < 11) return []; const x = r.slice(); NV_CHI_XOA_COT.forEach(c => { if (c < x.length) x[c] = ''; }); return x; });
+    names.push(n); sheets[n] = rows; });
+  return Object.assign({}, res, {names, sheets});
+}
+/** vai: 'chu' · 'nhanvien' (tài khoản nhân viên) · 'xem' (chủ bấm Xem như nhân viên) */
+function apVaiTro(vai, ten){
+  const nv = vai !== 'chu';
+  $('xemNvBtn').hidden = vai === 'nhanvien';
+  $('xemNvBtn').textContent = vai === 'xem' ? '👁 Thôi xem như nhân viên' : '👁 Xem như nhân viên';
+  $('openSheet').hidden = nv;
+  $('vaiInfo').hidden = !nv;
+  $('vaiInfo').innerHTML = vai === 'nhanvien' ? `Đăng nhập: <b>${esc(ten || USER)}</b> · nhân viên` : vai === 'xem' ? '👁 Đang xem như nhân viên: số liệu đã lọc y như tài khoản nhân viên nhận.' : '';
+  if (vai === VAI) return;
+  VAI = vai;
+  NV_AN_VIEW.forEach(v => { if (v !== 'tb') $('tab-' + v).hidden = nv; });
+  BNAV_CHINH = nv ? ['ov', 'today', 'sales', 'kho'] : ['ov', 'today', 'sales', 'pnl'];
+  khoiTaoDiDong();
+}
 if (!API) API = API_DEFAULT;
 const HAS_API = () => /^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(API);
 function apiGet(params){
@@ -5479,10 +5517,10 @@ function hideViews(){ VIEWS.forEach(x => $('v-' + x).hidden = true); document.bo
 function showState(title, body){ $('status').hidden = false; $('status').innerHTML = `<span class="t">${title}</span><p>${body}</p>`; }
 function askKey(msg){
   D = null; hideViews(); $('fbar').style.display = 'none'; $('tdbar').hidden = true;
-  const needApi = !HAS_API();
-  showState('🔒 Đăng nhập dashboard', msg || (needApi ? 'Lần đầu trên máy này: nhập <b>tài khoản</b> và <b>mật khẩu</b>. Máy sẽ nhớ.' : 'Nhập mật khẩu xem dashboard. Máy sẽ nhớ.'));
+  const needApi = true;   // v1.7.181: luôn hỏi tài khoản — mỗi nhân viên một tài khoản riêng
+  showState('🔒 Đăng nhập dashboard', msg || 'Nhập <b>tài khoản</b> và <b>mật khẩu</b>. Máy sẽ nhớ.');
   $('status').insertAdjacentHTML('beforeend', `<form id="keyForm" style="display:grid;gap:8px;margin-top:6px;width:min(520px,100%)">
-    <input id="apiIn" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" aria-label="Tài khoản" placeholder="Tài khoản…" ${needApi ? '' : 'hidden'} style="font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);min-width:0">
+    <input id="apiIn" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" aria-label="Tài khoản" placeholder="Tài khoản…" value="${esc(USER)}" style="font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);min-width:0">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
     <input id="keyIn" type="password" autocomplete="current-password" aria-label="Mật khẩu" placeholder="Mật khẩu…" style="font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);min-width:0;flex:1 1 180px">
     <button class="reload" type="submit"><span class="ic" aria-hidden="true">🔓</span><span>Mở dashboard</span></button></div>
@@ -5492,10 +5530,10 @@ function askKey(msg){
     const a = $('apiIn').value.trim(), pw = $('keyIn').value.trim();
     if (!pw) return;
     if (/^https:\/\//.test(a)) API = a.replace(/\?.*$/, '');          // vẫn cho dán thẳng link …/exec nếu cần
-    else if (a){ try { API = await unlockApi(a, pw); } catch(err){ $('keyIn').select(); toast('⚠ Sai tài khoản hoặc mật khẩu.', true); return; } }
-    if (!HAS_API()){ $('apiIn').hidden = false; $('apiIn').focus(); toast('⚠ Nhập tài khoản.', true); return; }
-    KEY = pw; load(true); };
-  setTimeout(() => { try { (needApi ? $('apiIn') : $('keyIn')).focus(); } catch(e){} }, 50);
+    else if (a){ try { API = await unlockApi(a, pw); } catch(err){ if (!HAS_API()){ $('keyIn').select(); toast('⚠ Sai tài khoản hoặc mật khẩu.', true); return; } } }   // máy đã biết link → server tự kiểm tài khoản
+    if (!HAS_API() || !a){ $('apiIn').hidden = false; $('apiIn').focus(); toast('⚠ Nhập tài khoản.', true); return; }
+    USER = /^https:\/\//.test(a) ? '' : a.toLowerCase(); KEY = pw; load(true); };
+  setTimeout(() => { try { (USER ? $('keyIn') : $('apiIn')).focus(); } catch(e){} }, 50);
   setUpd('err', 'Cần đăng nhập');
 }
 function setBusy(on){
@@ -5519,11 +5557,14 @@ function onData(res, manual, offlineAt, xemTruoc){   // xemTruoc (v1.7.102): v�
   setBusy(false);
   if (!res || res.err === 'key'){ try { localStorage.removeItem('kai_dash_key'); } catch(e){} const had = !!KEY; KEY = ''; askKey(had ? '<span class="dn">Mật khẩu chưa đúng</span>, nhập lại.' : null); return; }
   if (res.err){ if (D){ setUpd('err', 'Lỗi tải'); toast('⚠ ' + esc(res.err), true); } else { hideViews(); showState('Không đọc được sheet', esc(res.err)); setUpd('err', 'Lỗi'); } return; }
-  try { localStorage.setItem('kai_dash_key', KEY); localStorage.setItem('kai_dash_api', API); } catch(e){}
+  try { localStorage.setItem('kai_dash_key', KEY); localStorage.setItem('kai_dash_api', API); localStorage.setItem('kai_dash_user', USER); } catch(e){}
+  if (res.vai !== 'nhanvien') RES_GOC = res; else XEM_NV = false;
+  const R = res.vai !== 'nhanvien' && XEM_NV ? locNV(res) : res;   // R = số đem vẽ; res (bản gốc) mới là bản lưu trên máy
+  apVaiTro(res.vai === 'nhanvien' ? 'nhanvien' : XEM_NV ? 'xem' : 'chu', res.ten);
   const before = D ? D.orders.length : 0, first = !D;
   DATA_AT = toDate(res.at ? 'D:' + res.at : null);
   CHU_SV = res.chu || null;
-  try { D = parseWorkbook({SheetNames: res.names || [], Sheets: res.sheets || {}}); }
+  try { D = parseWorkbook({SheetNames: R.names || [], Sheets: R.sheets || {}}); }
   catch (err){ showState('Không phân tích được dữ liệu', esc(err.message)); return; }
   $('status').hidden = true; document.body.classList.add('co-so-lieu');
   fillOptions(); loadWx();
@@ -5545,7 +5586,7 @@ function load(manual){
   if (!HAS_API() || !KEY){ askKey(); return; }
   if (BUSY) return;
   setBusy(true); if (manual) setUpd('', 'Đang tải lại sheet…');
-  apiGet({api:'data', k:KEY}).then(r => onData(r, manual)).catch(e => {
+  apiGet({api:'data', k:KEY, u:USER}).then(r => onData(r, manual)).catch(e => {
     setBusy(false); const m = esc((e && e.message) || 'Lỗi không rõ');
     const cu = !D && docGanNhat();
     if (cu && cu.res){ onData(cu.res, false, cu.at); toast('📴 Không kết nối được, đang hiện số liệu lần trước. Có mạng sẽ tự cập nhật.', true); }
@@ -5559,7 +5600,7 @@ document.addEventListener('keydown', e => { if ((e.key === 'r' || e.key === 'R')
 setInterval(tickAgo, 30000);
 setInterval(() => { if (D && !document.hidden) load(false); }, 60000);                 // tự cập nhật mỗi phút khi đang mở
 document.addEventListener('visibilitychange', () => { if (!document.hidden && D && LOADED_AT && Date.now() - LOADED_AT.getTime() > 60000) load(false); });
-function logout(){ try { localStorage.removeItem('kai_dash_key'); localStorage.removeItem('kai_last'); } catch(e){} KEY = ''; askKey('Đã đăng xuất trên máy này.'); }
+function logout(){ try { localStorage.removeItem('kai_dash_key'); localStorage.removeItem('kai_last'); } catch(e){} KEY = ''; XEM_NV = false; RES_GOC = null; askKey('Đã đăng xuất trên máy này.'); }
 
 /* ---- Giao diện: Tự động (theo máy) → Sáng → Tối; máy nhớ lựa chọn. Đổi data-theme thì biểu đồ tự vẽ lại (MutationObserver ở trên). ---- */
 const THEME_NHAN = {auto:'🌓 Tự động', light:'☀️ Sáng', dark:'🌙 Tối'};
@@ -5652,6 +5693,7 @@ function shOpen(){ $('shDlg').hidden = false; $('shOk').hidden = true; $('shForm
 function shClose(){ $('shDlg').hidden = true; $('shPw').value = ''; $('shOk').innerHTML = ''; $('openSheet').focus(); }
 $('openSheet').onclick = shOpen;
 $('logoutBtn').onclick = logout;
+$('xemNvBtn').onclick = () => { if (!RES_GOC) return; XEM_NV = !XEM_NV; onData(RES_GOC); toast(XEM_NV ? '👁 Đang xem như nhân viên — bấm lại để về tài khoản chủ.' : 'Đã về tài khoản chủ.'); };
 $('shClose').onclick = shClose;
 $('shDlg').addEventListener('click', e => { if (e.target === $('shDlg')) shClose(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('shDlg').hidden) shClose(); });
@@ -5670,7 +5712,7 @@ $('shForm').onsubmit = e => {
 };
 
 /* ============ giao diện điện thoại: thanh dưới + bảng "Thêm" (lấy tên, biểu tượng, mô tả từ thanh bên) ============ */
-const BNAV_CHINH = ['ov', 'today', 'sales', 'pnl'];
+let BNAV_CHINH = ['ov', 'today', 'sales', 'pnl'];   // v1.7.181: nhân viên thay PNL bằng Kho (apVaiTro)
 function syncBnav(v){
   document.querySelectorAll('#bnav [data-v], #mSheetList [data-v]').forEach(b => b.dataset.v === v ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
   const m = $('bnMore'); if (m) BNAV_CHINH.includes(v) ? m.removeAttribute('aria-current') : m.setAttribute('aria-current', 'page');

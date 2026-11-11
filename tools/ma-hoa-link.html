@@ -24,10 +24,12 @@ button{font:inherit;font-weight:600;padding:9px 14px;border:0;border-radius:6px;
 <main>
   <h1>Mã hoá link API cho dashboard</h1>
   <p>Chạy trên máy, không gửi gì đi đâu. Dùng khi đổi tài khoản, mật khẩu (DASH_KEY) hoặc link …/exec. Copy dòng kết quả, dán đè dòng <code>const API_ENC = …</code> trong index.html rồi push.</p>
+  <p><b>Tài khoản nhân viên</b> (v1.7.181): tick ô bên dưới, nhập tên đăng nhập + mật khẩu của người đó (giống hệt cột A và D tab <b>TaiKhoanDash</b>). Kết quả là 1 dòng, thêm vào mảng <code>const API_ENC_NV = [ … ]</code> trong index.html (gửi Claude dòng này là được — nó chỉ là link đã mã hoá, không chứa mật khẩu).</p>
   <form id="f" style="display:grid;gap:10px">
     <label>Link API (…/exec)<input id="url" type="url" required placeholder="https://script.google.com/macros/s/…/exec"></label>
     <label>Tài khoản<input id="acc" required autocomplete="off"></label>
-    <label>Mật khẩu (DASH_KEY)<input id="pw" type="password" required autocomplete="off"></label>
+    <label>Mật khẩu (DASH_KEY, hoặc mật khẩu nhân viên)<input id="pw" type="password" required autocomplete="off"></label>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input id="nv" type="checkbox" style="width:auto">Tài khoản nhân viên (ra 1 dòng cho API_ENC_NV)</label>
     <button type="submit">Mã hoá</button>
   </form>
   <label>Kết quả<textarea id="out" readonly></textarea></label>
@@ -35,18 +37,19 @@ button{font:inherit;font-weight:600;padding:9px 14px;border:0;border-radius:6px;
 <script>
 const N = 310000;   // phải khớp với index.html (API_ENC.n)
 const b64 = u => btoa(String.fromCharCode(...u));
-async function encrypt(url, acc, pw){
+async function encrypt(url, acc, pw, nv){
   const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
   const raw = new TextEncoder().encode(acc.trim().toLowerCase() + '\u0000' + pw.trim());
   const base = await crypto.subtle.importKey('raw', raw, 'PBKDF2', false, ['deriveKey']);
   const key = await crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt, iterations:N}, base, {name:'AES-GCM', length:256}, false, ['encrypt']);
   const c = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(url.trim().replace(/\?.*$/, ''))));
-  return `const API_ENC = {s:'${b64(salt)}', iv:'${b64(iv)}', c:'${b64(c)}', n:${N}};`;
+  const o = `{s:'${b64(salt)}', iv:'${b64(iv)}', c:'${b64(c)}', n:${N}}`;
+  return nv ? `  ${o},   // ${acc.trim().toLowerCase()}` : `const API_ENC = ${o};`;
 }
 document.getElementById('f').onsubmit = async e => {
   e.preventDefault();
   const v = id => document.getElementById(id).value;
-  document.getElementById('out').value = await encrypt(v('url'), v('acc'), v('pw'));
+  document.getElementById('out').value = await encrypt(v('url'), v('acc'), v('pw'), document.getElementById('nv').checked);
   document.getElementById('pw').value = '';
 };
 </script>
