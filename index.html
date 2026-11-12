@@ -1217,7 +1217,7 @@ html.mcap{background:var(--paper)}
       <div class="ct">Phân tích sâu · nên làm gì <span class="nt">· tự tính từ đơn bot, công thức, sổ chi, kiểm kho · mỗi gợi ý kèm số làm bằng chứng · chỉ là gợi ý, chủ quyết</span></div>
       <div class="lbl">Việc nên cải thiện</div>
       <div class="cmt" id="perfSauViec"></div>
-      <div class="lbl" style="margin-top:10px">Nguyên liệu: mua thêm hay bớt <span class="muted" style="text-transform:none;font-weight:400">· dùng / ngày = 14 ngày bán gần nhất (công thức × ly bán) · xu hướng = so 14 ngày bán trước đó · đủ ~ngày theo tồn hiện tại · nên mua 7 ngày = dùng / ngày × (1 + xu hướng, tối đa ±30%) × 7 − tồn</span></div>
+      <div class="lbl" style="margin-top:10px">Nguyên liệu: mua thêm hay bớt <span class="muted" style="text-transform:none;font-weight:400">· dùng / ngày = 14 ngày bán gần nhất (công thức × ly bán) · xu hướng = so 14 ngày bán trước đó (bỏ ngày 10K) · hao hụt xem tab Kho, mục Đối chiếu tổng · đủ ~ngày theo tồn hiện tại · nên mua 7 ngày = dùng / ngày × (1 + xu hướng, tối đa ±30%) × 7 − tồn</span></div>
       <div class="tblwrap" style="max-height:380px"><table id="tPerfNL"></table></div>
       <div class="lbl" style="margin-top:10px">Món: đẩy, giữ hay xem lại <span class="muted" style="text-transform:none;font-weight:400">· kỳ đang lọc · chia 4 nhóm theo trung vị ly / ngày và lời gộp / ly · xu hướng = so kỳ trước cùng độ dài</span></div>
       <div class="tblwrap" style="max-height:380px"><table id="tPerfMonSau"></table></div>
@@ -3735,7 +3735,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
-  {v:'v1.7.242', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Phân tích sâu · nên làm gì” ở đầu tab — danh sách việc nên cải thiện xếp theo mức gấp (sắp hết hàng, dùng tăng/giảm, hao hụt cao, mua dư, món giảm/lên, món lời mỏng, món nên đẩy, thứ bán yếu, đơn 1 ly + cặp combo, khung lỗ sau lương, thiếu người, chênh năng suất), mỗi dòng kèm số.', 'Bảng Nguyên liệu: mua thêm hay bớt — dùng/ngày 14 ngày bán gần nhất, xu hướng so 14 ngày trước, tồn, đủ ~ngày, mua vs dùng 30 ngày, hao hụt đo từ kiểm xe, lượng nên mua cho 7 ngày, kết luận 🔴🟠⚠️🔵🟡🟢.', 'Bảng Món: đẩy, giữ hay xem lại — 4 nhóm theo ly/ngày và lời gộp/ly (⭐ chủ lực · 💰 lời mỏng · 📣 nên đẩy · ✂️ cân nhắc bỏ) kèm xu hướng so kỳ trước.']},
+  {v:'v1.7.242', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Phân tích sâu · nên làm gì” ở đầu tab — danh sách việc nên cải thiện xếp theo mức gấp (sắp hết hàng, dùng tăng/giảm, mua dư, món giảm/lên, món lời mỏng, món nên đẩy, thứ bán yếu, đơn 1 ly + cặp combo, khung lỗ sau lương, thiếu người, chênh năng suất), mỗi dòng kèm số.', 'Bảng Nguyên liệu: mua thêm hay bớt — dùng/ngày 14 ngày bán gần nhất (bỏ ngày 10K), xu hướng so 14 ngày trước, tồn, đủ ~ngày, mua vs dùng 30 ngày, lượng nên mua cho 7 ngày, kết luận 🔴🟠🔵🟡🟢.', 'Bảng Món: đẩy, giữ hay xem lại — 4 nhóm theo ly/ngày và lời gộp/ly (⭐ chủ lực · 💰 lời mỏng · 📣 nên đẩy · ✂️ cân nhắc bỏ) kèm xu hướng so kỳ trước.']},
   {v:'v1.7.241', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Hiệu suất theo nhân viên” — mỗi người: số ca, giờ công, ly làm (mỗi đơn chia đều cho người đang có mặt lúc ghi), ly / giờ, ly / ngày làm, ngày cao nhất, ly tự ghi; biểu đồ ly / giờ và nhận xét cao nhất / thấp nhất (chỉ so người có ≥ 5 giờ công).']},
   {v:'v1.7.240', ngay:'12/11/2026', nd:['Hiệu suất · Khung giờ × người đứng ca: gộp khung 1 tiếng (trước 30 phút) cho cả 2 biểu đồ (ly TB, lãi sau lương) và bảng; nhãn ghi rõ khung, vd 07:00–08:00. Ngưỡng thiếu / thừa người quy theo tiếng (gấp đôi năng lực 30 phút).']},
   {v:'v1.7.239', ngay:'12/11/2026', nd:['Hiệu suất · Dự báo ngày mai: dòng “Nguyên liệu cho ngày mai” hiện lại tên nguyên liệu (bản trước bị mất tên, chỉ còn số) — viết gọn kèm icon: ☕ CF hạt · 🟤 CF phin · 🥫 Sữa đặc · 🥛 Sữa tươi · 🥤 Ly (ly làm tròn số nguyên); rê chuột xem tên đầy đủ.']},
@@ -5933,7 +5933,8 @@ function renderPerf(){
     const xhTxt = v => v == null ? '—' : `${v >= 0 ? '▲' : '▼'} ${pct(Math.abs(v))}`, xhCls = v => v == null ? '' : v >= .2 ? 'up' : v <= -.2 ? 'dn' : '';
     const chu = VAI === 'chu', viec = [];
     // ---- Nguyên liệu ----
-    const ngayBan = [...new Set(D.orders.map(o => o.k))].filter(k => k < tk).sort(), n14 = ngayBan.slice(-14), p14 = ngayBan.slice(-28, -14), s14 = new Set(n14), sp = new Set(p14), m30 = addDays(tk, -30);
+    const ngayBan = [...new Set(D.orders.map(o => o.k))].filter(k => k < tk && loaiNgay(k) !== 'km10').sort(),   // bỏ ngày 10K (đông gấp đôi) khỏi so xu hướng
+      n14 = ngayBan.slice(-14), p14 = ngayBan.slice(-28, -14), s14 = new Set(n14), sp = new Set(p14), m30 = addDays(tk, -30);
     const O14 = D.orders.filter(o => s14.has(o.k)), Op = D.orders.filter(o => sp.has(o.k)), O30 = D.orders.filter(o => o.k > m30 && o.k <= tk), khoM = Object.fromEntries(D.khoAll.map(k => [k.ma, k]));
     const dungCT = (k, list) => list.reduce((s, o) => { const ct = ctTheoNgay(D.congThuc[String(o.ma).toLowerCase()], DINH_LUONG_CU, o.k); return s + (k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0); }, 0);
     const nl = tinhKho().filter(x => x.nhip > 0 && khoM[x.ma] && (x.dungCT || khoM[x.ma].kemLy > 0)).map(x => { const k = khoM[x.ma];
@@ -5941,27 +5942,24 @@ function renderPerf(){
       const d14 = n14.length ? u(O14) / n14.length : null, dp = p14.length >= 7 ? u(Op) / p14.length : null, xh = d14 != null && dp > 0 ? d14 / dp - 1 : null;
       const du = x.ngay != null ? x.ngay : x.tonBiet != null ? x.tonBiet / x.nhip : null;
       const mua30 = D.chi.filter(r => r.k > m30 && r.k <= tk && khopNL(k, r) && !laHdCu(r)).reduce((s, r) => s + r.qty, 0), dung30 = u(O30);
-      const hh = x.dungCT && x.nhipDo > 0 ? x.nhipDo / x.nhip - 1 : null;
       const nhipMoi = (d14 || x.nhip) * (1 + Math.max(-.3, Math.min(.3, xh || 0))), mua7 = x.tonBiet != null ? Math.max(0, nhipMoi * 7 - x.tonBiet) : null;
       let kl, lv;
       if (du != null && du < Math.max(3, k.baoNgay || 0)) [kl, lv] = ['🔴 Mua thêm ngay', 0];
       else if (xh != null && xh >= .2 && (du == null || du < 14)) [kl, lv] = ['🟠 Mua nhiều hơn (đang dùng tăng)', 1];
-      else if (hh != null && hh > .1) [kl, lv] = ['⚠️ Hao hụt cao: kiểm định lượng, đổ bỏ', 2];
-      else if (du != null && du > KHO_DU_KHONG_MUA) [kl, lv] = [`🔵 Mua ít lại (đủ > ${KHO_DU_KHONG_MUA} ngày)`, 3];
-      else if (dung30 > 0 && mua30 > 1.5 * dung30 && (du == null || du > 14)) [kl, lv] = ['🔵 Mua ít lại (mua nhiều hơn dùng)', 3];
+      else if (dung30 > 0 && mua30 > 1.5 * dung30 && du != null && du > 21) [kl, lv] = ['🔵 Mua ít lại (30 ngày qua mua nhiều hơn dùng)', 3];
+      else if (du != null && du > KHO_DU_KHONG_MUA) [kl, lv] = [`🟢 Còn lâu (đủ > ${KHO_DU_KHONG_MUA} ngày), chưa cần mua`, 5];
       else if (xh != null && xh <= -.2) [kl, lv] = ['🟡 Giảm lượng mua (đang dùng giảm)', 4];
       else [kl, lv] = ['🟢 Giữ như cũ', 5];
-      return {ten:String(x.ten).replace(/\s*\(.*\)\s*$/, ''), dv:x.dv, d14, xh, ton:x.tonBiet, du, mua30, dung30, hh, mua7, kl, lv};
+      return {ten:String(x.ten).replace(/\s*\(.*\)\s*$/, ''), dv:x.dv, d14, xh, ton:x.tonBiet, du, mua30, dung30, mua7, kl, lv};
     });
     table({id:'tPerfNL', rows:nl, sortDefault:{k:'lv', d:1}, cols:[{k:'ten', l:'Nguyên liệu', f:v => esc(v)}, {k:'kl', l:'Nên làm', f:v => v}, {k:'d14', l:'Dùng / ngày', r:1, f:(v, r) => `${f2(v)} ${esc(r.dv)}`},
       {k:'xh', l:'Xu hướng', r:1, f:xhTxt, cls:xhCls}, {k:'ton', l:'Tồn', r:1, f:(v, r) => v == null ? '—' : `${f1(v)} ${esc(r.dv)}`}, {k:'du', l:'Đủ ~ngày', r:1, f:v => v == null ? '—' : fmt(Math.floor(v)), cls:v => v != null && v < 3 ? 'dn' : ''},
-      {k:'mua30', l:'Mua 30 ngày', r:1, f:f1}, {k:'dung30', l:'Dùng 30 ngày', r:1, f:f1}, {k:'hh', l:'Hao hụt đo', r:1, f:v => v == null ? '—' : pct(v), cls:v => v != null && v > .1 ? 'dn' : ''},
+      {k:'mua30', l:'Mua 30 ngày', r:1, f:f1}, {k:'dung30', l:'Dùng 30 ngày', r:1, f:f1},
       {k:'mua7', l:'Nên mua cho 7 ngày', r:1, f:(v, r) => v == null ? '—' : v ? `<b>${f1(Math.ceil(v * 10) / 10)}</b> ${esc(r.dv)}` : 'đủ'}]});
-    const het = nl.filter(r => r.lv === 0), tang = nl.filter(r => r.lv === 1), hh = nl.filter(r => r.lv === 2), it = nl.filter(r => r.lv === 3), giam = nl.filter(r => r.lv === 4);
+    const het = nl.filter(r => r.lv === 0), tang = nl.filter(r => r.lv === 1), it = nl.filter(r => r.lv === 3), giam = nl.filter(r => r.lv === 4);
     if (het.length) viec.push([0, `📦 <b>Sắp hết:</b> ${het.map(r => `<b>${esc(r.ten)}</b> (còn ~${fmt(Math.floor(r.du))} ngày)`).join(', ')} → mua ngay, lượng gợi ý ở bảng Nguyên liệu.`]);
     if (tang.length) viec.push([1, `📈 <b>Dùng tăng:</b> ${tang.map(r => `<b>${esc(r.ten)}</b> ${xhTxt(r.xh)}`).join(', ')} so với 2 tuần trước → mua nhiều hơn lần trước.`]);
-    if (hh.length) viec.push([1, `⚠️ <b>Hao hụt cao</b> (đo từ kiểm xe so với công thức): ${hh.map(r => `<b>${esc(r.ten)}</b> +${pct(r.hh)}`).join(', ')} → nhắc ca đong đúng định lượng, ghi /dungnoibo khi đổ bỏ, đếm xe cẩn thận.`]);
-    if (it.length) viec.push([2, `💤 <b>Đang mua dư:</b> ${it.map(r => `<b>${esc(r.ten)}</b>`).join(', ')} → giãn lần mua / mua ít lại để đỡ ôm vốn và đỡ hết hạn.`]);
+    if (it.length) viec.push([2, `💤 <b>Đang mua dư:</b> ${it.map(r => `<b>${esc(r.ten)}</b> (mua ${f1(r.mua30)} / dùng ${f1(r.dung30)} ${esc(r.dv)} trong 30 ngày)`).join(', ')} → giãn lần mua / mua ít lại để đỡ ôm vốn và đỡ hết hạn.`]);
     if (giam.length) viec.push([3, `📉 <b>Dùng giảm:</b> ${giam.map(r => `<b>${esc(r.ten)}</b> ${xhTxt(r.xh)}`).join(', ')} → lần mua tới giảm lượng.`]);
     // ---- Món ----
     const keep = S.day; let P; try { P = tinhPnl(S.from, S.to); } catch(e){ P = null; } S.day = keep;
