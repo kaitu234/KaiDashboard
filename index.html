@@ -2550,7 +2550,10 @@ function tdSideHtml(P, o){
 }
 /** Tab Hôm nay xem theo kỳ (tuần / tháng / khoảng) */
 /* v1.7.202: chip cỡ ly ở Đơn mới nhất / Đơn trong kỳ — hệ số DonHang cột M: 1 < hs < 2 = size L (1,3) · hs nguyên ≥ 2 = ly gộp (+N) */
-const chipLy = hs => !(hs > 1) ? '' : hs >= 2 && Number.isInteger(hs) ? ` <span class="pill neu" title="Ly gộp hệ số ${hs}">+${hs}</span>` : ' <span class="pill neu" title="Size lớn (hệ số ' + String(hs).replace('.', ',') + ')" style="font-weight:700">L</span>';
+const chipLy = o => { const hs = o.hs || 1; if (!(hs > 1)) return ''; if (hs >= 2 && Number.isInteger(hs)) return ` <span class="pill neu" title="Ly gộp hệ số ${hs}">gộp ${hs}</span>`;
+  /* v1.7.211: chip L kèm phụ thu thật so với giá M ở Menu (cộng lại −2K thẻ thành viên; đơn app không so) → L +5K chuẩn, L +2K / +3K là bán lệch */
+  const m = D && D.menu[o.mon], pt = m && m.gia && o.pt !== 'BE' && o.pt !== 'XANH' ? Math.round((o.gia + (o.tv ? 2000 : 0) - m.gia) / 1000) : null;
+  return ` <span class="pill ${pt != null && pt !== 5 ? 'warn' : 'neu'}" title="Size lớn (hệ số ${String(hs).replace('.', ',')})${pt != null ? ' · ' + fmt(o.gia) + ' đ/ly so với giá M ' + fmt(m.gia) + ' đ' : ''}" style="font-weight:700">L${pt != null && pt > 0 ? ' +' + pt + 'K' : ''}</span>`; };
 function renderTdKy(){
   const now = new Date(), tk = today(), Q = tdKy(), K = soKyBaoCao(Q.tu, Q.den), KT = soKyBaoCao(Q.tuT, Q.denT), P = K.P, A = K.A, days = K.denThuc >= Q.tu ? rangeDays(Q.tu, K.denThuc) : [];
   tdThanh();
@@ -2625,7 +2628,7 @@ function renderTdKy(){
   /* đơn trong kỳ */
   datCt('tdFeed', 'Đơn trong kỳ');
   const ord = [...groupBy(K.L, o => o.id)].map(([id, l]) => ({id, k:l[0].k, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((x, o) => x + o.tt, 0), ly:l.reduce((x, o) => x + o.sl, 0),
-    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o.hs)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
+    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
@@ -2749,7 +2752,7 @@ function renderToday(){
 
   /* feed */
   const ord = [...groupBy(L, o => o.id)].map(([id, l]) => ({id, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((s, o) => s + o.tt, 0), ly:l.reduce((s, o) => s + o.sl, 0),
-    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o.hs)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
+    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
@@ -3487,7 +3490,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.210';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.211';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3545,6 +3548,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.211', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: chip size L ghi kèm phụ thu thật so với giá M (L +5K chuẩn; L +2K / +3K tô cam là bán lệch phụ thu), ly gộp ghi “gộp N”.']},
   {v:'v1.7.210', ngay:'12/11/2026', nd:['Tự kiểm: bất biến lương ngày cộng phần chuyên cần chia đều của mọi ca trong ngày (cả ca chưa có tiền công) — hết lệch ở tài khoản nhân viên.']},
   {v:'v1.7.209', ngay:'12/11/2026', nd:['Thẻ “Của tôi”: ô Chuyên cần nổi bật (nền vàng, số lớn) với chip “còn N ca → +50.000 đ”.', 'Tab Nhân sự (tài khoản nhân viên): thẻ đầu tab có “Lương / giờ của bạn” — lương của chính mình ÷ giờ trong ca, theo kỳ đang lọc.', 'Tự kiểm: bất biến lương ngày tính cả phần chuyên cần chia đều.']},
   {v:'v1.7.208', ngay:'12/11/2026', nd:['Tiền chuyên cần không còn dồn vào ngày đạt: chia đều cho mọi ca của người đó trong tháng (lương ngày, lãi ngày, PNL ngày). Tổng lương tháng và lương từng người không đổi.']},
