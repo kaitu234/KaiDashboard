@@ -444,6 +444,37 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 #hrTop .kpi.canh.ok{background:var(--good-bg);border-color:var(--good);border-left-color:var(--good)} #hrTop .kpi.canh.ok .lb{color:var(--good)}
 #hrTop .kpi.goi{background:rgba(0,128,156,.09);border-color:rgba(0,128,156,.4)} #hrTop .kpi.goi .lb{color:var(--s2);opacity:1}
 #hrTop .kpi.vang .lb .ki,#hrTop .kpi.do .lb .ki,#hrTop .kpi.canh .lb .ki,#hrTop .kpi.goi .lb .ki{background:rgba(255,255,255,.5)}
+/* v1.7.233 (chủ 12/11): Kai's facts — infographic vui về nhân sự, viền đậm + bóng lệch kiểu thẻ sticker (mẫu problem-solving-toolkit), màu nâu–be của Kai, chữ Barlow Condensed / Be Vietnam Pro */
+.kf{--kfl:#5E3B25;--kfs:rgba(94,59,37,.22);display:grid;gap:14px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kf{--kfl:#C9A27E;--kfs:rgba(0,0,0,.45)}}
+:root[data-theme="dark"] .kf{--kfl:#C9A27E;--kfs:rgba(0,0,0,.45)}
+.kf-hero{background:#5E3B25;color:#FFE9C7;border:2px solid var(--kfl);border-radius:16px;box-shadow:4px 4px 0 var(--kfs);padding:16px 18px;display:grid;gap:12px;position:relative;overflow:hidden}
+.kf-hero::after{content:'☕';position:absolute;right:-6px;bottom:-22px;font-size:110px;opacity:.12;transform:rotate(-12deg);pointer-events:none}
+.kf-hero h3{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:.03em;text-transform:uppercase;margin:0;line-height:1}
+.kf-hero h3 small{display:block;font-family:inherit;font-weight:400;font-size:12.5px;letter-spacing:0;text-transform:none;color:#E6CFAF;margin-top:4px}
+.kf-big{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kf-big div{background:rgba(255,248,238,.1);border:1.5px solid rgba(255,233,199,.35);border-radius:12px;padding:8px 12px}
+.kf-big b{display:block;font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1.05;color:#FFF8EE}
+.kf-big span{font-size:12px;color:#E6CFAF}
+.kf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.kf-c{--a:var(--caramel);background:color-mix(in srgb,var(--a) 11%,var(--surface));border:2px solid var(--kfl);border-radius:16px;box-shadow:4px 4px 0 var(--kfs);padding:12px 14px 14px;display:grid;gap:6px;align-content:start;transition:transform .12s}
+.kf-c:hover{transform:translate(-2px,-2px) rotate(-.4deg);box-shadow:6px 6px 0 var(--kfs)}
+.kf-c .hd{display:flex;align-items:center;gap:8px}
+.kf-c .em{width:38px;height:38px;flex:none;border-radius:11px;border:2px solid var(--kfl);background:var(--surface);display:grid;place-items:center;font-size:20px;box-shadow:2px 2px 0 var(--kfs)}
+.kf-c .t{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--a)}
+.kf-c .w{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1;text-transform:uppercase;color:var(--ink)}
+.kf-c .w .tag{font-family:inherit;font-size:10.5px;font-weight:700;text-transform:none;letter-spacing:0;vertical-align:middle;margin-left:6px;padding:2px 7px;border-radius:99px;border:1.5px solid var(--kfl);background:var(--surface);color:var(--muted)}
+.kf-c .st{font-size:13px;color:var(--ink)} .kf-c .st b{color:var(--a);font-size:15px}
+.kf-c .fun{font-size:12px;color:var(--muted);font-style:italic}
+.kf-bars{display:grid;gap:4px;margin-top:4px}
+.kf-bars div{display:grid;grid-template-columns:76px 1fr auto;gap:6px;align-items:center;font-size:11.5px}
+.kf-bars i{display:block;height:9px;border-radius:99px;background:color-mix(in srgb,var(--a) 28%,transparent);border:1px solid color-mix(in srgb,var(--a) 50%,transparent)}
+.kf-bars div:first-child i{background:var(--a);border-color:var(--kfl)}
+.kf-bars em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .kf-bars small{font-weight:700;font-variant-numeric:tabular-nums}
+.kf-c.a1{--a:#B7793A}.kf-c.a2{--a:#2F7A4B}.kf-c.a3{--a:#2F6FA8}.kf-c.a4{--a:#C0503A}.kf-c.a5{--a:#8E5BB5}.kf-c.a6{--a:#00809C}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kf-c.a2{--a:#7DCB98}:root:not([data-theme="light"]) .kf-c.a3{--a:#86B9E6}:root:not([data-theme="light"]) .kf-c.a4{--a:#F08A7C}:root:not([data-theme="light"]) .kf-c.a5{--a:#C59BE6}:root:not([data-theme="light"]) .kf-c.a6{--a:#2A9DB5}}
+:root[data-theme="dark"] .kf-c.a2{--a:#7DCB98}:root[data-theme="dark"] .kf-c.a3{--a:#86B9E6}:root[data-theme="dark"] .kf-c.a4{--a:#F08A7C}:root[data-theme="dark"] .kf-c.a5{--a:#C59BE6}:root[data-theme="dark"] .kf-c.a6{--a:#2A9DB5}
+.kf-note{font-size:11.5px;color:var(--muted);margin:0}
 /* v1.7.228 (chủ 12/11): điện thoại — ô trong thẻ lưới không được nở theo bảng (lichDot / aiLam / bảng tháng tràn mép, không trượt được); bảng có cột đầu cố định quá rộng (JS hepCotDau gắn .hep) thì cột đầu chỉ 40vw */
 .card>*{min-width:0}
 @media (max-width:899px){table.hep td:first-child:not([colspan]),table.hep th:first-child{width:40vw;min-width:40vw;max-width:40vw;white-space:normal;overflow-wrap:break-word}}
@@ -1423,6 +1454,10 @@ html.mcap{background:var(--paper)}
       <div class="cw"><canvas id="cHrHs" aria-label="Doanh thu và số ly trên mỗi giờ lương theo ngày"></canvas></div>
       <div class="legend" id="lgHrHs"></div>
       <p class="muted" id="hrHsNguoi" style="margin:6px 0 0;font-size:12px"></p>
+    </div>
+    <div class="card" id="sec-hr-facts" data-nvok>
+      <div class="ct">Kai's facts <span class="nt">· chuyện vui về đội Kai từ ngày mở bán · không theo bộ lọc kỳ · tính cả cựu nhân viên, không tính chủ</span></div>
+      <div class="kf" id="kaiFacts"></div>
     </div>
     <div class="card" id="sec-hr-hoso">
       <div class="ct">Hồ sơ nhân viên <span class="nt">· như tab NhanVien của Sheet: vai trò, chức vụ, level, lương nền, thâm niên · cộng số ca / giờ từ chấm công · không theo bộ lọc kỳ</span></div>
@@ -3594,7 +3629,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.232';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.233';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3652,6 +3687,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.233', ngay:'12/11/2026', nd:['Nhân sự: thêm mục Kai’s facts — infographic vui về đội Kai từ ngày mở bán: gắn bó lâu nhất, thâm niên, tay pha nhanh nhất (ly/giờ), AOV cao nhất, dậy sớm nhất, vua size L, vua thẻ thành viên, ca kỷ lục, đúng giờ nhất, anh/chị cả, sinh nhật sắp tới, món tủ từng người + số cả quán (tổng ly, ngày kỷ lục, món số 1, giờ đông).']},
   {v:'v1.7.232', ngay:'12/11/2026', nd:['Sửa lỗi v1.7.231: tab Hôm nay xem theo ngày không hiện được (chú thích nuốt mất dòng code). Gợi ý “Ít size L” không báo khi tỉ lệ L đã cao hơn mốc so sánh.']},
   {v:'v1.7.231', ngay:'12/11/2026', nd:['Hôm nay (tài khoản chủ): ô Phân tích nhanh thêm mục Bán hàng · nhắc nhân viên — cùng các gợi ý nhân viên đang thấy (ít size L, món bán chạy bán chậm, nhịp bán, thẻ thành viên, ly / giờ ca).']},
   {v:'v1.7.230', ngay:'12/11/2026', nd:['Hôm nay (tài khoản nhân viên): ô Phân tích nhanh thành Gợi ý bán hàng — báo khi ít size L, món bán chạy bán chậm, nhịp bán thấp hơn TB 14 ngày (tính tới cùng giờ), ít đơn thẻ thành viên, ly / giờ ca thấp; không hiện số tiền quán.']},
@@ -5078,7 +5114,61 @@ function renderSoTay(){
       'Ca: <code>/dangkyca</code> · <code>/doica</code> · <code>/lichca</code>. Đủ lệnh: <code>/help</code>.',
     ]) + '</ul>');
 }
+/* v1.7.233 (chủ 12/11): Kai's facts — fun fact nhân sự TOÀN THỜI GIAN (không theo bộ lọc): người làm lâu nhất, thâm niên, lớn / nhỏ tuổi, ly / giờ, AOV,
+   dậy sớm, vua size L, vua thẻ thành viên, ca kỷ lục, món tủ, sinh nhật sắp tới + số cả quán. Người = có chấm công, không phải chủ (c.chu) — tính cả nhân viên cũ.
+   Ly / giờ: đơn nằm trong ca của người đó ÷ giờ ca (như bảng Nhân viên trong kỳ). AOV / size L / thẻ / món tủ: theo người ghi đơn (o.nv). Chỉ dash. */
+function renderKaiFacts(){
+  const el = $('kaiFacts'); if (!el) return;
+  const tk = today(), chuan = v => String(v || '').normalize('NFC').trim().toLowerCase(), f1 = v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:1});
+  const hm = m => `${Math.floor(m / 60)}:${p2(Math.round(m % 60))}`, ngay = k => `${k.slice(8, 10)}/${k.slice(5, 7)}`;
+  const P = {};
+  D.cong.filter(c => !c.goc && !c.chu && !laChu(c.nv)).forEach(c => { const p = (P[c.id || c.nv] ??= {ten:c.nv, ca:0, gio:0, ly:0, tre:0, vao:[], k0:c.k, k1:c.k, best:{ly:0}});
+    p.ca++; p.gio += c.gio || 0; if (/trễ/i.test(c.note)) p.tre++; if (c.k < p.k0) p.k0 = c.k; if (c.k > p.k1) p.k1 = c.k;
+    if (c.vao) p.vao.push(c.vao.getHours() * 60 + c.vao.getMinutes());
+    const het = c.ra || (c.k === tk ? new Date() : fromKey(addDays(c.k, 1))), n = D.orders.filter(o => o.k === c.k && o.t && o.t >= c.vao && o.t <= het).reduce((a, o) => a + o.sl, 0);
+    p.ly += n; if (n > p.best.ly) p.best = {ly:n, k:c.k}; });
+  const NV = D.nhanVien || [], ds = Object.values(P);
+  ds.forEach(p => { const n = NV.find(x => chuan(x.ten) === chuan(p.ten)) || {}; p.cu = !!n.cu; p.gioTN = n.gioTN || 0; p.sn = dayKey(n.sn) || '';
+    const O = D.orders.filter(o => chuan(o.nv) === chuan(p.ten)), don = new Set(O.map(o => o.id)), lyO = O.reduce((a, o) => a + o.sl, 0), mon = {};
+    O.forEach(o => mon[o.mon] = (mon[o.mon] || 0) + o.sl);
+    Object.assign(p, {don:don.size, dt:O.reduce((a, o) => a + o.tt, 0), lyO, lyL:O.filter(o => o.hs > 1 && o.hs < 2).reduce((a, o) => a + o.sl, 0), tv:new Set(O.filter(o => o.tv).map(o => o.id)).size,
+      tu:Object.entries(mon).sort((a, b) => b[1] - a[1])[0], ngay:nDays(p.k0, p.cu ? p.k1 : tk), vaoTB:p.vao.length ? p.vao.reduce((a, b) => a + b, 0) / p.vao.length : null}); });
+  if (!ds.length){ el.innerHTML = '<p class="kf-note">Chưa có ca chấm công nào.</p>'; return; }
+  const tag = p => p.cu ? '<span class="tag">cựu thành viên</span>' : '', nm = p => esc(p.ten) + tag(p);
+  const bars = (a, v, fv) => { const mx = Math.max(...a.map(v)) || 1; return '<div class="kf-bars">' + a.slice(0, 5).map(p => `<div><em>${esc(p.ten)}</em><i style="width:${Math.max(4, v(p) / mx * 100)}%"></i><small>${fv(p)}</small></div>`).join('') + '</div>'; };
+  const the = (cls, em, t, p, st, fun, rank) => `<div class="kf-c ${cls}"><div class="hd"><span class="em">${em}</span><span class="t">${t}</span></div><div class="w">${nm(p)}</div><div class="st">${st}</div>${fun ? `<div class="fun">${fun}</div>` : ''}${rank || ''}</div>`;
+  const C = [], top = (a, v) => a.slice().sort((x, y) => v(y) - v(x));
+  { const a = top(ds, p => p.ngay); C.push(the('a1', '🏆', 'Gắn bó lâu nhất', a[0], `<b>${a[0].ngay} ngày</b> ở Kai · ca đầu ${ngay(a[0].k0)}`, `${a[0].ca} ca, ${f1(a[0].gio)} giờ đứng quầy`, bars(a, p => p.ngay, p => p.ngay + ' ngày'))); }
+  { const a = top(ds, p => p.gioTN); if (a[0].gioTN) C.push(the('a3', '⏳', 'Thâm niên cao nhất', a[0], `<b>${f1(a[0].gioTN)} giờ</b> thâm niên`, `≈ ${f1(a[0].gioTN / 5)} buổi sáng 5 tiếng`, bars(a, p => p.gioTN, p => f1(p.gioTN) + 'h'))); }
+  { const a = top(ds.filter(p => p.ca >= 3 && p.gio), p => p.ly / p.gio); if (a.length) C.push(the('a2', '⚡', 'Tay pha nhanh nhất', a[0], `<b>${f1(a[0].ly / a[0].gio)} ly / giờ</b> trong ca`, `cứ ${Math.round(60 / (a[0].ly / a[0].gio))} phút ra 1 ly`, bars(a, p => p.ly / p.gio, p => f1(p.ly / p.gio)))); }
+  { const a = top(ds.filter(p => p.don >= 15), p => p.dt / p.don); if (a.length) C.push(the('a4', '💎', 'AOV cao nhất', a[0], `<b>${fmt(a[0].dt / a[0].don)} đ</b> mỗi đơn`, `${fmt(a[0].don)} đơn đã ghi — khéo mời thêm món`, bars(a, p => p.dt / p.don, p => fmtK(p.dt / p.don)))); }
+  { const a = top(ds.filter(p => p.vao.length >= 3), p => -p.vaoTB); if (a.length) C.push(the('a6', '🐓', 'Dậy sớm nhất', a[0], `check-in TB <b>${hm(a[0].vaoTB)}</b>`, `sớm nhất từng có: ${hm(Math.min(...a[0].vao))}`, bars(a, p => 24 * 60 - p.vaoTB, p => hm(p.vaoTB)))); }
+  { const a = top(ds.filter(p => p.lyO >= 20), p => p.lyL / p.lyO); if (a.length && a[0].lyL) C.push(the('a5', '🥤', 'Vua size L', a[0], `<b>${pct(a[0].lyL / a[0].lyO, 0)}</b> ly ghi là size L`, `${fmt(a[0].lyL)} lần mời lên size thành công`, bars(a, p => p.lyL / p.lyO, p => pct(p.lyL / p.lyO, 0)))); }
+  { const a = top(ds, p => p.tv); if (a[0].tv) C.push(the('a1', '💳', 'Vua thẻ thành viên', a[0], `<b>${fmt(a[0].tv)} đơn</b> khách có thẻ`, 'khách quen nhớ mặt nhất', bars(a.filter(p => p.tv), p => p.tv, p => fmt(p.tv)))); }
+  { const a = top(ds, p => p.best.ly); if (a[0].best.ly) C.push(the('a4', '🔥', 'Ca kỷ lục', a[0], `<b>${fmt(a[0].best.ly)} ly</b> trong ca ${thu(a[0].best.k)} ${ngay(a[0].best.k)}`, 'ca cháy máy nhất từ ngày mở', bars(a, p => p.best.ly, p => fmt(p.best.ly) + ' ly'))); }
+  { const a = top(ds.filter(p => p.ca >= 3), p => -p.tre / p.ca); if (a.length) C.push(the('a2', '⏰', 'Đúng giờ nhất', a[0], a[0].tre ? `trễ <b>${a[0].tre}/${a[0].ca}</b> ca` : `<b>${a[0].ca}/${a[0].ca}</b> ca không trễ`, a[0].tre ? '' : 'chưa trễ lần nào 👏', bars(a, p => 1 - p.tre / p.ca, p => pct(1 - p.tre / p.ca, 0)))); }
+  { const a = ds.filter(p => p.sn && !p.cu).map(p => ({p, tuoi:(fromKey(tk) - fromKey(p.sn)) / 365.25 / 864e5})).sort((x, y) => y.tuoi - x.tuoi);
+    if (a.length >= 2){ const g = a[0].tuoi - a[a.length - 1].tuoi;
+      C.push(the('a3', '🎓', 'Anh / chị cả', a[0].p, `<b>${Math.floor(a[0].tuoi)} tuổi</b> · sinh năm ${a[0].p.sn.slice(0, 4)}`, `út ít là ${esc(a[a.length - 1].p.ten)} (${Math.floor(a[a.length - 1].tuoi)} tuổi) — cách nhau ${f1(g)} năm`,
+        '<div class="kf-bars">' + a.map(x => `<div><em>${esc(x.p.ten)}</em><i style="width:${x.tuoi / a[0].tuoi * 100}%"></i><small>${Math.floor(x.tuoi)} t</small></div>`).join('') + '</div>')); }
+    const sn = a.map(x => { const y = +tk.slice(0, 4); let d = `${y}${x.p.sn.slice(4)}`; if (d < tk) d = `${y + 1}${x.p.sn.slice(4)}`; return {p:x.p, d, con:nDays(tk, d) - 1}; }).sort((x, y) => x.con - y.con)[0];
+    if (sn && sn.con <= 60) C.push(the('a5', '🎂', 'Sinh nhật sắp tới', sn.p, sn.con ? `<b>còn ${sn.con} ngày</b> · ${ngay(sn.d)}` : '<b>HÔM NAY!</b>', sn.con ? 'chuẩn bị bánh + 1 ly tủ của bạn ấy nhé' : 'chúc mừng sinh nhật 🎉', '')); }
+  { const a = ds.filter(p => p.tu && p.lyO >= 10); if (a.length) C.push(`<div class="kf-c a6"><div class="hd"><span class="em">☕</span><span class="t">Món tủ của từng người</span></div>
+      <div class="kf-bars">${a.map(p => `<div><em>${esc(p.ten)}</em><i style="width:${p.tu[1] / p.lyO * 100}%"></i><small>${esc(p.tu[0])} · ${pct(p.tu[1] / p.lyO, 0)}</small></div>`).join('')}</div>
+      <div class="fun">món người đó ghi nhiều nhất · thanh = phần trăm số ly họ ghi</div></div>`); }
+  const Q = D.orders, lyQ = Q.reduce((a, o) => a + o.sl, 0), nQ = new Set(Q.map(o => o.k)), byK = {}, byM = {}, byH = {};
+  Q.forEach(o => { byK[o.k] = (byK[o.k] || 0) + o.sl; byM[o.mon] = (byM[o.mon] || 0) + o.sl; if (o.h != null) byH[o.h] = (byH[o.h] || 0) + o.sl; });
+  const kMax = Object.entries(byK).sort((a, b) => b[1] - a[1])[0], mMax = Object.entries(byM).sort((a, b) => b[1] - a[1])[0], hMax = Object.entries(byH).sort((a, b) => b[1] - a[1])[0];
+  const gioQ = ds.reduce((a, p) => a + p.gio, 0);
+  el.innerHTML = `<div class="kf-hero"><h3>Đội Kai bằng những con số<small>từ ${D.first ? ngay(D.first) + '/' + D.first.slice(0, 4) : '—'} tới nay · ${ds.length} người từng đứng quầy${ds.some(p => p.cu) ? ` (${ds.filter(p => !p.cu).length} đang làm)` : ''}</small></h3>
+    <div class="kf-big"><div><b>${fmt(lyQ)}</b><span>ly đã bán · xếp chồng cao ≈ ${fmt(Math.round(lyQ * .12))} m</span></div><div><b>${fmt(nQ.size)}</b><span>ngày mở bán</span></div>
+      <div><b>${fmt(Math.round(gioQ))}</b><span>giờ đứng quầy của nhân viên</span></div>${kMax ? `<div><b>${fmt(kMax[1])}</b><span>ly · ngày kỷ lục ${thu(kMax[0])} ${ngay(kMax[0])}</span></div>` : ''}
+      ${mMax ? `<div><b style="font-size:22px">${esc(mMax[0])}</b><span>món số 1 · ${fmt(mMax[1])} ly (${pct(mMax[1] / lyQ, 0)})</span></div>` : ''}${hMax ? `<div><b>${hMax[0]}h–${+hMax[0] + 1}h</b><span>khung giờ đông nhất</span></div>` : ''}</div></div>
+    <div class="kf-grid">${C.join('')}</div>
+    <p class="kf-note">Ly / giờ và ca kỷ lục: đơn nằm trong giờ ca của người đó (hai người chung ca thì cả hai cùng được tính). AOV, size L, thẻ, món tủ: theo người ghi đơn trên bot. Tuổi lấy từ tab NhanVien (chỉ người đang làm có ngày sinh).</p>`;
+}
 function renderHr(){
+  try { renderKaiFacts(); } catch(e){ console.warn(e); }
   try { renderNhatKy(); } catch(e){ console.warn(e); }
   renderHoSo();
   renderAiLam();
