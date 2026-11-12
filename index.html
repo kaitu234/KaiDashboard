@@ -2587,7 +2587,37 @@ function tdPnlHtml(P, days, mot){
 `;
 }
 /** v1.7.50 — cột phải khối Tiền & lãi: phân tích nhanh (số thật của kỳ) + gợi ý theo luật + cách tính. P = tinhPnl của kỳ; o = {mot, nd, chuaChot:[ngày], huy, don, lech} */
+/* v1.7.230 (chủ 12/11): ô Phân tích nhanh của TÀI KHOẢN NHÂN VIÊN (cả "xem như nhân viên") — không số tiền quán, chỉ gợi ý bán hàng so với mốc:
+   ngày = TB 14 ngày bán liền trước, tính tới cùng giờ nếu là hôm nay · kỳ = kỳ trước (theo ngày bán). Bỏ đơn app. Chữ tránh từ khoá NV_RE (không "lương", "lãi"). */
+function gyNV(L, B, ndL, ndB, nhanB, congL, congB, xetGio){
+  L = L.filter(o => !laApp(o)); B = B.filter(o => !laApp(o));
+  const R = [], ly = a => a.reduce((x, o) => x + o.sl, 0), lyL = a => a.filter(o => o.hs > 1 && o.hs < 2).reduce((x, o) => x + o.sl, 0), f1 = v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:1}), ng = ndL > 1 ? '/ngày' : '';
+  const tL = ly(L), cur = tL / (ndL || 1), tB = ndB ? ly(B) / ndB : 0;
+  if (!tL) return ['Chưa có đơn — đơn đầu tiên hỏi luôn size L và thẻ thành viên.'];
+  if (tB >= 3){ const r = cur / tB;
+    if (r < .85) R.push(`Đang bán <b>${f1(cur)} ly${ng}</b>, ít hơn ${nhanB} (<b>${f1(tB)}</b>) ${pct(1 - r, 0)} — lúc vắng mời khách đi ngang, giới thiệu món mới, nhắc thẻ thành viên.`);
+    else if (r >= 1.1) R.push(`Đang bán hơn ${nhanB} ${pct(r - 1, 0)} (${f1(cur)} so với ${f1(tB)} ly${ng}) — giữ nhịp, chuẩn bị sẵn ly, đá cho giờ đông.`); }
+  const pL = lyL(L) / tL, pLB = ly(B) ? lyL(B) / ly(B) : null;
+  if (tL >= 5 && (pL < .15 || (pLB != null && pL < pLB - .05))) R.push(`Ít size L: <b>${fmt(lyL(L))}/${fmt(tL)} ly</b> (${pct(pL, 0)})${pLB != null ? ` — ${nhanB} ${pct(pLB, 0)}` : ''}. Khách gọi món quen thì hỏi luôn “Anh/chị lấy size L thêm 5K nha?”.`);
+  const byM = a => a.reduce((m, o) => (m[o.mon] = (m[o.mon] || 0) + o.sl, m), {}), mL = byM(L);
+  Object.entries(byM(B)).sort((a, b) => b[1] - a[1]).slice(0, 4).forEach(([mon, n]) => { const tb = n / (ndB || 1), c = (mL[mon] || 0) / (ndL || 1);
+    if (tb >= 3 && c < tb * .7) R.push(`<b>${esc(mon)}</b> bán chậm: ${f1(c)} ly${ng}, ${nhanB} ${f1(tb)} — mời khách quen món này, kiểm nguyên liệu đủ và vị đúng công thức.`); });
+  const q = quayLai(L), qB = quayLai(B);
+  if (q.tong >= 5 && qB.p != null && q.p < qB.p - .05) R.push(`Đơn thẻ thành viên ${pct(q.p, 0)} (${q.tv}/${q.tong} đơn), ${nhanB} ${pct(qB.p, 0)} — nhớ hỏi “Anh/chị có thẻ không?” và gõ <b>tv</b>.`);
+  if (xetGio){ const gio = c => (c || []).filter(x => !x.goc && !(x.chu || laChu(x.nv))).reduce((a, x) => a + gioLuong(x, x.ra || gioRaTam(x)), 0), gL = gio(congL), gB = gio(congB);
+    if (gL && gB){ const a = tL / gL, b = ly(B) / gB;
+      if (a < b * .85) R.push(`Ly / giờ ca <b>${f1(a)}</b>, ${nhanB} ${f1(b)} — giờ vắng một người đứng quầy, người kia chuẩn bị / dọn; giờ đông đứng đủ người, pha theo mẻ.`);
+      else if (a >= b * 1.1) R.push(`Ly / giờ ca <b>${f1(a)}</b>, cao hơn ${nhanB} (${f1(b)}) — ca làm tốt.`); } }
+  return R;
+}
 function tdSideHtml(P, o){
+  if (VAI !== 'chu' && o.nv){   // v1.7.230: bản cho nhân viên
+    const R = o.nv.R.slice(0, 6), li = a => '<ul>' + a.map(x => `<li>${x}</li>`).join('') + '</ul>';
+    if (o.chuaChot.length) R.push(`Chốt ca ${o.chuaChot.map(dShort).join(', ')} bằng /chotca.`);
+    if (o.huy && o.huy / (o.don + o.huy) >= 0.05) R.push(`Đơn huỷ ${o.huy}/${o.don + o.huy} — đọc lại đơn trước khi bấm để khỏi huỷ.`);
+    return `<div class="lbl">Gợi ý bán hàng ${o.mot ? 'hôm nay' : 'trong kỳ'}</div>${R.length ? li(R) : '<ul><li class="muted">Đang bán ổn so với ' + o.nv.nhan + ' — giữ nhịp.</li></ul>'}
+      <div class="lbl">So với</div><ul class="muted" style="font-size:12px"><li>${o.nv.nhan}${o.nv.cach ? ' · ' + o.nv.cach : ''}. Không tính đơn app.</li><li>Gợi ý thêm (món ít người biết, giờ đông): tab Báo cáo.</li></ul>`;
+  }
   const pt = (a, b) => b ? pct(a / b, 0) : '—', nx = [], gy = [];
   if (P && P.A.ly){
     const ly = P.A.ly, gia = P.dt / ly, gvLy = P.gv / ly, lgLy = gia - gvLy, chiKhac = P.vhTong - P.coDinhUoc + P.choKem;
@@ -2662,7 +2692,7 @@ function renderTdKy(){
     ${chiKet ? `<span>Chi từ két trong kỳ</span><b>−${fmt(chiKet)} đ</b>` : ''}
     <span class="sep"></span>
     ${tdPnlHtml(P, days, false)}`;
-  $('tdSide').innerHTML = tdSideHtml(P, {mot:false, nd:K.nd, chuaChot:K.ket.filter(x => !x.chot && x.bot && !(x.k === tk && now.getHours() < 12)).map(x => x.k), huy:new Set(K.cancel.map(c => c.id)).size, don:A.don, lech:K.ket.filter(x => x.chot).reduce((a, x) => a + (x.chenh || 0), 0)});
+  $('tdSide').innerHTML = tdSideHtml(P, {nv:VAI === 'chu' ? null : {R:gyNV(K.L, KT.L, K.nd, KT.nd, Q.nhanT, K.cong, KT.cong, true), nhan:Q.nhanT, cach:'theo TB ngày bán'}, mot:false, nd:K.nd, chuaChot:K.ket.filter(x => !x.chot && x.bot && !(x.k === tk && now.getHours() < 12)).map(x => x.k), huy:new Set(K.cancel.map(c => c.id)).size, don:A.don, lech:K.ket.filter(x => x.chot).reduce((a, x) => a + (x.chenh || 0), 0)});
 
   /* ly theo ngày (thay nhịp bán cộng dồn) */
   const s1 = css('--s1'), lyAll = lyTheoNgay(), dT = rangeDays(Q.tuT, Q.denT), dAll = rangeDays(Q.tu, Q.den);
@@ -2770,7 +2800,9 @@ function renderToday(){
     ${chiKet ? `<span>Chi từ két</span><b>−${fmt(chiKet)} đ</b>` : ''}
     <span class="sep"></span>
     ${tdPnlHtml(PN, [k], true)}`;
-  $('tdSide').innerHTML = tdSideHtml(PN, {mot:true, nd:1, chuaChot:nt && !nt.chot && A.ly && !(isToday && now.getHours() < 12) ? [k] : [], huy:nHuy, don:A.don, lech:nt && nt.chot ? nt.chenh : 0});
+  const nvGy = VAI === 'chu' ? null : (() => { const ds = [...new Set(D.orders.filter(o => o.k < k && o.k >= addDays(k, -14)).map(o => o.k))], B = D.orders.filter(o => ds.includes(o.k) && (o.min == null || o.min <= nowMin));
+    return {R:gyNV(L, B, 1, ds.length, 'TB 14 ngày', D.cong.filter(c => c.k === k), D.cong.filter(c => ds.includes(c.k)), nowMin >= 630), nhan:`TB ${ds.length} ngày bán trước`, cach:isToday && nowMin < 630 ? `tính tới ${p2(Math.floor(nowMin / 60))}:${p2(nowMin % 60)} mỗi ngày` : ''}; })();
+  $('tdSide').innerHTML = tdSideHtml(PN, {nv:nvGy, mot:true, nd:1, chuaChot:nt && !nt.chot && A.ly && !(isToday && now.getHours() < 12) ? [k] : [], huy:nHuy, don:A.don, lech:nt && nt.chot ? nt.chenh : 0});
 
   /* pace: cumulative per 15' */
   const ydL = hasY ? D.orders.filter(o => o.k === addDays(k, -1)) : [], ydFull = agg(ydL), ydLb = isToday ? 'Hôm qua' : `${thu(addDays(k, -1))} ${dShort(addDays(k, -1))}`;   // v1.7.22: đường mờ hôm qua
@@ -3560,7 +3592,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.229';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.230';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3618,6 +3650,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.230', ngay:'12/11/2026', nd:['Hôm nay (tài khoản nhân viên): ô Phân tích nhanh thành Gợi ý bán hàng — báo khi ít size L, món bán chạy bán chậm, nhịp bán thấp hơn TB 14 ngày (tính tới cùng giờ), ít đơn thẻ thành viên, ly / giờ ca thấp; không hiện số tiền quán.']},
   {v:'v1.7.229', ngay:'12/11/2026', nd:['Hôm nay › Ca & két: bỏ bảng Chi từ két (quán không chi từ két; dòng Chi từ két ở Tiền & lãi chỉ hiện khi có), thay bằng bảng Bán theo người ghi đơn — đơn, ly, doanh thu, giờ ca, ly/giờ của từng người.']},
   {v:'v1.7.228', ngay:'12/11/2026', nd:['Nhân sự (tài khoản chủ): thẻ tô màu như thẻ Của tôi — giờ làm xanh dương, tiền công và lương/giờ xanh lá, % lương xanh/vàng/đỏ theo ngưỡng, Cảnh báo nền đỏ (Ổn thì xanh), Gợi ý nền xanh ngọc.', 'Điện thoại: bảng có cột đầu cố định mà cột đầu quá rộng (vd. công thức có ảnh món) thì cột đầu thu còn 40% màn hình, trượt ngang thấy đủ các cột; Lịch làm theo đợt, Ai làm ngày nào, bảng theo tháng không còn tràn mép mất chữ.', 'Hôm nay, Bán hàng, Hiệu suất: thẻ 🔁 Tỉ lệ khách quay lại = đơn thẻ thành viên (tv) ÷ đơn tại quầy T2–T6 (thẻ không áp T7, CN và đơn app), so kỳ trước.']},
   {v:'v1.7.227', ngay:'12/11/2026', nd:['Nhân sự (chỉ chủ): biểu đồ Hiệu suất theo giờ lương dưới hàng thẻ — đường doanh thu / giờ lương, cột ly / giờ lương theo ngày (đơn trong ca nhân viên ÷ giờ trong ca + vào sớm, không tính chủ); dòng dưới so từng người.']},
