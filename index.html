@@ -438,6 +438,15 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 #hrTop .kpi.goi{border-left-color:var(--s2)} #hrTop .kpi.goi .v{color:var(--s2)}
 #hrTop .kpi .s ul{margin:2px 0 0;padding-left:16px} #hrTop .kpi .s li{margin:1px 0}
 @media (max-width:720px){#hrTop .kpi.canh{grid-column:auto}}
+/* v1.7.228 (chủ 12/11): thẻ Nhân sự của tài khoản chủ tô màu cùng logic thẻ Của tôi — tiền/lương xanh lá (hot), giờ xanh dương (tn), cần để ý vàng, cảnh báo đỏ */
+#hrTop .kpi.vang{background:var(--warn-bg);border-color:var(--warn);border-left-color:var(--warn)} #hrTop .kpi.vang .lb,#hrTop .kpi.vang .v{color:var(--warn);opacity:1}
+#hrTop .kpi.do,#hrTop .kpi.canh{background:var(--bad-bg);border-color:var(--bad);border-left-color:var(--bad)} #hrTop .kpi.do .lb,#hrTop .kpi.do .v,#hrTop .kpi.canh .lb{color:var(--bad);opacity:1}
+#hrTop .kpi.canh.ok{background:var(--good-bg);border-color:var(--good);border-left-color:var(--good)} #hrTop .kpi.canh.ok .lb{color:var(--good)}
+#hrTop .kpi.goi{background:rgba(0,128,156,.09);border-color:rgba(0,128,156,.4)} #hrTop .kpi.goi .lb{color:var(--s2);opacity:1}
+#hrTop .kpi.vang .lb .ki,#hrTop .kpi.do .lb .ki,#hrTop .kpi.canh .lb .ki,#hrTop .kpi.goi .lb .ki{background:rgba(255,255,255,.5)}
+/* v1.7.228 (chủ 12/11): điện thoại — ô trong thẻ lưới không được nở theo bảng (lichDot / aiLam / bảng tháng tràn mép, không trượt được); bảng có cột đầu cố định quá rộng (JS hepCotDau gắn .hep) thì cột đầu chỉ 40vw */
+.card>*{min-width:0}
+@media (max-width:899px){table.hep td:first-child:not([colspan]),table.hep th:first-child{width:40vw;min-width:40vw;max-width:40vw;white-space:normal;overflow-wrap:break-word}}
 /* v1.7.218 (chủ 12/11): ô Vi phạm đỏ kèm lỗi ngắn gọn · Sổ tay chưa xác nhận đỏ thẫm, đã xác nhận xanh lá */
 .toi>div.toiV{background:var(--bad-bg);box-shadow:inset 3px 0 0 var(--bad)} .toi .toiV .lb{color:var(--bad)} .toi .toiV .v{font-size:22px;color:var(--bad)}
 .toi .toiV .vpl{display:grid;gap:2px;font-size:12px;color:var(--ink);margin-top:2px} .toi .toiV .vpl span{overflow-wrap:anywhere}
@@ -1903,6 +1912,23 @@ const MAU_APP = {BE:'#F2C200', XANH:'#22B8C0'};   // v1.7.158: màu cột / lát
 const LOGO_APP = {BE:'<img class="lapp" src="tai-lieu/app/be.png" alt="be" title="be">', XANH:'<img class="lapp lapp-w" src="tai-lieu/app/xanh-sm.png" alt="Xanh SM" title="Xanh SM">'};
 const appTxt = (be, xanh) => [be ? `${LOGO_APP.BE}${fmt(be)} đ` : '', xanh ? `${LOGO_APP.XANH}${fmt(xanh)} đ` : ''].filter(Boolean).join(' · ');
 /** v1.7.149 (chủ nhờ 08/11: "nhân viên ko nói thì biết hôm nay bán app ra sao") — thẻ 🛵 Đơn app cho Hôm nay, Bán hàng, Doanh thu thuần: luôn hiện (kể cả 0) */
+/* v1.7.228 (chủ 12/11): điện thoại — cột đầu cố định mà rộng quá 45% khung bảng thì che hết các cột còn lại khi trượt ngang → gắn .hep (CSS cột đầu 40vw, chữ xuống dòng). Bảng đang ẩn (rộng 0) để lần sau. */
+function hepCotDau(){
+  if (!matchMedia('(max-width:899px)').matches) return;
+  document.querySelectorAll('.tblwrap table:not(.hep)').forEach(t => { const w = t.parentElement, c = t.querySelector('tbody tr td:first-child:not([colspan])') || t.querySelector('th'); if (!w || !c || !w.clientWidth) return;
+    if (t.scrollWidth > w.clientWidth + 2 && c.offsetWidth > w.clientWidth * .45) t.classList.add('hep'); });
+}
+/* v1.7.228 (chủ 12/11): Tỉ lệ khách quay lại = đơn thẻ thành viên (đơn có dòng tv) ÷ tổng đơn. Thẻ chỉ áp T2–T6 và không áp đơn app → mẫu số chỉ lấy đơn tại quầy ngày T2–T6,
+   từ ngày có đơn tv đầu tiên (trước đó quán chưa phát thẻ). Cùng cờ o.tv của thẻ "Thẻ thành viên & mang ly" (bot ghi "Thành viên" ở cột ghi chú). Chỉ dash. */
+function quayLai(list){
+  const tv0 = D.orders.reduce((m, o) => o.tv && (!m || o.k < m) ? o.k : m, ''), L = tv0 ? list.filter(o => !laApp(o) && o.k >= tv0 && (d => d >= 1 && d <= 5)(fromKey(o.k).getDay())) : [];
+  const tong = new Set(L.map(o => o.id)).size, tv = new Set(L.filter(o => o.tv).map(o => o.id)).size;
+  return {tv, tong, p:tong ? tv / tong : null, tv0};
+}
+function quayLaiKpi(list, nhan, truoc, nhanTruoc){
+  const q = quayLai(list), qt = truoc ? quayLai(truoc) : null;
+  return `<div class="kpi tgt"><span class="lb">🔁 Tỉ lệ khách quay lại · ${esc(nhan)}</span><span class="v">${q.p == null ? '—' : pct(q.p, 1)}</span><span class="s">${q.tong ? `<b>${fmt(q.tv)}</b> đơn thẻ thành viên ÷ ${fmt(q.tong)} đơn tại quầy T2–T6${qt && qt.p != null ? ` · ${dlt(q.p, qt.p)} vs ${esc(nhanTruoc)}` : ''}` : q.tv0 ? 'chưa có đơn T2–T6 trong kỳ (thẻ không áp T7, CN)' : 'chưa có đơn thẻ thành viên (gõ <b>tv</b> trên bot)'}</span></div>`;
+}
 function appKpi(list, nhan){
   const all = agg(list), ap = agg(list.filter(laApp)), apBe = agg(list.filter(o => o.pt === 'BE')), apX = agg(list.filter(o => o.pt === 'XANH'));
   return `<div class="kpi tgt"><span class="lb">🛵 Đơn app · ${esc(nhan)}</span><span class="v">${fmt(ap.app)}</span><span class="s">${ap.don ? `<b>${fmt(ap.don)} đơn · ${fmt(ap.ly)} ly</b> · ${pct(all.dt ? ap.app / all.dt : null, 0)} doanh thu<br>${LOGO_APP.BE}${fmt(apBe.app)} (${apBe.don} đơn) · ${LOGO_APP.XANH}${fmt(apX.app)} (${apX.don} đơn) · thực nhận, chủ giữ riêng` : 'chưa có đơn be / Xanh SM'}</span></div>`;
@@ -2337,7 +2363,7 @@ function renderSales(){
       <span class="s">Đang bán TB <b>${fmt(lyNgayTT)} ly/ngày</b> (đã qua ${mElapsed}/${activeDays} ngày bán, dự phóng tháng ${fmt(runRate)} ly)<br>Đủ trả lương: <b>${fmt(beThuc.sauLuong)} ly/ngày</b> · hoà vốn vận hành (lương + chi vận hành + cố định): <b>${fmt(beThuc.vanHanh)} ly/ngày</b><br>Giá TB 7 ngày gần nhất ${fmt(HV.giaThuc)} đ/ly · giá vốn ${fmt(HV.cogs)} đ/ly</span></div>
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu</span><span class="v ${achv == null ? '' : achv >= 1 ? 'up' : achv >= .9 ? '' : 'dn'}">${pct(achv)}</span>
       <span class="s">${fmt(A.ly)} / ${fmt(tgtLy)} ly · ${S.tgt} ly × ${A.nd} ngày bán</span></div>`;
-  $('kpis').insertAdjacentHTML('beforeend', appKpi(L, 'kỳ đang lọc'));
+  $('kpis').insertAdjacentHTML('beforeend', appKpi(L, 'kỳ đang lọc') + quayLaiKpi(L, 'kỳ đang lọc', sel(new Set(), pFrom, pTo), `${n} ngày trước`));
 
 
   /* --- payment donut --- */
@@ -2612,7 +2638,7 @@ function renderTdKy(){
     <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${dlt(A.aov, KT.A.aov)} vs ${Q.nhanT} · ${A.don ? (A.ly / A.don).toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'} ly/đơn</span></div>
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu</span><span class="v ${muc && A.ly >= muc ? 'up' : ''}">${muc ? pct(A.ly / muc) : '—'}</span>
       <div class="meter"><i style="width:${muc ? Math.min(100, A.ly / muc * 100) : 0}%"></i></div><span class="s">${fmt(A.ly)} / ${fmt(muc)} ly (${K.nd} ngày bán × ${S.tgt})</span></div>`;
-  $('tdKpis').insertAdjacentHTML('beforeend', appKpi(K.L, 'trong kỳ'));
+  $('tdKpis').insertAdjacentHTML('beforeend', appKpi(K.L, 'trong kỳ') + quayLaiKpi(K.L, 'trong kỳ', KT.L, Q.nhanT));
 
   /* tiền & lãi */
   datCt('tdMoney', 'Tiền & lãi trong kỳ', '· lãi như tab PNL');
@@ -2721,7 +2747,7 @@ function renderToday(){
     <div class="kpi tgt"><span class="lb">%Đạt mục tiêu ngày</span><span class="v ${A.ly >= S.tgt ? 'up' : ''}">${pct(A.ly / S.tgt)}</span>
       <div class="meter"><i style="width:${Math.min(100, A.ly / S.tgt * 100)}%"></i></div><span class="s">${fmt(A.ly)} / ${S.tgt} ly${A.ly < S.tgt ? ` · còn ${S.tgt - A.ly} ly` : ' · đã đạt'}</span></div>
 `;
-  $('tdKpis').insertAdjacentHTML('beforeend', appKpi(L, isToday ? 'hôm nay' : 'ngày này'));   // v1.7.149: thẻ đơn app — nhân viên không báo vẫn thấy hôm nay bán app ra sao
+  $('tdKpis').insertAdjacentHTML('beforeend', appKpi(L, isToday ? 'hôm nay' : 'ngày này') + quayLaiKpi(L, isToday ? 'hôm nay' : 'ngày này', hasW ? D.orders.filter(o => o.k === addDays(k, -7)) : null, thu(addDays(k, -7)) + ' tuần trước'));   // v1.7.149: thẻ đơn app — nhân viên không báo vẫn thấy hôm nay bán app ra sao
 
   /* money */
   const chiK = D.botChi.filter(c => c.k === k), chiKet = chiK.filter(c => c.nguon !== 'CK').reduce((s, c) => s + c.tien, 0);
@@ -3528,7 +3554,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.227';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.228';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3586,6 +3612,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.228', ngay:'12/11/2026', nd:['Nhân sự (tài khoản chủ): thẻ tô màu như thẻ Của tôi — giờ làm xanh dương, tiền công và lương/giờ xanh lá, % lương xanh/vàng/đỏ theo ngưỡng, Cảnh báo nền đỏ (Ổn thì xanh), Gợi ý nền xanh ngọc.', 'Điện thoại: bảng có cột đầu cố định mà cột đầu quá rộng (vd. công thức có ảnh món) thì cột đầu thu còn 40% màn hình, trượt ngang thấy đủ các cột; Lịch làm theo đợt, Ai làm ngày nào, bảng theo tháng không còn tràn mép mất chữ.', 'Hôm nay, Bán hàng, Hiệu suất: thẻ 🔁 Tỉ lệ khách quay lại = đơn thẻ thành viên (tv) ÷ đơn tại quầy T2–T6 (thẻ không áp T7, CN và đơn app), so kỳ trước.']},
   {v:'v1.7.227', ngay:'12/11/2026', nd:['Nhân sự (chỉ chủ): biểu đồ Hiệu suất theo giờ lương dưới hàng thẻ — đường doanh thu / giờ lương, cột ly / giờ lương theo ngày (đơn trong ca nhân viên ÷ giờ trong ca + vào sớm, không tính chủ); dòng dưới so từng người.']},
   {v:'v1.7.226', ngay:'12/11/2026', nd:['Nhân sự: thẻ Cảnh báo và Gợi ý nằm chung một hàng.']},
   {v:'v1.7.225', ngay:'12/11/2026', nd:['Nhân sự (xem cả quán, chỉ chủ): thêm thẻ % Lương / doanh thu (tốt ≤ 25%, để ý ≤ 35%), thẻ Cảnh báo (lương cao, ca chưa tính tiền, ca quên check-out, đơn ngoài giờ ca, vào trễ) và thẻ Gợi ý.', 'Ô icon trên thẻ %Hoà vốn, %Đạt mục tiêu và các thẻ mục tiêu khác nền trắng kem.']},
@@ -5066,19 +5093,19 @@ function renderHr(){
     ${meT ? (() => { /* v1.7.214 (chủ 12/11): giờ làm của nhân viên = giờ TÍNH LƯƠNG (trong ca + vào sớm ≤ 30p) — đúng số bot cộng vào thâm niên (bot c.phut), không dùng giờ thực check-in→out; ca chưa chốt chưa cộng thâm niên */
       const tam = C.filter(c => (c.id || c.nv) === (rMe && (rMe.id || rMe.ten)) && !c.ra).length, gl = rMe ? rMe.gioL : 0, dn = rMe ? rMe.gioDN : 0, som = gl - dn;
       return `<div class="kpi tgt" data-nvok title="Giờ tính lương = giờ trong ca + vào sớm (tối đa 30 phút/ca). Đây cũng là số giờ cộng vào thâm niên."><span class="lb">Giờ làm · ${ky}</span><span class="v">${f1(gl)}</span><span class="s">${fmt(rMe ? rMe.ca : 0)} ca · ${f1(dn)} giờ trong ca${som >= 0.05 ? ` + ${f1(som)} giờ vào sớm` : ''}${tam ? ` · ${tam} ca chưa chốt (chưa cộng thâm niên)` : ''}</span></div>`; })()
-    : `<div class="kpi tgt"><span class="lb">Giờ làm · ${ky}</span><span class="v">${f1(gio)}</span><span class="s">tính lương ${f1(gioL)} · danh nghĩa ${f1(gioDNs)} giờ · ${fmt(C.length)} ca</span></div>`}
-    <div class="kpi tgt"><span class="lb">Tiền công · ${ky}</span><span class="v">${fmt(tien + tpTong)}</span><span class="s">${tpTong ? `công ${fmt(tien)} ${tpTong > 0 ? '+' : '−'} thưởng/phạt ${fmt(Math.abs(tpTong))}` : 'bot tính (cột Tiền công)'}${chuaTinh ? ` · ${chuaTinh} ca chưa tính` : ''}</span></div>
+    : `<div class="kpi tgt tn"><span class="lb">Giờ làm · ${ky}</span><span class="v">${f1(gio)}</span><span class="s">tính lương ${f1(gioL)} · danh nghĩa ${f1(gioDNs)} giờ · ${fmt(C.length)} ca</span></div>`}
+    <div class="kpi tgt hot"><span class="lb">Tiền công · ${ky}</span><span class="v">${fmt(tien + tpTong)}</span><span class="s">${tpTong ? `công ${fmt(tien)} ${tpTong > 0 ? '+' : '−'} thưởng/phạt ${fmt(Math.abs(tpTong))}` : 'bot tính (cột Tiền công)'}${chuaTinh ? ` · ${chuaTinh} ca chưa tính` : ''}</span></div>
     ${VAI === 'nhanvien' ? (() => { /* v1.7.209 (chủ 12/11): nhân viên thấy lương/giờ của chính mình — cùng cách tính ô Lương ở thẻ Của tôi (lương ÷ giờ trong ca), server chỉ gửi lương của người này */
       const chuan = v => String(v || '').normalize('NFC').trim().toLowerCase(), me = (D.nhanVien || []).find(n => chuan(n.ten) === chuan(TEN_DN)); if (!me) return '';
       const cm = D.cong.filter(c => c.id === me.id && c.k >= S.from && c.k <= S.to); let l = 0, g = 0;
       cm.forEach(c => { const het = c.ra || gioRaTam(c); l += (c.cc || 0) + (c.tl || 0); g += gioDN(c, het); if (c.tien != null) l += c.tien; else if (c.luongGio && het) l += gioLuong(c, het) * c.luongGio; });
       l += (D.thuongPhat || []).filter(x => x.id === me.id && x.k >= S.from && x.k <= S.to).reduce((s, x) => s + x.tien, 0);
       return `<div class="kpi tgt hot" data-nvok><span class="lb">Lương / giờ của bạn</span><span class="v">${g ? fmt(l / g) : '—'}</span><span class="s">lương ${fmt(l)} ÷ ${f1(g)} giờ trong ca · ${ky}</span></div>`; })()
-    : `<div class="kpi tgt"><span class="lb">Lương / giờ danh nghĩa</span><span class="v">${dnNV ? fmt(tienNV / dnNV) : '—'}</span><span class="s">tiền công ÷ giờ trong ca (không gồm OT)${nvF && nvF.chu ? ' · chủ không lương' : ''}</span></div>`}
-    <div class="kpi tgt"><span class="lb">Lương / giờ thực trả</span><span class="v">${glNV ? fmt(tienNV / glNV) : '—'}</span><span class="s">tiền công ÷ giờ tính lương (gồm phút vào sớm)${nvF && nvF.luong ? ` · nền ${fmt(nvF.luong)}` : ''}</span></div>
+    : `<div class="kpi tgt hot"><span class="lb">Lương / giờ danh nghĩa</span><span class="v">${dnNV ? fmt(tienNV / dnNV) : '—'}</span><span class="s">tiền công ÷ giờ trong ca (không gồm OT)${nvF && nvF.chu ? ' · chủ không lương' : ''}</span></div>`}
+    <div class="kpi tgt hot"><span class="lb">Lương / giờ thực trả</span><span class="v">${glNV ? fmt(tienNV / glNV) : '—'}</span><span class="s">tiền công ÷ giờ tính lương (gồm phút vào sớm)${nvF && nvF.luong ? ` · nền ${fmt(nvF.luong)}` : ''}</span></div>
     ${!nvF && VAI !== 'nhanvien' ? (() => { /* v1.7.225 (chủ 12/11): % lương / doanh thu = tiền công (gồm thưởng/phạt, như ô Tiền công) ÷ doanh thu đơn bot cùng kỳ (cả quán, không theo bộ lọc món/thanh toán); ngưỡng ≤25% tốt · ≤35% để ý · >35% cao. Chỉ hiển thị trên dash, Sheet/bot không có số này */
       const dtK = agg(D.orders.filter(o => o.k >= S.from && o.k <= S.to && dayOk(o.k))).dt, luongK = tien + tpTong, pct = dtK ? luongK / dtK * 100 : null;
-      const mau = pct == null ? '' : pct <= 25 ? 'var(--good)' : pct <= 35 ? 'var(--warn)' : 'var(--bad)', f0 = v => v.toLocaleString('vi-VN', {maximumFractionDigits:1});
+      const mau = pct == null ? '' : pct <= 25 ? ' hot' : pct <= 35 ? ' vang' : ' do', f0 = v => v.toLocaleString('vi-VN', {maximumFractionDigits:1});
       const homNay = today(), quen = C.filter(c => !c.ra && c.k < homNay), cb = [], gy = [];
       if (pct != null && pct > 35) cb.push(`Lương chiếm <b>${f0(pct)}%</b> doanh thu — trên 35%`);
       if (chuaTinh) cb.push(`${chuaTinh} ca chưa có tiền công (bot chưa tính) — % lương đang thấp hơn thật`);
@@ -5090,7 +5117,7 @@ function renderHr(){
       sap.forEach(n => gy.push(`${esc(n.ten)} còn ${f1(n.conLen)} giờ lên level — lương/giờ sẽ tăng`));
       if (tv.length) gy.push(`Thử việc: ${tv.map(n => esc(n.ten)).join(', ')} — hẹn ngày đánh giá chốt`);
       const ds = a => a.length ? '<ul>' + a.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '';
-      return `<div class="kpi tgt"><span class="lb">📊 % Lương / doanh thu · ${ky}</span><span class="v"${mau ? ` style="color:${mau}"` : ''}>${pct == null ? '—' : f0(pct) + '%'}</span><span class="s">tiền công ${fmt(luongK)} ÷ doanh thu ${fmt(dtK)} · tốt ≤ 25%</span></div>
+      return `<div class="kpi tgt${mau}"><span class="lb">📊 % Lương / doanh thu · ${ky}</span><span class="v">${pct == null ? '—' : f0(pct) + '%'}</span><span class="s">tiền công ${fmt(luongK)} ÷ doanh thu ${fmt(dtK)} · tốt ≤ 25%</span></div>
     <div class="kpi tgt canh${cb.length ? '' : ' ok'}"><span class="lb">⚠️ Cảnh báo</span><span class="v">${cb.length || 'Ổn'}</span><span class="s">${cb.length ? ds(cb) : 'không có gì cần xử lý trong kỳ'}</span></div>
     <div class="kpi tgt goi"><span class="lb">💡 Gợi ý</span><span class="v">${gy.length}</span><span class="s">${gy.length ? ds(gy) : 'chưa có gợi ý'}</span></div>`; })() : ''}`; }
   /* v1.7.227 (chủ 12/11): biểu đồ Hiệu suất theo giờ lương (chỉ chủ) — mỗi ngày: doanh thu (đường, trục trái) và ly (cột, trục phải) của đơn nằm TRONG ca nhân viên
@@ -5558,7 +5585,7 @@ function renderPerf(){
       <div class="kpi main"><span class="lb">Số đơn</span><span class="v">${fmt(A.don)}</span><span class="s">${ss(A.don, B.don)} · ${A.don ? f1(A.ly / A.don) : '—'} ly/đơn</span></div>
       <div class="kpi main"><span class="lb">Giá TB / ly</span><span class="v">${fmt(A.asp)}</span><span class="s">AOV <b>${fmt(A.aov)} đ</b>/đơn · ${ss(A.aov, B.aov)}</span></div>
       <div class="kpi main"><span class="lb">Giờ công</span><span class="v">${f1(gA)}</span><span class="s">${ss(gA, gB)} · từ chấm công (cả chủ)</span></div>
-      <div class="kpi main"><span class="lb">Ly / giờ công</span><span class="v">${gA ? f1(A.ly / gA) : '—'}</span><span class="s">${ss(gA ? A.ly / gA : null, gB ? B.ly / gB : null)}</span></div>`;
+      <div class="kpi main"><span class="lb">Ly / giờ công</span><span class="v">${gA ? f1(A.ly / gA) : '—'}</span><span class="s">${ss(gA ? A.ly / gA : null, gB ? B.ly / gB : null)}</span></div>` + quayLaiKpi(L, 'kỳ đang lọc', sel(new Set(), pf, pt), nhan);
     // v1.7.143 (chủ nhờ 08/11): tỉ suất lợi nhuận gộp của kỳ → doanh thu hoà vốn / hoàn vốn = chi phí ÷ % lợi nhuận gộp
     const keep = S.day; let P; try { P = tinhPnl(S.from, S.to); } catch(e){ P = null; } S.day = keep;
     const gmP = P && P.dt && P.laiGop != null ? P.laiGop / P.dt : null, tsHV = thamSoHoaVon(mkey(today()));
@@ -5953,7 +5980,7 @@ function ganAnhMon(){
       if (nut) nut.insertAdjacentHTML('afterend', html); else td.insertAdjacentHTML('afterbegin', html); });
   });
 }
-new MutationObserver(() => { clearTimeout(ganIconKpi.t); ganIconKpi.t = setTimeout(() => { ganIconKpi(); ganAnhMon(); anTienNV(); }, 30); }).observe(document.documentElement, {childList:true, subtree:true});
+new MutationObserver(() => { clearTimeout(ganIconKpi.t); ganIconKpi.t = setTimeout(() => { ganIconKpi(); ganAnhMon(); anTienNV(); hepCotDau(); }, 30); }).observe(document.documentElement, {childList:true, subtree:true});
 function render(){
   if (!D) return;
   chartBase();
