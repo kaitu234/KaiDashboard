@@ -1222,8 +1222,8 @@ html.mcap{background:var(--paper)}
     <div class="card" id="sec-perf-slot">
       <div class="ct">Khung giờ × người đứng ca <span class="nt">· TB mỗi ngày có bán trong kỳ · lãi sau lương = ly × (giá TB − giá vốn/ly) − lương các người có mặt</span></div>
       <div class="g2">
-        <div><div class="lbl">Ly TB mỗi khung 30 phút</div><div class="cw"><canvas id="cPerfSlot" aria-label="Số ly trung bình theo khung 30 phút"></canvas></div></div>
-        <div><div class="lbl">Lãi sau lương mỗi khung</div><div class="cw"><canvas id="cPerfSlotLai" aria-label="Lãi sau lương theo khung 30 phút"></canvas></div></div>
+        <div><div class="lbl">Ly TB mỗi khung 1 tiếng</div><div class="cw"><canvas id="cPerfSlot" aria-label="Số ly trung bình theo khung 1 tiếng"></canvas></div></div>
+        <div><div class="lbl">Lãi sau lương mỗi khung</div><div class="cw"><canvas id="cPerfSlotLai" aria-label="Lãi sau lương theo khung 1 tiếng"></canvas></div></div>
       </div>
       <div class="tblwrap" style="max-height:380px"><table id="tPerfSlot"></table></div>
       <div class="cmt" id="perfSlotCmt"></div>
@@ -3660,7 +3660,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.239';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.240';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3718,6 +3718,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.240', ngay:'12/11/2026', nd:['Hiệu suất · Khung giờ × người đứng ca: gộp khung 1 tiếng (trước 30 phút) cho cả 2 biểu đồ (ly TB, lãi sau lương) và bảng; nhãn ghi rõ khung, vd 07:00–08:00. Ngưỡng thiếu / thừa người quy theo tiếng (gấp đôi năng lực 30 phút).']},
   {v:'v1.7.239', ngay:'12/11/2026', nd:['Hiệu suất · Dự báo ngày mai: dòng “Nguyên liệu cho ngày mai” hiện lại tên nguyên liệu (bản trước bị mất tên, chỉ còn số) — viết gọn kèm icon: ☕ CF hạt · 🟤 CF phin · 🥫 Sữa đặc · 🥛 Sữa tươi · 🥤 Ly (ly làm tròn số nguyên); rê chuột xem tên đầy đủ.']},
   {v:'v1.7.238', ngay:'12/11/2026', nd:['Kai’s facts: đổi tên “Đội Kai” thành “Kai’s Team”. Thêm góc nhìn: chốt két khớp nhiều lần nhất, chốt ca nhiều nhất, kiểm kho / xe khớp nhiều nhất (lệch dưới ngưỡng bot cảnh báo), ca dài nhất, giờ cháy nhất, vua cuối tuần, chuỗi ngày làm liền, xanh nhất (mang ly), vua đơn app, chuyên gia từng nhóm món; Góc cần cải thiện thêm lệch két nhiều lần nhất.']},
   {v:'v1.7.237', ngay:'12/11/2026', nd:['Kai’s facts: thẻ “Đếm xe hụt” đổi thành “Đếm kho / xe hay lệch nhất” (số lần lệch / số lần đếm), không quy ra tiền vì một lần đếm sai làm số tiền phình.']},
@@ -5851,30 +5852,30 @@ function renderPerf(){
   /* 3 · Khung giờ × người đứng ca */
   (() => {
     const tk = today(), now = new Date(), cogsLy = cogs, asp = A.asp || 0, slot = {}, ngay = ngayKy;
-    L.forEach(o => { if (o.min == null) return; const b = Math.floor(o.min / 30) * 30; (slot[b] ??= {ly:0, luong:0, nguoi:0}).ly += o.sl; });
+    L.forEach(o => { if (o.min == null) return; const b = Math.floor(o.min / 60) * 60; (slot[b] ??= {ly:0, luong:0, nguoi:0}).ly += o.sl; });   /* v1.7.240 (chủ 12/11): gộp khung 1 tiếng (trước 30 phút) */
     ngay.forEach(k => D.cong.filter(c => c.k === k && !c.goc).forEach(c => { const het = c.ra || (k === tk ? now : null); if (!het) return;
-      Object.keys(slot).forEach(b => { const d0 = fromKey(k); d0.setMinutes(+b); const d1 = new Date(d0.getTime() + 30 * 6e4);
-        const ov = Math.max(0, (Math.min(het, d1) - Math.max(c.vao, d0)) / 6e4); if (!ov) return; slot[b].nguoi += ov / 30; slot[b].luong += ov * (c.luongGio || 0) / 60; }); }));
+      Object.keys(slot).forEach(b => { const d0 = fromKey(k); d0.setMinutes(+b); const d1 = new Date(d0.getTime() + 60 * 6e4);
+        const ov = Math.max(0, (Math.min(het, d1) - Math.max(c.vao, d0)) / 6e4); if (!ov) return; slot[b].nguoi += ov / 60; slot[b].luong += ov * (c.luongGio || 0) / 60; }); }));
     const nd = ngay.length || 1, coCong = D.cong.some(c => ngay.includes(c.k));
     const rows = Object.keys(slot).map(Number).sort((a, b) => a - b).map(b => { const s = slot[b], ly = s.ly / nd, nguoi = coCong ? s.nguoi / nd : null, luong = coCong ? s.luong / nd : null;
-      return {k:b, khung:`${hm(b)}–${hm(b + 30)}`, ly, nguoi, luong, lai: luong == null || cogsLy == null ? null : ly * (asp - cogsLy) - luong, lyNguoi: nguoi ? ly / nguoi : null}; });
+      return {k:b, khung:`${hm(b)}–${hm(b + 60)}`, ly, nguoi, luong, lai: luong == null || cogsLy == null ? null : ly * (asp - cogsLy) - luong, lyNguoi: nguoi ? ly / nguoi : null}; });
     table({id:'tPerfSlot', rows, sortDefault:{k:'k', d:1}, cols:[{k:'khung', l:'Khung'}, {k:'ly', l:'Ly TB', r:1, heat:1, f:v => v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
       {k:'nguoi', l:'Người có mặt TB', r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})}, {k:'lyNguoi', l:'Ly/người', r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
       {k:'luong', l:'Lương TB', r:1, f:fmt}, {k:'lai', l:'Lãi sau lương', r:1, f:fmt, cls:v => v == null ? '' : v < 0 ? 'dn' : 'up'}]});
     // 2 biểu đồ riêng (không dùng 2 trục tung): số ly · lãi sau lương (xanh lãi / đỏ lỗ)
-    mk('cPerfSlot', {type:'bar', data:{labels:rows.map(r => hm(r.k)), datasets:[Object.assign({label:'Ly TB', data:rows.map(r => +r.ly.toFixed(1))}, barStyle(css('--s1')))]},
+    mk('cPerfSlot', {type:'bar', data:{labels:rows.map(r => r.khung), datasets:[Object.assign({label:'Ly TB', data:rows.map(r => +r.ly.toFixed(1))}, barStyle(css('--s1')))]},
       options:{plugins:{tooltip:{callbacks:{title:it => rows[it[0].dataIndex].khung, label:c => ` ${c.raw} ly TB/ngày`}}}}});
     const good = css('--good'), bad = css('--bad');
-    mk('cPerfSlotLai', {type:'bar', data:{labels:rows.map(r => hm(r.k)), datasets:[{label:'Lãi sau lương', data:rows.map(r => r.lai == null ? null : Math.round(r.lai)),
+    mk('cPerfSlotLai', {type:'bar', data:{labels:rows.map(r => r.khung), datasets:[{label:'Lãi sau lương', data:rows.map(r => r.lai == null ? null : Math.round(r.lai)),
         backgroundColor:rows.map(r => r.lai < 0 ? bad : good), borderRadius:4, maxBarThickness:28}]},
       options:{scales:{y:{beginAtZero:false, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
         plugins:{tooltip:{callbacks:{title:it => rows[it[0].dataIndex].khung, label:c => ` ${c.raw < 0 ? 'Lỗ' : 'Lãi'} sau lương: ${fmt(c.raw)} đ`}}}}});
-    const lo = rows.filter(r => r.lai != null && r.lai < 0), thieu = NL30() == null ? [] : rows.filter(r => r.nguoi != null && r.ly > NL30() * Math.max(1, Math.round(r.nguoi))),
-      thua = NL30() == null ? [] : rows.filter(r => r.nguoi != null && r.nguoi >= 1.5 && r.ly < NL30());   // v1.3: chưa đo được năng lực → không kết luận thiếu/thừa người
+    const lo = rows.filter(r => r.lai != null && r.lai < 0), thieu = NL30() == null ? [] : rows.filter(r => r.nguoi != null && r.ly > 2 * NL30() * Math.max(1, Math.round(r.nguoi))),
+      thua = NL30() == null ? [] : rows.filter(r => r.nguoi != null && r.nguoi >= 1.5 && r.ly < 2 * NL30());   // v1.3: chưa đo được năng lực → không kết luận thiếu/thừa người
     $('perfSlotCmt').innerHTML = !rows.length ? 'Chưa có đơn trong kỳ.' : !coCong ? 'Chưa có chấm công trong kỳ nên chưa tính được lương theo khung giờ.' : [
       lo.length ? `<span class="dn">Khung chưa đủ trả lương:</span> ${lo.map(r => r.khung).join(', ')} → cân nhắc bớt người hoặc đóng sớm.` : '<span class="up">Mọi khung đều đủ trả lương.</span>',
-      thieu.length ? `<b>Có thể thiếu người:</b> ${thieu.map(r => r.khung).join(', ')} (hơn ${NL30().toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/người/30 phút).` : '',
-      thua.length ? `<b>Có thể thừa người:</b> ${thua.map(r => r.khung).join(', ')} (≥ 2 người mà dưới ${NL30().toLocaleString('vi-VN', {maximumFractionDigits:1})} ly).` : ''].filter(Boolean).join(' ');
+      thieu.length ? `<b>Có thể thiếu người:</b> ${thieu.map(r => r.khung).join(', ')} (hơn ${(2 * NL30()).toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/người/tiếng).` : '',
+      thua.length ? `<b>Có thể thừa người:</b> ${thua.map(r => r.khung).join(', ')} (≥ 2 người mà dưới ${(2 * NL30()).toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/tiếng).` : ''].filter(Boolean).join(' ');
   })();
 
 
