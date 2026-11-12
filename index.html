@@ -708,7 +708,7 @@ html.mcap{background:var(--paper)}
     <button role="tab" id="tab-today" aria-selected="false" data-v="today"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="nm">Hôm nay<small>ca đang bán · két</small></span></button>
     <button role="tab" id="tab-hr" aria-selected="false" data-v="hr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.6 3.5 6"/></svg><span class="nm">Nhân sự<small>ca · giờ công · lương</small></span></button>
     <button role="tab" id="tab-st" aria-selected="false" data-v="st"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8 7.5h8M8 11h6"/></svg><span class="nm">Sổ tay<small>nội quy · chính sách · công thức</small></span></button>
-    <button role="tab" id="tab-kf" aria-selected="false" data-v="kf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg><span class="nm">Kai's facts<small>chuyện vui về đội Kai</small></span></button>
+    <button role="tab" id="tab-kf" aria-selected="false" data-v="kf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg><span class="nm">Kai's facts<small>chuyện vui về Kai's Team</small></span></button>
     <div class="sgrp">Bán hàng</div>
     <button role="tab" id="tab-sales" aria-selected="true" data-v="sales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="nm">Bán hàng<small>doanh thu · ngày · giờ</small></span></button>
     <button role="tab" id="tab-dtt" aria-selected="false" data-v="dtt"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.6-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.6-3.1-1.6M12 6.5v11"/></svg><span class="nm">Doanh thu thuần<small>thực thu · tiền mặt · CK</small></span></button>
@@ -1421,7 +1421,7 @@ html.mcap{background:var(--paper)}
   <!-- ================= SỔ TAY (v1.7.188) ================= -->
   <div class="view" id="v-kf" hidden style="display:grid;gap:12px">
     <div class="card" id="sec-kf" data-nvok>
-      <div class="ct">Đội Kai <span class="nt">· chuyện vui về đội Kai từ ngày mở bán · không theo bộ lọc kỳ · tính cả cựu nhân viên, không tính chủ</span></div>
+      <div class="ct">Kai's Team <span class="nt">· chuyện vui về Kai's Team từ ngày mở bán · không theo bộ lọc kỳ · tính cả cựu nhân viên, không tính chủ</span></div>
       <div class="kf" id="kaiFacts"></div>
     </div>
   </div>
@@ -1901,7 +1901,7 @@ const VIEW_INFO = {
   sales:['Bán hàng', 'Doanh thu, số ly theo ngày và khung giờ trong kỳ đang lọc, so với kỳ trước.'],
   dtt:['Doanh thu thuần', 'Doanh thu THỰC THU theo ngày như tab Doanh thu của Sheet: tiền mặt, chuyển khoản, lệch so với đơn bot, chốt ca, mục tiêu tháng. Theo kỳ đang lọc (lọc nhân viên / món / thanh toán không áp dụng).'],
   mon:['Món', 'Món nào chạy, lời bao nhiêu mỗi ly, món nào chưa bán, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
-  kf:['Kai\'s facts', 'Chuyện vui về đội Kai từ ngày mở bán: ai gắn bó lâu nhất, pha nhanh nhất, dậy sớm nhất, vua size L, ca kỷ lục, sinh nhật sắp tới…'],
+  kf:['Kai\'s facts', 'Chuyện vui về Kai\'s Team từ ngày mở bán: ai gắn bó lâu nhất, pha nhanh nhất, dậy sớm nhất, vua size L, ca kỷ lục, sinh nhật sắp tới…'],
   st:['Sổ tay nhân viên', 'Nội quy, chính sách lương thưởng và bán hàng, công thức pha chế, checklist ca và lệnh bot — đọc xong bấm xác nhận.'],
   tl:['Tài liệu nội bộ', 'Công thức pha chế, checklist, nội quy và ấn phẩm in — bản mới nhất, bấm ảnh để xem to, có nút tải PDF để in.'],
   qo:['Mã món & order nhanh', 'Mã từng món, cách gõ tắt và cách order nhanh trên bot; bảng tự lấy từ tab Menu.'],
@@ -3660,7 +3660,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.237';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.238';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3718,6 +3718,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.238', ngay:'12/11/2026', nd:['Kai’s facts: đổi tên “Đội Kai” thành “Kai’s Team”. Thêm góc nhìn: chốt két khớp nhiều lần nhất, chốt ca nhiều nhất, kiểm kho / xe khớp nhiều nhất (lệch dưới ngưỡng bot cảnh báo), ca dài nhất, giờ cháy nhất, vua cuối tuần, chuỗi ngày làm liền, xanh nhất (mang ly), vua đơn app, chuyên gia từng nhóm món; Góc cần cải thiện thêm lệch két nhiều lần nhất.']},
   {v:'v1.7.237', ngay:'12/11/2026', nd:['Kai’s facts: thẻ “Đếm xe hụt” đổi thành “Đếm kho / xe hay lệch nhất” (số lần lệch / số lần đếm), không quy ra tiền vì một lần đếm sai làm số tiền phình.']},
   {v:'v1.7.236', ngay:'12/11/2026', nd:['Kai’s facts: chia hai mục Bảng vàng và Góc cần cải thiện. Thêm: ghi nhiều đơn nhất, đơn to nhất, ly đầu tiên sớm nhất, chốt két chuẩn nhất, chăm kiểm kho nhất, được thưởng nhiều lần nhất; két thiếu / dư nhiều nhất, lần lệch két lớn nhất, đếm xe hụt nhiều nhất (ước theo giá chuẩn), huỷ đơn nhiều nhất, đi trễ, quên check-out, bị phạt (số lần).', 'Giao diện học theo mẫu trang McKinsey: chip sticker, chữ tô dạ quang, tiêu đề mục có ô icon nghiêng — vẫn màu nâu–be Kai.']},
   {v:'v1.7.235', ngay:'12/11/2026', nd:['Hôm nay › Bán theo người ghi đơn: cảnh báo "Có thể ghi trùng" khi 2 đơn do 2 người khác nhau ghi cách nhau dưới 5 giây — hiện giờ (có giây), mã đơn, món, tiền của cả hai đơn để kiểm và huỷ đơn trùng trên bot.']},
@@ -5201,9 +5202,29 @@ function renderKaiFacts(){
     if (!c.chenh) x.khop++; else if (c.chenh < 0) x.thieu -= c.chenh; else x.du += c.chenh; if (Math.abs(c.chenh || 0) > Math.abs(x.max)){ x.max = c.chenh; x.maxK = c.k; } });
   const chL = Object.values(ch);
   { const a = top(chL.filter(x => x.n >= 3), x => x.khop / x.n); if (a.length) C.push(the('a2', '🎯', 'Chốt két chuẩn nhất', a[0].p, `<b>${a[0].khop}/${a[0].n}</b> lần chốt khớp từng đồng`, 'đếm két ra đúng y như bot', bars(a, x => x.khop / x.n, x => pct(x.khop / x.n, 0)))); }
-  const kk = {}; (D.kiemKho || []).forEach(x => { const p = ai(x.ai); if (!p) return; const g = (kk[p.ten] ??= {p, ten:p.ten, n:0, lech:0, hut:0}); g.n++; if (x.chenh) g.lech++;
+  const kk = {}; (D.kiemKho || []).forEach(x => { const p = ai(x.ai); if (!p) return; const g = (kk[p.ten] ??= {p, ten:p.ten, n:0, lech:0, hut:0, khop:0}); g.n++; if (x.chenh) g.lech++; if (Math.abs(+x.chenh || 0) < (x.ma === 'ly' ? 5 : x.ma === 'cf' ? 0.15 : 1)) g.khop++;
     if (x.noi === 'xe' && x.chenh < 0){ const h = (D.khoAll || []).find(v => v.ma === x.ma); if (h && h.giaTC) g.hut -= x.chenh * h.giaTC; } });
   const kkL = Object.values(kk);
+  /* v1.7.238 (chủ 12/11: "bào nhiều góc nhìn") — thêm: chốt két khớp nhiều lần nhất, chốt ca nhiều nhất, kiểm kho / xe khớp nhiều nhất (lệch dưới ngưỡng cảnh báo bot CANH_BAO_XE), ca dài nhất, giờ cháy nhất, vua cuối tuần, chuỗi ngày làm liền, xanh nhất (mang ly), vua đơn app, chuyên gia từng nhóm món; xấu: lệch két nhiều lần nhất */
+  { const a = top(chL, x => x.khop).filter(x => x.khop); if (a.length) C.push(the('a2', '✅', 'Chốt két khớp nhiều lần nhất', a[0].p, `<b>${a[0].khop} lần</b> khớp từng đồng`, `trên ${a[0].n} lần chốt`, bars(a, x => x.khop, x => x.khop + ' lần'))); }
+  { const a = top(chL, x => x.n); if (a.length) C.push(the('a3', '🔐', 'Chốt ca nhiều nhất', a[0].p, `<b>${a[0].n} lần</b> /chotca`, 'người giữ két nhiều nhất', bars(a, x => x.n, x => x.n + ' lần'))); }
+  { const a = top(kkL, x => x.khop).filter(x => x.khop); if (a.length) C.push(the('a6', '📏', 'Kiểm kho / xe khớp nhiều nhất', a[0].p, `<b>${a[0].khop}/${a[0].n}</b> lần đếm khớp`, 'khớp = lệch dưới ngưỡng bot cảnh báo (ly 5 cái · cà phê 0,15 kg · khác 1 đơn vị)', bars(a, x => x.khop, x => x.khop + '/' + x.n))); }
+  { const ca = D.cong.filter(c => !c.goc && !c.chu && !laChu(c.nv) && c.gio).sort((a, b) => b.gio - a.gio)[0], p = ca && ai(ca.nv);
+    if (p) C.push(the('a1', '🏃', 'Ca dài nhất', p, `<b>${f1(ca.gio)} giờ</b> liền một ca`, `${thu(ca.k)} ${ngay(ca.k)} · vào ${hm(ca.vao.getHours() * 60 + ca.vao.getMinutes())}`, '')); }
+  { const g = {}; D.orders.forEach(o => { if (o.h == null) return; const p = ai(o.nv); if (!p) return; const key = p.ten + '|' + o.k + '|' + o.h; g[key] = (g[key] || 0) + o.sl; });
+    const best = {}; Object.entries(g).forEach(([key, n]) => { const [t, k, h] = key.split('|'); if (!best[t] || n > best[t].n) best[t] = {ten:t, p:ai(t), n, k, h:+h}; });
+    const a = Object.values(best).sort((x, y) => y.n - x.n); if (a.length) C.push(the('a4', '🌋', 'Giờ cháy nhất', a[0].p, `<b>${a[0].n} ly</b> trong 1 tiếng`, `${a[0].h}h–${a[0].h + 1}h ${thu(a[0].k)} ${ngay(a[0].k)} · cứ ${f1(60 / a[0].n)} phút 1 ly`, bars(a, x => x.n, x => x.n + ' ly'))); }
+  { const a = top(ds.map(p => ({p, ten:p.ten, n:D.cong.filter(c => c.nv === p.ten && [0, 6].includes(fromKey(c.k).getDay())).length})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a5', '🎉', 'Vua cuối tuần', a[0].p, `<b>${a[0].n} ca</b> thứ 7 / chủ nhật`, 'ngày đông khách, đồng giá', bars(a, x => x.n, x => x.n + ' ca'))); }
+  { const a = ds.map(p => { const ks = [...new Set(D.cong.filter(c => c.nv === p.ten).map(c => c.k))].sort(); let m = 0, r = 0; ks.forEach((k, i) => { r = i && addDays(ks[i - 1], 1) === k ? r + 1 : 1; if (r > m) m = r; }); return {p, ten:p.ten, n:m}; }).sort((x, y) => y.n - x.n);
+    if (a.length && a[0].n >= 2) C.push(the('a3', '🔗', 'Chuỗi ngày làm liền dài nhất', a[0].p, `<b>${a[0].n} ngày</b> liên tiếp không nghỉ`, '', bars(a, x => x.n, x => x.n + ' ngày'))); }
+  { const a = top(ds.map(p => ({p, ten:p.ten, n:new Set(D.orders.filter(o => o.ml && chuan(o.nv) === chuan(p.ten)).map(o => o.id)).size})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a2', '🌱', 'Xanh nhất', a[0].p, `<b>${a[0].n} đơn</b> khách mang ly / bình`, 'bớt được ly nhựa', bars(a, x => x.n, x => x.n + ' đơn'))); }
+  { const a = top(ds.map(p => ({p, ten:p.ten, n:new Set(D.orders.filter(o => laApp(o) && chuan(o.nv) === chuan(p.ten)).map(o => o.id)).size})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a6', '🛵', 'Vua đơn app', a[0].p, `<b>${a[0].n} đơn</b> be / Xanh SM`, '', bars(a, x => x.n, x => x.n + ' đơn'))); }
+  { const nhom = o => (D.menu[o.mon] || {}).nhom || '', ten = [...new Set(D.orders.map(nhom).filter(Boolean))];
+    const dong = ten.map(nh => { const a = ds.map(p => { const O = D.orders.filter(o => chuan(o.nv) === chuan(p.ten)), t = O.reduce((x, o) => x + o.sl, 0), n = O.filter(o => nhom(o) === nh).reduce((x, o) => x + o.sl, 0); return {p, t, n, r:t >= 20 ? n / t : 0}; }).sort((x, y) => y.r - x.r)[0]; return a && a.n ? {nh, ...a} : null; }).filter(Boolean);
+    if (dong.length) C.push(`<div class="kf-c a5"><div class="hd"><span class="em">🧑‍🔬</span><span class="t">Chuyên gia từng nhóm món</span></div>
+      <div class="kf-bars">${dong.map(x => `<div><em>${esc(x.nh)}</em><i style="width:${x.r * 100}%"></i><small>${esc(x.p.ten)} · ${pct(x.r, 0)}</small></div>`).join('')}</div>
+      <div class="fun">người có tỉ lệ ly nhóm đó cao nhất trong số ly họ ghi (ghi từ 20 ly trở lên)</div></div>`); }
+  { const a = top(chL, x => x.n - x.khop).filter(x => x.n - x.khop); if (a.length) X.push(xau('a1', '🔁', 'Lệch két nhiều lần nhất', a[0].p, `<b>${a[0].n - a[0].khop}/${a[0].n}</b> lần chốt có lệch`, 'lệch nhỏ cũng tính — đếm két 2 lần trước khi gõ /chotca', bars(a, x => x.n - x.khop, x => (x.n - x.khop) + ' lần'))); }
   { const a = top(kkL, x => x.n); if (a.length) C.push(the('a5', '📋', 'Chăm kiểm kho nhất', a[0].p, `<b>${fmt(a[0].n)} dòng</b> kiểm đếm`, 'xe & kho đếm đều tay', bars(a, x => x.n, x => fmt(x.n)))); }
   { const a = top(D.thuongPhat ? ds.map(p => ({p, ten:p.ten, n:D.thuongPhat.filter(x => x.loai === 'THUONG' && chuan(x.nv) === chuan(p.ten)).length})) : [], x => x.n).filter(x => x.n); if (a.length) C.push(the('a1', '🎁', 'Được thưởng nhiều lần nhất', a[0].p, `<b>${a[0].n} lần</b> chủ ghi thưởng`, '', bars(a, x => x.n, x => x.n + ' lần'))); }
   // — cần cải thiện —
@@ -5222,7 +5243,7 @@ function renderKaiFacts(){
   Q.forEach(o => { byK[o.k] = (byK[o.k] || 0) + o.sl; byM[o.mon] = (byM[o.mon] || 0) + o.sl; if (o.h != null) byH[o.h] = (byH[o.h] || 0) + o.sl; });
   const kMax = Object.entries(byK).sort((a, b) => b[1] - a[1])[0], mMax = Object.entries(byM).sort((a, b) => b[1] - a[1])[0], hMax = Object.entries(byH).sort((a, b) => b[1] - a[1])[0];
   const gioQ = ds.reduce((a, p) => a + p.gio, 0);
-  el.innerHTML = `<div class="kf-hero"><div class="kf-pills"><span class="kf-pill cam">☕ Kai's facts</span><span class="kf-pill">👥 ${ds.length} người từng đứng quầy</span><span class="kf-pill vang">🔄 tự cập nhật theo bot</span></div><h3>Đội Kai bằng <mark>những con số</mark><small>từ ${D.first ? ngay(D.first) + '/' + D.first.slice(0, 4) : '—'} tới nay · ${ds.length} người từng đứng quầy${ds.some(p => p.cu) ? ` (${ds.filter(p => !p.cu).length} đang làm)` : ''}</small></h3>
+  el.innerHTML = `<div class="kf-hero"><div class="kf-pills"><span class="kf-pill cam">☕ Kai's facts</span><span class="kf-pill">👥 ${ds.length} người từng đứng quầy</span><span class="kf-pill vang">🔄 tự cập nhật theo bot</span></div><h3>Kai's Team bằng <mark>những con số</mark><small>từ ${D.first ? ngay(D.first) + '/' + D.first.slice(0, 4) : '—'} tới nay · ${ds.length} người từng đứng quầy${ds.some(p => p.cu) ? ` (${ds.filter(p => !p.cu).length} đang làm)` : ''}</small></h3>
     <div class="kf-big"><div><b>${fmt(lyQ)}</b><span>ly đã bán · xếp chồng cao ≈ ${fmt(Math.round(lyQ * .12))} m</span></div><div><b>${fmt(nQ.size)}</b><span>ngày mở bán</span></div>
       <div><b>${fmt(Math.round(gioQ))}</b><span>giờ đứng quầy của nhân viên</span></div>${kMax ? `<div><b>${fmt(kMax[1])}</b><span>ly · ngày kỷ lục ${thu(kMax[0])} ${ngay(kMax[0])}</span></div>` : ''}
       ${mMax ? `<div><b style="font-size:22px">${esc(mMax[0])}</b><span>món số 1 · ${fmt(mMax[1])} ly (${pct(mMax[1] / lyQ, 0)})</span></div>` : ''}${hMax ? `<div><b>${hMax[0]}h–${+hMax[0] + 1}h</b><span>khung giờ đông nhất</span></div>` : ''}</div></div>
@@ -6187,7 +6208,7 @@ function render(){
     : S.view === 'bc' ? (K => `${dShort(K.tu)}/${K.tu.slice(0,4)} → ${dShort(K.den)}/${K.den.slice(0,4)}`)(kyBaoCao(S.bcKy, today()))   // v1.7.43
     : ['ov', 'fin', 'kho', 'tb', 'hh', 'plan', 'kc', 'new', 'qo', 'tl', 'st', 'kf'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips(); demLoc();
-  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:() => { renderFin(); renderTb(); }, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, tl:renderTl, hr:renderHr, st:renderSt, kf:renderKaiFacts})[S.view]();
+  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:() => { renderFin(); renderTb(); }, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, tl:renderTl, hr:renderHr, st:renderSt, kf:() => { try { renderKaiFacts(); } catch(e){ console.warn(e); $('kaiFacts').innerHTML = '<p class="kf-note">Lỗi khi tính Kai’s facts: ' + esc(e.message) + '</p>'; } }})[S.view]();   /* v1.7.238: lỗi một thẻ không làm hỏng cả tab */
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
