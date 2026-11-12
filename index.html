@@ -3677,7 +3677,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.242';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.243';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3735,6 +3735,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.243', ngay:'12/11/2026', nd:['Phân tích sâu: “Mua ít lại / Đang mua dư” chỉ báo khi 30 ngày qua mua > 1,5× dùng VÀ tồn còn đủ > 30 ngày (trước: > 21 ngày) — bớt báo nhầm hàng vừa nhập 1 đợt.']},
   {v:'v1.7.242', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Phân tích sâu · nên làm gì” ở đầu tab — danh sách việc nên cải thiện xếp theo mức gấp (sắp hết hàng, dùng tăng/giảm, mua dư, món giảm/lên, món lời mỏng, món nên đẩy, thứ bán yếu, đơn 1 ly + cặp combo, khung lỗ sau lương, thiếu người, chênh năng suất), mỗi dòng kèm số.', 'Bảng Nguyên liệu: mua thêm hay bớt — dùng/ngày 14 ngày bán gần nhất (bỏ ngày 10K), xu hướng so 14 ngày trước, tồn, đủ ~ngày, mua vs dùng 30 ngày, lượng nên mua cho 7 ngày, kết luận 🔴🟠🔵🟡🟢.', 'Bảng Món: đẩy, giữ hay xem lại — 4 nhóm theo ly/ngày và lời gộp/ly (⭐ chủ lực · 💰 lời mỏng · 📣 nên đẩy · ✂️ cân nhắc bỏ) kèm xu hướng so kỳ trước.']},
   {v:'v1.7.241', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Hiệu suất theo nhân viên” — mỗi người: số ca, giờ công, ly làm (mỗi đơn chia đều cho người đang có mặt lúc ghi), ly / giờ, ly / ngày làm, ngày cao nhất, ly tự ghi; biểu đồ ly / giờ và nhận xét cao nhất / thấp nhất (chỉ so người có ≥ 5 giờ công).']},
   {v:'v1.7.240', ngay:'12/11/2026', nd:['Hiệu suất · Khung giờ × người đứng ca: gộp khung 1 tiếng (trước 30 phút) cho cả 2 biểu đồ (ly TB, lãi sau lương) và bảng; nhãn ghi rõ khung, vd 07:00–08:00. Ngưỡng thiếu / thừa người quy theo tiếng (gấp đôi năng lực 30 phút).']},
@@ -5946,7 +5947,7 @@ function renderPerf(){
       let kl, lv;
       if (du != null && du < Math.max(3, k.baoNgay || 0)) [kl, lv] = ['🔴 Mua thêm ngay', 0];
       else if (xh != null && xh >= .2 && (du == null || du < 14)) [kl, lv] = ['🟠 Mua nhiều hơn (đang dùng tăng)', 1];
-      else if (dung30 > 0 && mua30 > 1.5 * dung30 && du != null && du > 21) [kl, lv] = ['🔵 Mua ít lại (30 ngày qua mua nhiều hơn dùng)', 3];
+      else if (dung30 > 0 && mua30 > 1.5 * dung30 && du != null && du > KHO_DU_KHONG_MUA) [kl, lv] = [`🔵 Mua ít lại (mua > dùng, còn đủ > ${KHO_DU_KHONG_MUA} ngày)`, 3];   // v1.7.243: chỉ báo khi tồn đã đủ > 30 ngày (hàng mới nhập 1 đợt chưa tính dư)
       else if (du != null && du > KHO_DU_KHONG_MUA) [kl, lv] = [`🟢 Còn lâu (đủ > ${KHO_DU_KHONG_MUA} ngày), chưa cần mua`, 5];
       else if (xh != null && xh <= -.2) [kl, lv] = ['🟡 Giảm lượng mua (đang dùng giảm)', 4];
       else [kl, lv] = ['🟢 Giữ như cũ', 5];
