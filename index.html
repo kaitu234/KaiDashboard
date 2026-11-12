@@ -411,6 +411,10 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .toi .s{font-size:12px;color:var(--muted)}
 .toi>div.toiL{background:var(--good-bg);box-shadow:inset 3px 0 0 var(--good)}   /* v1.7.206: ô lương nổi bật */
 .toi .toiL .lb{color:var(--good)} .toi .toiL .v{font-size:22px;color:var(--good)}
+.toi>div.toiC{background:var(--warn-bg);box-shadow:inset 3px 0 0 var(--warn)}   /* v1.7.209: ô chuyên cần nổi bật */
+.toi .toiC .lb{color:var(--warn)} .toi .toiC .v{font-size:22px;color:var(--warn)}
+.toi .toiC .chip{background:var(--warn);color:var(--warn-bg)}
+.toi .chip{justify-self:start;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;margin:2px 0}
 .toi .toiL .chip{justify-self:start;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--good);color:var(--good-bg);margin:2px 0}
 .ddl{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.5;cursor:pointer}
 .ddl input{margin-top:3px;width:18px;height:18px;flex:none}
@@ -3483,7 +3487,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.208';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.209';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3541,6 +3545,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.209', ngay:'12/11/2026', nd:['Thẻ “Của tôi”: ô Chuyên cần nổi bật (nền vàng, số lớn) với chip “còn N ca → +50.000 đ”.', 'Tab Nhân sự (tài khoản nhân viên): thẻ đầu tab có “Lương / giờ của bạn” — lương của chính mình ÷ giờ trong ca, theo kỳ đang lọc.', 'Tự kiểm: bất biến lương ngày tính cả phần chuyên cần chia đều.']},
   {v:'v1.7.208', ngay:'12/11/2026', nd:['Tiền chuyên cần không còn dồn vào ngày đạt: chia đều cho mọi ca của người đó trong tháng (lương ngày, lãi ngày, PNL ngày). Tổng lương tháng và lương từng người không đổi.']},
   {v:'v1.7.207', ngay:'12/11/2026', nd:['Tab Tài liệu: bảng công thức size M │ L có ảnh món bản 12/11 — chia 4 nhóm Cà phê · Cacao · Phindi · Matcha & trà sữa, bỏ nhóm Muối (cà phê muối, bạc xỉu muối → Cà phê; cacao muối → Cacao; matcha latte muối → Matcha & trà sữa).']},
   {v:'v1.7.206', ngay:'12/11/2026', nd:['Thẻ “Của tôi”: ô Lương tháng này nổi bật (nền xanh, số lớn) và lương mỗi giờ hiện thành chip.']},
@@ -4015,7 +4020,7 @@ function tuKiem(){
       ok('Tab Doanh thu thật: tiêu đề là dòng có ô A = NGÀY (đọc được CHỐT CA, mục tiêu tháng); tab Quỹ tiền bản cũ: ô hướng dẫn A2 không bị nhận làm tiêu đề, cột tick = cột 7',
         (!H.co || (H.i >= 0 && /^NGÀY$/i.test(H.a.trim()))) && tickOk, `${H.co ? 'tab thật: tiêu đề dòng ' + (H.i + 1) + ' · ' + D.chotSheet.length + ' ngày tick CHỐT CA · ' + Object.keys(D.dtSheet.mucTieu).length + ' tháng mục tiêu' : 'không có tab Doanh thu'} · Quỹ tiền mẫu: tiêu đề dòng ${qh2 + 1}`); }
     // 47. V-04: lương ngày = tiền công các ca + thưởng − phạt (tab ThuongPhat); dòng ThuongPhat đã vào lương đều của người có chấm công; Σ lương PNL tháng này = Σ tiền công + Σ thưởng/phạt
-    { const kT = D.first, giu = D.thuongPhat, tienCa = D.cong.filter(c => c.k === kT && c.tien != null).reduce((s, c) => s + c.tien, 0);
+    { const kT = D.first, giu = D.thuongPhat, tienCa = D.cong.filter(c => c.k === kT && c.tien != null).reduce((s, c) => s + c.tien + (c.ccPb || 0) + (c.tl || 0), 0);   /* v1.7.209: + chuyên cần chia đều (ccPb) + thưởng ly */
       D.thuongPhat = [{k:kT, id:'tk', nv:'tk', loai:'THUONG', tien:12345}, {k:kT, id:'tk', nv:'tk', loai:'PHAT', tien:-2345}];
       const l1 = luongNgay(kT).luong; D.thuongPhat = []; const l0 = luongNgay(kT).luong; D.thuongPhat = giu;
       const m0 = today().slice(0, 7) + '-01', PT = tinhPnl(m0, today()), tongCa = D.cong.filter(c => c.k >= m0 && c.k <= today() && c.tien != null).reduce((s, c) => s + c.tien, 0), tongTp = (giu || []).filter(x => x.k >= m0 && x.k <= today()).reduce((s, x) => s + x.tien, 0);
@@ -4800,7 +4805,9 @@ function renderCuaToi(){
     + o('Bậc', esc(me.bac || '—'), (me.gioTN != null ? (+me.gioTN).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ thâm niên' : '') + (me.conLen != null ? ' · còn ' + (+me.conLen).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ lên bậc' : ''))
     + o('Tháng này', th.length + ' ca', th.reduce((s, c) => s + (c.gio || 0), 0).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ làm')
     + o('Lương tháng này', th.length ? fmt(luongT) + ' đ' : '—', th.length ? (gioCa ? '<span class="chip">≈ ' + fmt(luongT / gioCa) + ' đ/giờ</span>' : '') + '<span class="s">' + gioCa.toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ trong ca' + (tamL ? ' · tạm tính' : '') + '</span>' : '<span class="s">chưa có ca</span>', 'toiL')
-    + o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? (cc.chuoi ? 'còn ' + (CC.soCa - cc.chuoi) + ' ca nữa đạt' : 'đang đếm lại từ đầu') + ' · đạt ' + cc.thuong.filter(k => String(k).slice(0, 7) === m0).length + ' lần tháng này' : 'chưa có ca')
+    + (() => { const lan = cc ? cc.thuong.filter(k => String(k).slice(0, 7) === m0).length : 0;   /* v1.7.209 (chủ 12/11): ô chuyên cần nổi bật + chip */
+        return o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? '<span class="chip">' + (cc.chuoi ? 'còn ' + (CC.soCa - cc.chuoi) + ' ca → +' + fmt(CC.tien) + ' đ' : 'đếm lại · đủ ' + CC.soCa + ' ca → +' + fmt(CC.tien) + ' đ') + '</span>'
+          + '<span class="s">' + (lan ? 'đạt ' + lan + ' lần tháng này · +' + fmt(lan * CC.tien) + ' đ' : 'chưa đạt lần nào tháng này') + '</span>' : '<span class="s">chưa có ca</span>', 'toiC'); })()
     + o('Ca sắp tới', lich.length ? lich.length + ' ca' : 'chưa đăng ký', lich.slice(0, 6).map(k => thu(k) + ' ' + dShort(k)).join(' · ') || 'đăng ký: /dangkyca')
     + o('Sổ tay', daDoc ? '✓ đã đọc' : '<a class="lnk toiStLnk" href="#sec-st-dd">⚠ chưa xác nhận</a>', 'bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : ''))
     + o('Vi phạm', '/vipham', 'xem lỗi tháng này trên bot')
@@ -5015,7 +5022,13 @@ function renderHr(){
     <div class="kpi main"><span class="lb">Dẫn đầu thâm niên</span><span class="v">${dan ? esc(dan.ten) : '—'}</span><span class="s">${dan ? f1(dan.gioTN) + ' giờ · ' + esc(dan.bac || '') : ''}</span></div>`) + `
     <div class="kpi tgt"><span class="lb">Giờ làm · ${ky}</span><span class="v">${f1(gio)}</span><span class="s">tính lương ${f1(gioL)} · danh nghĩa ${f1(gioDNs)} giờ · ${fmt(C.length)} ca</span></div>
     <div class="kpi tgt"><span class="lb">Tiền công · ${ky}</span><span class="v">${fmt(tien + tpTong)}</span><span class="s">${tpTong ? `công ${fmt(tien)} ${tpTong > 0 ? '+' : '−'} thưởng/phạt ${fmt(Math.abs(tpTong))}` : 'bot tính (cột Tiền công)'}${chuaTinh ? ` · ${chuaTinh} ca chưa tính` : ''}</span></div>
-    <div class="kpi tgt"><span class="lb">Lương / giờ danh nghĩa</span><span class="v">${dnNV ? fmt(tienNV / dnNV) : '—'}</span><span class="s">tiền công ÷ giờ trong ca (không gồm OT)${nvF && nvF.chu ? ' · chủ không lương' : ''}</span></div>
+    ${VAI === 'nhanvien' ? (() => { /* v1.7.209 (chủ 12/11): nhân viên thấy lương/giờ của chính mình — cùng cách tính ô Lương ở thẻ Của tôi (lương ÷ giờ trong ca), server chỉ gửi lương của người này */
+      const chuan = v => String(v || '').normalize('NFC').trim().toLowerCase(), me = (D.nhanVien || []).find(n => chuan(n.ten) === chuan(TEN_DN)); if (!me) return '';
+      const cm = D.cong.filter(c => c.id === me.id && c.k >= S.from && c.k <= S.to); let l = 0, g = 0;
+      cm.forEach(c => { const het = c.ra || gioRaTam(c); l += (c.cc || 0) + (c.tl || 0); g += gioDN(c, het); if (c.tien != null) l += c.tien; else if (c.luongGio && het) l += gioLuong(c, het) * c.luongGio; });
+      l += (D.thuongPhat || []).filter(x => x.id === me.id && x.k >= S.from && x.k <= S.to).reduce((s, x) => s + x.tien, 0);
+      return `<div class="kpi tgt" data-nvok><span class="lb">Lương / giờ của bạn</span><span class="v">${g ? fmt(l / g) : '—'}</span><span class="s">lương ${fmt(l)} ÷ ${f1(g)} giờ trong ca · ${ky}</span></div>`; })()
+    : `<div class="kpi tgt"><span class="lb">Lương / giờ danh nghĩa</span><span class="v">${dnNV ? fmt(tienNV / dnNV) : '—'}</span><span class="s">tiền công ÷ giờ trong ca (không gồm OT)${nvF && nvF.chu ? ' · chủ không lương' : ''}</span></div>`}
     <div class="kpi tgt"><span class="lb">Lương / giờ thực trả</span><span class="v">${glNV ? fmt(tienNV / glNV) : '—'}</span><span class="s">tiền công ÷ giờ tính lương (gồm phút vào sớm)${nvF && nvF.luong ? ` · nền ${fmt(nvF.luong)}` : ''}</span></div>`; }
   $('hrKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Ca đã chấm</span><span class="v">${fmt(C.length)}</span><span class="s">${rows.length} người${tre ? ` · <b>${tre} lần trễ</b>` : ' · không ai trễ'}</span></div>
