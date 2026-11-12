@@ -419,10 +419,16 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .toi>div.toiB{border-radius:8px;padding:10px 12px}
 #hrTop .kpi.main .lb,.toi .toiB .lb{color:#FFD99E;letter-spacing:.08em}
 #hrTop .kpi.main .s,.toi .toiB .s{color:#F6E7CF}
-#hrTop .kpi.main .v,.toi .toiB .v,#hrTop .kpi.hot .v{font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:#FBEBD2;-webkit-text-stroke:1.5px #2E1A0E;paint-order:stroke fill;text-shadow:0 3px 0 #2E1A0E}
+#hrTop .kpi.main .v,.toi .toiB .v{font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:#FBEBD2;-webkit-text-stroke:1.5px #2E1A0E;paint-order:stroke fill;text-shadow:0 3px 0 #2E1A0E}
 .toi .toiB .v{font-size:26px;line-height:1.1}
-#hrTop .kpi.hot{background:linear-gradient(150deg,#D08A3E,#EDB461 80%);border-color:#B7742F;border-left-color:#5A361F;box-shadow:0 3px 0 #8A5523,var(--shadow)}
-#hrTop .kpi.hot .lb{color:#3A2214;opacity:1} #hrTop .kpi.hot .s{color:#3A2214} #hrTop .kpi.hot .lb .ki{background:rgba(255,255,255,.35)}
+/* v1.7.216 (chủ 12/11): Lương / giờ = kiểu ô lương xanh lá của "Của tôi"; Thâm niên = cùng kiểu, xanh dương vừa */
+#hrTop .kpi.hot{background:var(--good-bg);border-color:var(--good);border-left-color:var(--good)}
+#hrTop .kpi.hot .lb,#hrTop .kpi.hot .v{color:var(--good);opacity:1}
+#hrTop .kpi.tn{--tn:#2F6FA8;background:rgba(47,111,168,.11);border-color:rgba(47,111,168,.45);border-left-color:var(--tn)}
+#hrTop .kpi.tn .lb,#hrTop .kpi.tn .v{color:var(--tn);opacity:1}
+#hrTop .kpi.hot .lb .ki,#hrTop .kpi.tn .lb .ki{background:rgba(255,255,255,.5)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #hrTop .kpi.tn{--tn:#86B9E6;background:rgba(134,185,230,.12)}}
+:root[data-theme="dark"] #hrTop .kpi.tn{--tn:#86B9E6;background:rgba(134,185,230,.12)}
 .toi .chip{justify-self:start;white-space:nowrap;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;margin:2px 0}
 .toi .toiL .chip{justify-self:start;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--good);color:var(--good-bg);margin:2px 0}
 .ddl{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.5;cursor:pointer}
@@ -3499,7 +3505,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.215';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.216';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3557,6 +3563,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.216', ngay:'12/11/2026', nd:['Tab Nhân sự: ô Lương / giờ đổi sang nền xanh lá như ô lương ở “Của tôi”; ô Thâm niên cùng kiểu, màu xanh dương vừa.']},
   {v:'v1.7.215', ngay:'12/11/2026', nd:['Tab Nhân sự: thẻ tên/bậc và thâm niên sáng hơn, chữ kem viền nâu như ấn phẩm của quán; ô Bậc (Của tôi) và ô Lương / giờ của bạn nổi bật.']},
   {v:'v1.7.214', ngay:'12/11/2026', nd:['Tab Nhân sự (tài khoản nhân viên): ô Giờ làm nay là giờ tính lương (trong ca + vào sớm) — cùng số bot cộng vào thâm niên, hết lệch với ô Thâm niên.']},
   {v:'v1.7.213', ngay:'12/11/2026', nd:['Tab Nhân sự (tài khoản nhân viên): khối thẻ đầu tab chỉ hiện thông tin của chính bạn — bậc, thâm niên, giờ làm, lương/giờ — không còn số cả quán (đang làm, thử việc, dẫn đầu…).']},
@@ -5020,7 +5027,7 @@ function renderHr(){
     const f1 = v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:1}), ky = S.from === S.to ? dShort(S.from) : `${dShort(S.from)} – ${dShort(S.to)}`;
     $('hrTop').innerHTML = (nvF ? `
     <div class="kpi main"><span class="lb">${esc(nvF.ten)}</span><span class="v">${esc(nvF.bac || '—')}</span><span class="s">${esc(nvF.chucVu || (nvF.chu ? 'Chủ quán' : 'Nhân viên'))}${meT ? '' : ' · lương/giờ hiện tại ' + fmt(nvF.luongNay)}</span></div>
-    <div class="kpi main"><span class="lb">Thâm niên</span><span class="v">${f1(nvF.gioTN)} giờ</span><span class="s">${nvF.conLen != null ? `còn ${f1(nvF.conLen)} giờ lên level` : 'level cao nhất / đặt tay'}</span></div>`
+    <div class="kpi tn"><span class="lb">Thâm niên</span><span class="v">${f1(nvF.gioTN)} giờ</span><span class="s">${nvF.conLen != null ? `còn ${f1(nvF.conLen)} giờ lên level` : 'level cao nhất / đặt tay'}</span></div>`
     : `
     <div class="kpi main"><span class="lb">Đang làm</span><span class="v">${NV.filter(n => !n.chu).length}</span><span class="s">nhân viên${NV.some(n => n.chu) ? ' · không tính chủ' : ''}</span></div>
     <div class="kpi main"><span class="lb">Thử việc</span><span class="v">${tv.length}</span><span class="s">${tv.length ? tv.map(n => esc(n.ten)).join(', ') + ' · 100k/ngày' : 'không ai'}</span></div>
