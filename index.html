@@ -3109,9 +3109,9 @@ function renderFin(){
     {k:'ton', l:'Tổng', r:1, f:(v, r) => v == null ? (r.khongQuyDoi ? '<span class="muted" title="Cột E tab Kho trống">chưa có quy đổi</span>' : r.tonBiet != null ? `<span class="muted" title="Tổng = xe + kho, cần có số của cả hai nơi">thiếu số ${r.xe == null ? 'xe' : 'kho'}</span>` : '<span class="muted">—</span>') : so(Math.max(0, v), '')},
     {k:'ngayHt', l:'Đủ ~ngày', r:1, f:v => v == null ? '<span class="muted">—</span>' : `<b>${ngayTxt(v)}</b>`, cls:(v, r) => v == null ? '' : v < r.baoNgay ? 'kc-bad' : v < 7 ? 'kc-warn' : 'kc-good'},
     {k:'bar', l:'Thanh · số ngày còn đủ (tối đa 14)', f:(v, r) => r.ngayHt == null ? `<span class="muted">${r.dungCT ? 'chưa có ly bán' : 'chưa có mức dùng/ngày'}</span>` : bar(r.ngayHt, r.baoNgay) + ` <span class="muted num">${ngayTxt(r.ngayHt)}</span>`},
-    {k:'tX', l:'Kiểm xe gần nhất', f:(v, r) => gioK(r.kiemXe)}, {k:'tK', l:'Kiểm kho gần nhất', f:(v, r) => gioK(r.kiemKho)},
     {k:'nhip', l:'Dùng TB/ngày', r:1, f:(v, r) => v ? so(v, r.dv) + (r.dungCT ? '' : ' <span class="pill neu" title="Đo từ các lần kiểm xe">đo</span>') : '<span class="muted">—</span>'},
     {k:'gt', l:'Giá trị còn lại (đ)', r:1, f:v => v == null ? '<span class="muted">—</span>' : fmt(v)},
+    {k:'tX', l:'Kiểm xe gần nhất', f:(v, r) => gioK(r.kiemXe)}, {k:'tK', l:'Kiểm kho gần nhất', f:(v, r) => gioK(r.kiemKho)},
     {k:'botTxt', l:'Bot tính (tab Kho)', r:1, f:v => `<span class="muted">${esc(v)}</span>`}]}); }
   $('nlNote').innerHTML = KH.length ? '<b>Tồn lấy từ số đếm.</b> Mục không đếm xe hằng ngày (tab Kho cột U = FALSE, vd kem muối, sữa đặc, cacao) thì 🚚 xe tự trừ theo món đã bán × công thức (ghi "trừ theo món"). 🚚 <b>Xe</b> = số <b>/kiemxe</b> gần nhất (ly + cà phê đếm hằng ngày, mọi mục đếm Chủ nhật) + hàng nhân viên báo <b>/laykho</b> sau lúc đếm. 🏠 <b>Kho</b> = số <b>/kiemkho</b> (chủ, 1–2 lần/tuần) gần nhất + hàng mua (sổ chi) sau ngày kiểm − hàng đã lấy ra xe; chưa đếm kho lần nào thì = số nhập − hàng đã ra xe ("theo số nhập"). <b>Tổng</b> = xe + kho khi có số cả hai nơi. Bán thêm ly nào thì số xe vẫn là số đếm gần nhất cho tới lần /kiemxe kế (hiện "số cũ" khi xe quá 2 ngày, mục kiểm tuần quá 8 ngày, kho quá 8 ngày). Định lượng CongThuc chỉ còn dùng để tính nhịp dùng (đủ ~ngày) và so với số đếm khi kiểm (hao hụt). Xe báo lấy từ kho khi ly dưới 50, cà phê dưới 1 kg (đổi ở cột S–U tab Kho). Cột "Bot tính" là số ở tab Kho (bot làm mới mỗi ~10 phút khi số đổi).' :'Chưa có tab <b>Kho</b> (hoặc chưa có quy đổi) nên chưa tính được tồn kho — chưa có số thật.';
   $('alerts').innerHTML = A.map(([lv, tag, t, d, fix]) => `<div class="alert ${lv}"><span class="pill ${lv}">${tag}</span><div><div class="t">${t}</div><div class="d">${d}</div></div><span class="fix">${fix}</span></div>`).join('');
@@ -3671,7 +3671,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.245';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.246';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3729,6 +3729,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.246', ngay:'12/11/2026', nd:['Tab Kho · bảng tồn: 2 cột Kiểm xe / Kiểm kho gần nhất dời ra sau cột Giá trị còn lại.']},
   {v:'v1.7.245', ngay:'12/11/2026', nd:['Tab Kho gọn lại: Cần xử lý → Kế hoạch mua 7 ngày → Báo cáo nhân viên → Tồn hiện tại (cột Trạng thái + Việc cần làm lên ngay sau tên). Biểu đồ Đủ dùng và Lịch sử kiểm & hao hụt gập sẵn (▾ để mở). Bỏ thẻ Vật tư 1 cái/ly và ô Giá trị / Ổn (đã có trong bảng tồn, Cần xử lý). Không đổi cách tính.']},
   {v:'v1.7.244', ngay:'12/11/2026', nd:['Phân tích sâu: bỏ đá viên khỏi bảng Nguyên liệu mua thêm / bớt — đá mua ngày nào dùng ngày đó, không trữ nên tồn theo sổ chi không có nghĩa.']},
   {v:'v1.7.243', ngay:'12/11/2026', nd:['Phân tích sâu: “Mua ít lại / Đang mua dư” chỉ báo khi 30 ngày qua mua > 1,5× dùng VÀ tồn còn đủ > 30 ngày (trước: > 21 ngày) — bớt báo nhầm hàng vừa nhập 1 đợt.']},
