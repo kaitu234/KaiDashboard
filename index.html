@@ -3476,7 +3476,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.202';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.203';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3534,6 +3534,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.203', ngay:'12/11/2026', nd:['Nhóm món mới 4 nhóm: Cà phê · Cacao · Phindi · Matcha & trà sữa (tab Menu Sheet đã đổi, bỏ “Đặc biệt”/“Không cà phê”) — biểu đồ cơ cấu nhóm, bảng món, Gợi ý bán hàng theo đúng nhóm mới.', 'Sổ tay công thức chia theo 4 nhóm: món muối về đúng nhóm gốc (cà phê muối, bạc xỉu muối → Cà phê; cacao muối → Cacao; matcha latte muối → Matcha & trà sữa).']},
   {v:'v1.7.202', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: ly size L hiện chip L, ly gộp hiện chip +2 / +3… ngay sau tên món.']},
   {v:'v1.7.201', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: đơn có thẻ thành viên hiện chip ⭐ member cạnh TM/CK.']},
   {v:'v1.7.200', ngay:'12/11/2026', nd:['Kho · hao hụt · kiểm xe: số đếm hiện đủ 3 số lẻ (cà phê 0,465 kg không còn hiện 0,47), khớp bot bản khongtron-v1.']},
@@ -4642,7 +4643,7 @@ const CS_BOT = {luong:25000, som:{han:'05:30', tien:10000, tu:'2026-11-01'}, thu
   thamNien:[[100, 1000], [300, 2000], [600, 3000], [900, 4000], [1200, 5000], [1500, 6000], [1900, 7000], [2400, 8000]],   // = THAM_NIEN bot [giờ, +đ/giờ]
   tenLv:['🔩 Iron', '🥉 Bronze', '🥈 Silver', '🥇 Gold', '💠 Platinum', '💎 Diamond', '🔮 Master', '🔥 Grandmaster', '👑 Challenger']};
 const CONG_THUC_IN = [   // [tên, size M, size L, cách pha, mã món (chỉ món có cà phê, để tự kiểm với SIZE_L_CF)]
-  ['Cà phê', [
+  ['Cà phê · món muối: kem muối phủ trên cùng', [
     ['Cà phê đen máy', '45 ml cf · 10 ml đường', '60 ml cf · 13 ml đường', 'lắc 10 lần', 'cdm'],
     ['Cà phê sữa máy', '45 ml cf · 25 ml SĐ', '60 ml cf · 33 ml SĐ', 'lắc 10 lần', 'csm'],
     ['Cà phê đen phin', '40 ml cf phin · 10 ml đường', '50 ml cf phin · 13 ml đường', 'lắc 10 lần', 'cdp'],
@@ -4651,25 +4652,23 @@ const CONG_THUC_IN = [   // [tên, size M, size L, cách pha, mã món (chỉ m�
     ['Cà phê sữa tươi', '20 ml cf · 60 ST · 15 ml đường', '30 ml cf · 80 ST · 20 ml đường', 'lắc 10 lần · sữa trước · rưới cf lên trên', 'cst'],
     ['Cà phê caramel', '40 ml cf · 25 SĐ · 20 ml siro caramel', '50 ml cf · 33 SĐ · 26 ml siro', 'lắc 10 lần', 'cfc'],
     ['Cà phê chocolate', '40 ml cf · 25 SĐ · 20 ml siro choco', '50 ml cf · 33 SĐ · 26 ml siro', 'lắc 10 lần', 'cfch'],
-  ]],
-  ['Muối · kem muối phủ trên cùng', [
     ['Cà phê muối', '30 ml cf · 25 ml SĐ · 2 muỗng', '40 ml cf · 33 ml SĐ · 2,5 muỗng', 'lắc 10 lần · cf + SĐ · kem phủ trên · rắc cacao', 'cfm'],
     ['Bạc xỉu muối', '20 ml cf · 25 SĐ · 40 ST · 2 muỗng', '30 ml cf · 33 SĐ · 50 ST · 2,5 muỗng', 'lắc 10 lần · sữa · rưới cf · kem trên cùng', 'bxm'],
-    ['Cacao muối', '7 g cacao · 25 SĐ · 20 ST · 2 muỗng', '9 g cacao · 33 SĐ · 26 ST · 2,5 muỗng', 'cacao + sữa · kem trên cùng'],
-    ['Matcha latte muối', 'Matcha latte + 2 muỗng', 'Matcha latte L + 2,5 muỗng', 'đánh bằng máy · sữa · rưới matcha · kem trên cùng'],
   ]],
   ['Cacao · đánh tan cacao với 40 ml nước sôi', [
     ['Cacao đường cát', '7 g cacao · 10 ml đường', '9 g cacao · 13 ml đường'],
     ['Cacao sữa', '7 g cacao · 25 ml SĐ · 20 ml ST', '9 g cacao · 33 ml SĐ · 26 ml ST'],
     ['Cacao latte', '7 g cacao · 60 ml ST · 10 ml đường', '9 g cacao · 80 ml ST · 13 ml đường', 'sữa trước · rưới cacao lên trên'],
-  ]],
-  ['Matcha · đánh bằng máy với 30 ml nước nóng', [
-    ['Matcha latte', '3 g matcha · 25 ml SĐ · 60 ml ST', '4 g matcha · 33 ml SĐ · 80 ml ST', 'đánh bằng máy · sữa trước · rưới matcha lên trên'],
-    ['Matcha coffee', 'Matcha latte + 20 ml cf', 'Matcha latte L + 30 ml cf', 'đánh bằng máy · sữa · rưới matcha · rưới cf trên cùng', 'mtc'],
-    ['Trà sữa gạo rang', 'đang cập nhật', 'đang cập nhật'],
+    ['Cacao muối', '7 g cacao · 25 SĐ · 20 ST · 2 muỗng', '9 g cacao · 33 SĐ · 26 ST · 2,5 muỗng', 'cacao + sữa · kem trên cùng'],
   ]],
   ['Phindi · 4 vị: hạnh nhân, caramel, hạt phỉ, chocolate', [
     ['Phindi', '15 ml cf phin · 5 SĐ · 60 ST · 25 ml siro · 1 thạch', '20 ml cf phin · 7 SĐ · 80 ST · 33 ml siro · 1 thạch', 'đánh bằng máy · thạch + sữa + siro · rưới cf phin lên trên · ống hút to'],
+  ]],
+  ['Matcha & trà sữa · matcha đánh bằng máy với 30 ml nước nóng', [
+    ['Matcha latte', '3 g matcha · 25 ml SĐ · 60 ml ST', '4 g matcha · 33 ml SĐ · 80 ml ST', 'đánh bằng máy · sữa trước · rưới matcha lên trên'],
+    ['Matcha coffee', 'Matcha latte + 20 ml cf', 'Matcha latte L + 30 ml cf', 'đánh bằng máy · sữa · rưới matcha · rưới cf trên cùng', 'mtc'],
+    ['Matcha latte muối', 'Matcha latte + 2 muỗng', 'Matcha latte L + 2,5 muỗng', 'đánh bằng máy · sữa · rưới matcha · kem trên cùng'],
+    ['Trà sữa gạo rang', 'đang cập nhật', 'đang cập nhật'],
   ]],
 ];
 const SO_CHE_IN = [
@@ -6015,7 +6014,7 @@ function goiYNV(){
     ac:`Trước ${Math.min(...g2.map(g => g.h))}h: đủ đá, ly, nắp, sữa đã pha; chuẩn bị sẵn cho ${t3.slice(0, 2).map(m => m.mon).join(' và ')}. Lúc đông vẫn nhớ hỏi size L và thẻ.`});
   // 5. khách mới
   if (t3.length) R.push({muc:'', t:'Khách mới chưa biết gọi gì', ev:`3 món được gọi nhiều nhất: ${t3.map(m => `${m.mon} (${pct(m.ly / tong, 0)})`).join(' · ')}.`,
-    ac:`Gợi ý ${t3[0].mon} cho khách quen vị cà phê; khách không uống cà phê thì ${(top.find(m => /không cà phê/i.test(m.nhom) && m.ly) || {mon:'cacao / matcha'}).mon}. Hỏi ngọt ít / ngọt vừa để lần sau pha đúng ý.`});
+    ac:`Gợi ý ${t3[0].mon} cho khách quen vị cà phê; khách không uống cà phê thì ${(top.find(m => /cacao|matcha/i.test(m.nhom) && m.ly) || {mon:'cacao / matcha'}).mon}. Hỏi ngọt ít / ngọt vừa để lần sau pha đúng ý.`});
   return R;
 }
 /* v1.7.199: thẻ Gợi ý bán hàng ở tab Báo cáo (tài khoản nhân viên) — v1.7.191 bỏ nhầm, chủ nhờ trả lại 11/11 */
