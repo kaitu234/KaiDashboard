@@ -1087,14 +1087,15 @@ html.mcap{background:var(--paper)}
   <div class="view" id="v-kho" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục tab Kho"></nav>
     <div class="kpis" id="khoKpis"></div>
-    <div class="card" id="sec-kho-nl">
-      <div class="ct">📦 Kho &amp; xe — tồn hiện tại <span class="nt">· 🚚 xe = kiểm xe + lấy từ kho (mục không đếm hằng ngày: trừ theo món đã bán) · 🏠 kho = kiểm kho + mua − lấy ra xe · thanh = số ngày còn đủ (tối đa 14)</span></div>
-      <div class="tblwrap" style="border:0"><table id="tNL"></table></div>
-      <p class="muted" id="nlNote" style="margin:0;font-size:12px"></p>
-    </div>
+    <!-- v1.7.245 (chủ 12/11): xếp theo việc hằng ngày — cần xử lý → mua → báo cáo NV → tồn; biểu đồ + lịch sử kiểm gập sẵn (GOP_MD); bỏ thẻ Vật tư (đã có trong bảng tồn) -->
     <div class="card" id="sec-kho-al">
       <div class="ct">Cần xử lý <span class="nt">· 🏠 kho tồn (cần mua) trước, 🚚 xe (lấy từ kho) sau</span></div>
       <div class="alerts" id="khoAlerts"></div>
+    </div>
+    <div class="card" id="sec-kho-mua">
+      <div class="ct">Kế hoạch mua hàng 7 ngày <span class="nt">· dùng/ngày = công thức × ly/ngày từng món · tồn tính từ sổ chi và ly đã bán</span></div>
+      <div class="tblwrap" style="max-height:380px"><table id="tKhoMua"></table></div>
+      <p class="muted" id="khoMuaNote" style="margin:0;font-size:12px"></p>
     </div>
     <div class="card" id="sec-kho-bc">
       <div class="ct">Báo cáo hằng ngày của nhân viên <span class="nt">· kiểm xe cuối ngày (ly, cà phê) · hàng lấy từ kho ra xe · cuối tuần đếm đủ</span></div>
@@ -1102,20 +1103,14 @@ html.mcap{background:var(--paper)}
       <div class="tblwrap" style="max-height:380px"><table id="tKhoBc"></table></div>
       <p class="muted" id="khoBcNote" style="margin:0;font-size:12px"></p>
     </div>
-    <div class="g2">
-      <div class="card" id="sec-kho-vt">
-        <div class="ct">Vật tư 1 cái/ly <span class="nt">· còn / đã mua</span></div>
-        <div class="kv" id="vatTu"></div>
-      </div>
-      <div class="card" id="sec-kho-chart">
-        <div class="ct">Đủ dùng bao nhiêu ngày <span class="nt">· theo nhịp 7 ngày gần nhất · vạch đỏ = 7 ngày</span></div>
-        <div class="cw sm"><canvas id="cKho" aria-label="Số ngày đủ dùng của từng nguyên liệu"></canvas></div>
-      </div>
+    <div class="card" id="sec-kho-nl">
+      <div class="ct">📦 Kho &amp; xe — tồn hiện tại <span class="nt">· 🚚 xe = kiểm xe + lấy từ kho (mục không đếm hằng ngày: trừ theo món đã bán) · 🏠 kho = kiểm kho + mua − lấy ra xe · thanh = số ngày còn đủ (tối đa 14)</span></div>
+      <div class="tblwrap" style="border:0"><table id="tNL"></table></div>
+      <p class="muted" id="nlNote" style="margin:0;font-size:12px"></p>
     </div>
-    <div class="card" id="sec-kho-mua">
-      <div class="ct">Kế hoạch mua hàng 7 ngày <span class="nt">· dùng/ngày = công thức × ly/ngày từng món · tồn tính từ sổ chi và ly đã bán</span></div>
-      <div class="tblwrap" style="max-height:380px"><table id="tKhoMua"></table></div>
-      <p class="muted" id="khoMuaNote" style="margin:0;font-size:12px"></p>
+    <div class="card" id="sec-kho-chart">
+      <div class="ct">Đủ dùng bao nhiêu ngày <span class="nt">· theo nhịp 7 ngày gần nhất · vạch đỏ = 7 ngày</span></div>
+      <div class="cw sm"><canvas id="cKho" aria-label="Số ngày đủ dùng của từng nguyên liệu"></canvas></div>
     </div>
     <div class="card" id="sec-kho-hh">
       <div class="ct">Kiểm xe, kiểm kho &amp; hao hụt <span class="nt">· số đếm thực tế so với số dự kiến · hao hụt thật đo từ kiểm xe</span></div>
@@ -3105,21 +3100,20 @@ function renderFin(){
   const Gk = giaNL(), tongGt = KH.reduce((a, x) => a + (giaTriTon(x, Gk) || 0), 0);   // v1.7.72
   table({id:'tNL', total:{gt:tongGt}, rows:KH.map(x => Object.assign({}, x, {gt:giaTriTon(x, Gk), botTxt: x.bot && x.bot.ton != null ? `${so(x.bot.ton, x.dv)}${x.bot.ngay != null ? ` · ${ngayTxt(x.bot.ngay)} ngày` : ''} (lúc ${x.bot.luc})` : '—',
       ngayHt:khoNgayHt(x), tt:khoTrangThai(x), viec:khoViec(x), tX: x.kiemXe ? x.kiemXe.luc.getTime() : null, tK: x.kiemKho ? x.kiemKho.luc.getTime() : null})), sortDefault:{k:'ngayHt', d:1}, cols:[
-    {k:'ten', l:'Nguyên liệu', f:v => `<b>${esc(v)}</b>`, cls:() => 'kc-ten'}, {k:'gt', l:'Giá trị còn lại (đ)', r:1, f:v => v == null ? '<span class="muted">—</span>' : fmt(v)}, {k:'dv', l:'Đv', f:v => esc(v)},
+    {k:'ten', l:'Nguyên liệu', f:v => `<b>${esc(v)}</b>`, cls:() => 'kc-ten'},
+    {k:'tt', l:'Trạng thái', f:v => v.m ? `<span class="pill ${v.m === 'xe' ? 'warn' : v.m}">${v.t}</span>` : '<span class="muted">—</span>', cls:v => v.m ? 'kc-' + (v.m === 'xe' ? 'warn' : v.m) : ''},
+    {k:'viec', l:'Việc cần làm', f:v => v ? `<b>${esc(v)}</b>` : '<span class="muted">—</span>'},
+    {k:'dv', l:'Đv', f:v => esc(v)},
     {k:'xe', l:'🚚 Xe', r:1, f:(v, r) => v == null ? '<span class="muted">chưa kiểm</span>' : so(Math.max(0, v), '') + (r.xeTheoCT ? ' <span class="pill neu" title="Không đếm xe hằng ngày: số đếm gần nhất + hàng lấy từ kho − món đã bán × công thức">trừ theo món</span>' : r.tuoiXe > (r.kiemNgay ? 2 : 8) ? ` <span class="pill neu" title="Lần /kiemxe gần nhất đã ${r.tuoiXe} ngày trước">số cũ ${r.tuoiXe} ngày</span>` : ''), cls:(v, r) => v != null && r.canLay ? 'kc-bad' : ''},
     {k:'kho', l:'🏠 Kho', r:1, f:(v, r) => v == null ? '<span class="muted">chưa có số</span>' : so(Math.max(0, v), '') + (r.khoChuaKiem ? ' <span class="pill neu" title="Chưa /kiemkho lần nào: số nhập (sổ chi) − hàng đã lấy ra xe">theo số nhập</span>' : r.tuoiKho > 8 ? ` <span class="pill neu" title="Lần /kiemkho gần nhất đã ${r.tuoiKho} ngày trước">số cũ ${r.tuoiKho} ngày</span>` : ''), cls:v => v != null && v <= 0 ? 'kc-bad' : ''},
     {k:'ton', l:'Tổng', r:1, f:(v, r) => v == null ? (r.khongQuyDoi ? '<span class="muted" title="Cột E tab Kho trống">chưa có quy đổi</span>' : r.tonBiet != null ? `<span class="muted" title="Tổng = xe + kho, cần có số của cả hai nơi">thiếu số ${r.xe == null ? 'xe' : 'kho'}</span>` : '<span class="muted">—</span>') : so(Math.max(0, v), '')},
     {k:'ngayHt', l:'Đủ ~ngày', r:1, f:v => v == null ? '<span class="muted">—</span>' : `<b>${ngayTxt(v)}</b>`, cls:(v, r) => v == null ? '' : v < r.baoNgay ? 'kc-bad' : v < 7 ? 'kc-warn' : 'kc-good'},
     {k:'bar', l:'Thanh · số ngày còn đủ (tối đa 14)', f:(v, r) => r.ngayHt == null ? `<span class="muted">${r.dungCT ? 'chưa có ly bán' : 'chưa có mức dùng/ngày'}</span>` : bar(r.ngayHt, r.baoNgay) + ` <span class="muted num">${ngayTxt(r.ngayHt)}</span>`},
-    {k:'tt', l:'Trạng thái', f:v => v.m ? `<span class="pill ${v.m === 'xe' ? 'warn' : v.m}">${v.t}</span>` : '<span class="muted">—</span>', cls:v => v.m ? 'kc-' + (v.m === 'xe' ? 'warn' : v.m) : ''},
     {k:'tX', l:'Kiểm xe gần nhất', f:(v, r) => gioK(r.kiemXe)}, {k:'tK', l:'Kiểm kho gần nhất', f:(v, r) => gioK(r.kiemKho)},
-    {k:'viec', l:'Việc cần làm', f:v => v ? `<b>${esc(v)}</b>` : '<span class="muted">—</span>'},
     {k:'nhip', l:'Dùng TB/ngày', r:1, f:(v, r) => v ? so(v, r.dv) + (r.dungCT ? '' : ' <span class="pill neu" title="Đo từ các lần kiểm xe">đo</span>') : '<span class="muted">—</span>'},
+    {k:'gt', l:'Giá trị còn lại (đ)', r:1, f:v => v == null ? '<span class="muted">—</span>' : fmt(v)},
     {k:'botTxt', l:'Bot tính (tab Kho)', r:1, f:v => `<span class="muted">${esc(v)}</span>`}]}); }
   $('nlNote').innerHTML = KH.length ? '<b>Tồn lấy từ số đếm.</b> Mục không đếm xe hằng ngày (tab Kho cột U = FALSE, vd kem muối, sữa đặc, cacao) thì 🚚 xe tự trừ theo món đã bán × công thức (ghi "trừ theo món"). 🚚 <b>Xe</b> = số <b>/kiemxe</b> gần nhất (ly + cà phê đếm hằng ngày, mọi mục đếm Chủ nhật) + hàng nhân viên báo <b>/laykho</b> sau lúc đếm. 🏠 <b>Kho</b> = số <b>/kiemkho</b> (chủ, 1–2 lần/tuần) gần nhất + hàng mua (sổ chi) sau ngày kiểm − hàng đã lấy ra xe; chưa đếm kho lần nào thì = số nhập − hàng đã ra xe ("theo số nhập"). <b>Tổng</b> = xe + kho khi có số cả hai nơi. Bán thêm ly nào thì số xe vẫn là số đếm gần nhất cho tới lần /kiemxe kế (hiện "số cũ" khi xe quá 2 ngày, mục kiểm tuần quá 8 ngày, kho quá 8 ngày). Định lượng CongThuc chỉ còn dùng để tính nhịp dùng (đủ ~ngày) và so với số đếm khi kiểm (hao hụt). Xe báo lấy từ kho khi ly dưới 50, cà phê dưới 1 kg (đổi ở cột S–U tab Kho). Cột "Bot tính" là số ở tab Kho (bot làm mới mỗi ~10 phút khi số đổi).' :'Chưa có tab <b>Kho</b> (hoặc chưa có quy đổi) nên chưa tính được tồn kho — chưa có số thật.';
-  const vt = KH.filter(x => x.dv === 'cái');
-  $('vatTu').innerHTML = vt.length ? vt.map(x => `<span>${esc(x.ten)}</span><b>${x.ton == null ? (x.tonBiet == null ? '—' : so(Math.max(0, x.tonBiet), 'cái') + ' (thiếu số ' + (x.xe == null ? 'xe' : 'kho') + ')') : so(Math.max(0, x.ton), 'cái')}${x.ngay != null ? ` · ~${ngayTxt(x.ngay)} ngày` : ''}</b>`).join('')
-    : '<span class="muted">Tab Kho chưa theo dõi vật tư tính theo cái.</span>';
   $('alerts').innerHTML = A.map(([lv, tag, t, d, fix]) => `<div class="alert ${lv}"><span class="pill ${lv}">${tag}</span><div><div class="t">${t}</div><div class="d">${d}</div></div><span class="fix">${fix}</span></div>`).join('');
 
   /* months */
@@ -3677,7 +3671,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.244';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.245';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3735,6 +3729,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.245', ngay:'12/11/2026', nd:['Tab Kho gọn lại: Cần xử lý → Kế hoạch mua 7 ngày → Báo cáo nhân viên → Tồn hiện tại (cột Trạng thái + Việc cần làm lên ngay sau tên). Biểu đồ Đủ dùng và Lịch sử kiểm & hao hụt gập sẵn (▾ để mở). Bỏ thẻ Vật tư 1 cái/ly và ô Giá trị / Ổn (đã có trong bảng tồn, Cần xử lý). Không đổi cách tính.']},
   {v:'v1.7.244', ngay:'12/11/2026', nd:['Phân tích sâu: bỏ đá viên khỏi bảng Nguyên liệu mua thêm / bớt — đá mua ngày nào dùng ngày đó, không trữ nên tồn theo sổ chi không có nghĩa.']},
   {v:'v1.7.243', ngay:'12/11/2026', nd:['Phân tích sâu: “Mua ít lại / Đang mua dư” chỉ báo khi 30 ngày qua mua > 1,5× dùng VÀ tồn còn đủ > 30 ngày (trước: > 21 ngày) — bớt báo nhầm hàng vừa nhập 1 đợt.']},
   {v:'v1.7.242', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Phân tích sâu · nên làm gì” ở đầu tab — danh sách việc nên cải thiện xếp theo mức gấp (sắp hết hàng, dùng tăng/giảm, mua dư, món giảm/lên, món lời mỏng, món nên đẩy, thứ bán yếu, đơn 1 ly + cặp combo, khung lỗ sau lương, thiếu người, chênh năng suất), mỗi dòng kèm số.', 'Bảng Nguyên liệu: mua thêm hay bớt — dùng/ngày 14 ngày bán gần nhất (bỏ ngày 10K), xu hướng so 14 ngày trước, tồn, đủ ~ngày, mua vs dùng 30 ngày, lượng nên mua cho 7 ngày, kết luận 🔴🟠🔵🟡🟢.', 'Bảng Món: đẩy, giữ hay xem lại — 4 nhóm theo ly/ngày và lời gộp/ly (⭐ chủ lực · 💰 lời mỏng · 📣 nên đẩy · ✂️ cân nhắc bỏ) kèm xu hướng so kỳ trước.']},
@@ -3746,28 +3741,6 @@ const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều 
   {v:'v1.7.236', ngay:'12/11/2026', nd:['Kai’s facts: chia hai mục Bảng vàng và Góc cần cải thiện. Thêm: ghi nhiều đơn nhất, đơn to nhất, ly đầu tiên sớm nhất, chốt két chuẩn nhất, chăm kiểm kho nhất, được thưởng nhiều lần nhất; két thiếu / dư nhiều nhất, lần lệch két lớn nhất, đếm xe hụt nhiều nhất (ước theo giá chuẩn), huỷ đơn nhiều nhất, đi trễ, quên check-out, bị phạt (số lần).', 'Giao diện học theo mẫu trang McKinsey: chip sticker, chữ tô dạ quang, tiêu đề mục có ô icon nghiêng — vẫn màu nâu–be Kai.']},
   {v:'v1.7.235', ngay:'12/11/2026', nd:['Hôm nay › Bán theo người ghi đơn: cảnh báo "Có thể ghi trùng" khi 2 đơn do 2 người khác nhau ghi cách nhau dưới 5 giây — hiện giờ (có giây), mã đơn, món, tiền của cả hai đơn để kiểm và huỷ đơn trùng trên bot.']},
   {v:'v1.7.234', ngay:'12/11/2026', nd:['Kai’s facts tách thành tab riêng ở nhóm Vận hành (dưới Sổ tay), bỏ khỏi tab Nhân sự.']},
-  {v:'v1.7.233', ngay:'12/11/2026', nd:['Nhân sự: thêm mục Kai’s facts — infographic vui về đội Kai từ ngày mở bán: gắn bó lâu nhất, thâm niên, tay pha nhanh nhất (ly/giờ), AOV cao nhất, dậy sớm nhất, vua size L, vua thẻ thành viên, ca kỷ lục, đúng giờ nhất, anh/chị cả, sinh nhật sắp tới, món tủ từng người + số cả quán (tổng ly, ngày kỷ lục, món số 1, giờ đông).']},
-  {v:'v1.7.232', ngay:'12/11/2026', nd:['Sửa lỗi v1.7.231: tab Hôm nay xem theo ngày không hiện được (chú thích nuốt mất dòng code). Gợi ý “Ít size L” không báo khi tỉ lệ L đã cao hơn mốc so sánh.']},
-  {v:'v1.7.231', ngay:'12/11/2026', nd:['Hôm nay (tài khoản chủ): ô Phân tích nhanh thêm mục Bán hàng · nhắc nhân viên — cùng các gợi ý nhân viên đang thấy (ít size L, món bán chạy bán chậm, nhịp bán, thẻ thành viên, ly / giờ ca).']},
-  {v:'v1.7.230', ngay:'12/11/2026', nd:['Hôm nay (tài khoản nhân viên): ô Phân tích nhanh thành Gợi ý bán hàng — báo khi ít size L, món bán chạy bán chậm, nhịp bán thấp hơn TB 14 ngày (tính tới cùng giờ), ít đơn thẻ thành viên, ly / giờ ca thấp; không hiện số tiền quán.']},
-  {v:'v1.7.229', ngay:'12/11/2026', nd:['Hôm nay › Ca & két: bỏ bảng Chi từ két (quán không chi từ két; dòng Chi từ két ở Tiền & lãi chỉ hiện khi có), thay bằng bảng Bán theo người ghi đơn — đơn, ly, doanh thu, giờ ca, ly/giờ của từng người.']},
-  {v:'v1.7.228', ngay:'12/11/2026', nd:['Nhân sự (tài khoản chủ): thẻ tô màu như thẻ Của tôi — giờ làm xanh dương, tiền công và lương/giờ xanh lá, % lương xanh/vàng/đỏ theo ngưỡng, Cảnh báo nền đỏ (Ổn thì xanh), Gợi ý nền xanh ngọc.', 'Điện thoại: bảng có cột đầu cố định mà cột đầu quá rộng (vd. công thức có ảnh món) thì cột đầu thu còn 40% màn hình, trượt ngang thấy đủ các cột; Lịch làm theo đợt, Ai làm ngày nào, bảng theo tháng không còn tràn mép mất chữ.', 'Hôm nay, Bán hàng, Hiệu suất: thẻ 🔁 Tỉ lệ khách quay lại = đơn thẻ thành viên (tv) ÷ đơn tại quầy T2–T6 (thẻ không áp T7, CN và đơn app), so kỳ trước.']},
-  {v:'v1.7.227', ngay:'12/11/2026', nd:['Nhân sự (chỉ chủ): biểu đồ Hiệu suất theo giờ lương dưới hàng thẻ — đường doanh thu / giờ lương, cột ly / giờ lương theo ngày (đơn trong ca nhân viên ÷ giờ trong ca + vào sớm, không tính chủ); dòng dưới so từng người.']},
-  {v:'v1.7.226', ngay:'12/11/2026', nd:['Nhân sự: thẻ Cảnh báo và Gợi ý nằm chung một hàng.']},
-  {v:'v1.7.225', ngay:'12/11/2026', nd:['Nhân sự (xem cả quán, chỉ chủ): thêm thẻ % Lương / doanh thu (tốt ≤ 25%, để ý ≤ 35%), thẻ Cảnh báo (lương cao, ca chưa tính tiền, ca quên check-out, đơn ngoài giờ ca, vào trễ) và thẻ Gợi ý.', 'Ô icon trên thẻ %Hoà vốn, %Đạt mục tiêu và các thẻ mục tiêu khác nền trắng kem.']},
-  {v:'v1.7.224', ngay:'12/11/2026', nd:['Mục tiêu ly/ngày mặc định 40 (trước 80); tải lại trang luôn về 40.', 'Đơn khách mang ly / bình (bot gõ “ly” cuối đơn, −2.000đ/ly, dùng chung thẻ thành viên): chip 🥤 mang ly ở Đơn mới nhất, đếm ly / đơn / tiền đã giảm ở thẻ Thành viên & mang ly (tab Bán hàng).']},
-  {v:'v1.7.223', ngay:'12/11/2026', nd:['Ô icon trên các thẻ nâu (Tổng quan, Bán hàng, Nhân sự…) đổi nền trắng kem cho icon nổi rõ.']},
-  {v:'v1.7.222', ngay:'12/11/2026', nd:['Nhân sự: dải tên trên thẻ sáng hơn (nâu ấm, viền nhạt) để hàng 4 ô tóm tắt đỡ tối.']},
-  {v:'v1.7.221', ngay:'12/11/2026', nd:['Nhân sự: thẻ tên đổi sang kiểu thẻ nhân viên — dải nâu ghi tên, thân kem ghi bậc chữ nâu (bỏ chuyển màu và viền chữ cho dễ đọc). Ô Bậc ở “Của tôi” cùng kiểu.']},
-  {v:'v1.7.220', ngay:'12/11/2026', nd:['Tài liệu › Ấn phẩm: thêm tờ dán A4 “Mang ly / bình cá nhân giảm 2K” (ảnh + PDF in tràn 3 mm).']},
-  {v:'v1.7.219', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: đơn 4 món hiện đủ 4 ảnh ly (trước chỉ 3), đơn từ 5 món ghi thêm +N.']},
-  {v:'v1.7.218', ngay:'12/11/2026', nd:['Của tôi: ô Vi phạm màu đỏ, liệt kê ngắn lỗi trong tháng (chủ ghi bằng /phat) và còn mấy lỗi là mất chuyên cần.', 'Ô Sổ tay: chưa xác nhận đỏ thẫm, đã xác nhận xanh lá.']},
-  {v:'v1.7.217', ngay:'12/11/2026', nd:['Tab Nhân sự: thẻ tên/bậc ghi ngày bắt đầu làm (ca chấm công đầu tiên) thay cho chữ “Nhân viên”.']},
-  {v:'v1.7.216', ngay:'12/11/2026', nd:['Tab Nhân sự: ô Lương / giờ đổi sang nền xanh lá như ô lương ở “Của tôi”; ô Thâm niên cùng kiểu, màu xanh dương vừa.']},
-  {v:'v1.7.215', ngay:'12/11/2026', nd:['Tab Nhân sự: thẻ tên/bậc và thâm niên sáng hơn, chữ kem viền nâu như ấn phẩm của quán; ô Bậc (Của tôi) và ô Lương / giờ của bạn nổi bật.']},
-  {v:'v1.7.214', ngay:'12/11/2026', nd:['Tab Nhân sự (tài khoản nhân viên): ô Giờ làm nay là giờ tính lương (trong ca + vào sớm) — cùng số bot cộng vào thâm niên, hết lệch với ô Thâm niên.']},
-  {v:'v1.7.213', ngay:'12/11/2026', nd:['Tab Nhân sự (tài khoản nhân viên): khối thẻ đầu tab chỉ hiện thông tin của chính bạn — bậc, thâm niên, giờ làm, lương/giờ — không còn số cả quán (đang làm, thử việc, dẫn đầu…).']},
-  {v:'v1.7.212', ngay:'12/11/2026', nd:['Chip chuyên cần gọn một dòng: “còn N ca → +50.000 đ”.']},
 ];
 /** Còn treo: nhóm · việc (chuỗi hoặc hàm) · cần gì / từ ai · xong() tự kiểm theo dữ liệu (không có thì chỉ xoá tay khỏi danh sách này khi đã giải quyết) · tt() chữ trạng thái */
 const BACKLOG = [
@@ -6037,12 +6010,10 @@ function renderPerf(){
 function renderKho(){
   renderMuaHang(); renderHaoHut(); renderBaoCaoXe();
   { const KH = khoTheoDoi(), T = KH.map(khoTrangThai), dem = m => T.filter(t => t.m === m).length, gan = noi => D.kiemKho.filter(x => x.noi === noi && x.luc).map(x => x.luc).sort((a, b) => b - a)[0];
-    const gio = t => t ? `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}` : '—', nMua = KH.filter(x => x.can).length, nLay = KH.filter(x => x.canLay).length, nOn = dem('good');
+    const gio = t => t ? `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}` : '—', nMua = KH.filter(x => x.can).length, nLay = KH.filter(x => x.canLay).length;
     $('khoKpis').innerHTML = `
     <div class="kpi tgt"><span class="lb">🏠 Kho cần mua</span><span class="v ${nMua ? 'dn' : 'up'}">${nMua}</span><span class="s">${dem('bad') ? `trong đó ${dem('bad')} mua gấp` : 'kho còn ≤ ngưỡng hoặc đủ ít ngày'}</span></div>
     <div class="kpi tgt"><span class="lb">🚚 Xe cần lấy từ kho</span><span class="v ${nLay ? 'dn' : 'up'}">${nLay}</span><span class="s">xe dưới mức báo lấy</span></div>
-    <div class="kpi tgt"><span class="lb">Giá trị hàng còn lại</span><span class="v">${fmt(KH.reduce((a, x) => a + (giaTriTon(x) || 0), 0))}</span><span class="s">xe + kho × giá mua (chưa hao hụt), cùng Sheet Bảng kho</span></div>
-    <div class="kpi tgt"><span class="lb">✅ Ổn</span><span class="v up">${nOn}</span><span class="s">trên ${KH.length} mục đang theo dõi</span></div>
     <div class="kpi tgt"><span class="lb">Kiểm xe gần nhất</span><span class="v">${gio(gan('xe'))}</span><span class="s">nhân viên /kiemxe</span></div>
     <div class="kpi tgt"><span class="lb">Kiểm kho gần nhất</span><span class="v">${gio(gan('kho'))}</span><span class="s">chủ /kiemkho</span></div>`; }
   { const KA = khoCanhBao(); $('khoAlerts').innerHTML = (KA.length ? KA : [['good', 'Ổn', 'Kho và xe chưa có điểm cần xử lý', 'Tồn kho đủ dùng; ly và cà phê ở xe đủ.', '']]).map(([lv, tag, t, d, fix]) => `<div class="alert ${lv}"><span class="pill ${lv}">${tag}</span><div><div class="t">${t}</div><div class="d">${d}</div></div><span class="fix">${fix}</span></div>`).join(''); }
@@ -6058,6 +6029,10 @@ function renderKho(){
 
 /* ============ thẻ: mục lục · thu gọn ▾ · phóng to ⤢ (− + Vừa khung, Esc để đóng) ============ */
 let GOP = new Set(); try { GOP = new Set(JSON.parse(localStorage.getItem('kai_gop') || '[]')); } catch(e){}
+/* v1.7.245 — thẻ gập sẵn lần đầu (ít xem hằng ngày). Mỗi id chỉ áp 1 lần/trình duyệt (kai_gop_md), mở ra rồi thì giữ mở. */
+const GOP_MD = ['sec-kho-chart', 'sec-kho-hh'];
+try { const da = new Set(JSON.parse(localStorage.getItem('kai_gop_md') || '[]')), moi = GOP_MD.filter(id => !da.has(id));
+  if (moi.length){ moi.forEach(id => { GOP.add(id); da.add(id); }); localStorage.setItem('kai_gop', JSON.stringify([...GOP])); localStorage.setItem('kai_gop_md', JSON.stringify([...da])); } } catch(e){ GOP_MD.forEach(id => GOP.add(id)); }
 const tieuDe = c => { const ct = c.querySelector(':scope > .ct'); return ct ? [...ct.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : ''; };
 /* ============ render: BÁO CÁO tuần / tháng (v1.7.43, chủ quán duyệt 17/10/2026) ============
  * Dùng lại hàm sẵn có: sel / agg (đơn bot), tinhPnl (giá vốn theo từng ngày bán, lương, chi vận hành), nguonTien (thực thu TM / CK),
