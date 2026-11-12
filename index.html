@@ -429,6 +429,11 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 #hrTop .kpi.hot .lb .ki,#hrTop .kpi.tn .lb .ki{background:rgba(255,255,255,.5)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #hrTop .kpi.tn{--tn:#86B9E6;background:rgba(134,185,230,.12)}}
 :root[data-theme="dark"] #hrTop .kpi.tn{--tn:#86B9E6;background:rgba(134,185,230,.12)}
+/* v1.7.218 (chủ 12/11): ô Vi phạm đỏ kèm lỗi ngắn gọn · Sổ tay chưa xác nhận đỏ thẫm, đã xác nhận xanh lá */
+.toi>div.toiV{background:var(--bad-bg);box-shadow:inset 3px 0 0 var(--bad)} .toi .toiV .lb{color:var(--bad)} .toi .toiV .v{font-size:22px;color:var(--bad)}
+.toi .toiV .vpl{display:grid;gap:2px;font-size:12px;color:var(--ink);margin-top:2px} .toi .toiV .vpl span{overflow-wrap:anywhere}
+.toi>div.toiS0{background:var(--bad-bg);box-shadow:inset 3px 0 0 #8E1F16} .toi .toiS0 .lb{color:#8E1F16} .toi .toiS0 .v a{color:#fff;background:#8E1F16;border-color:#8E1F16}
+.toi>div.toiS1{background:var(--good-bg);box-shadow:inset 3px 0 0 var(--good)} .toi .toiS1 .lb,.toi .toiS1 .v{color:var(--good)}
 .toi .chip{justify-self:start;white-space:nowrap;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;margin:2px 0}
 .toi .toiL .chip{justify-self:start;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--good);color:var(--good-bg);margin:2px 0}
 .ddl{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.5;cursor:pointer}
@@ -3505,7 +3510,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.217';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.218';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3563,6 +3568,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.218', ngay:'12/11/2026', nd:['Của tôi: ô Vi phạm màu đỏ, liệt kê ngắn lỗi trong tháng (chủ ghi bằng /phat) và còn mấy lỗi là mất chuyên cần.', 'Ô Sổ tay: chưa xác nhận đỏ thẫm, đã xác nhận xanh lá.']},
   {v:'v1.7.217', ngay:'12/11/2026', nd:['Tab Nhân sự: thẻ tên/bậc ghi ngày bắt đầu làm (ca chấm công đầu tiên) thay cho chữ “Nhân viên”.']},
   {v:'v1.7.216', ngay:'12/11/2026', nd:['Tab Nhân sự: ô Lương / giờ đổi sang nền xanh lá như ô lương ở “Của tôi”; ô Thâm niên cùng kiểu, màu xanh dương vừa.']},
   {v:'v1.7.215', ngay:'12/11/2026', nd:['Tab Nhân sự: thẻ tên/bậc và thâm niên sáng hơn, chữ kem viền nâu như ấn phẩm của quán; ô Bậc (Của tôi) và ô Lương / giờ của bạn nổi bật.']},
@@ -4820,8 +4826,11 @@ function renderCuaToi(){
         return o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? '<span class="chip">' + 'còn ' + (CC.soCa - cc.chuoi) + ' ca → +' + fmt(CC.tien) + ' đ' + '</span>'
           + '<span class="s">' + (lan ? 'đạt ' + lan + ' lần tháng này · +' + fmt(lan * CC.tien) + ' đ' : 'chưa đạt lần nào tháng này') + '</span>' : '<span class="s">chưa có ca</span>', 'toiC'); })()
     + o('Ca sắp tới', lich.length ? lich.length + ' ca' : 'chưa đăng ký', lich.slice(0, 6).map(k => thu(k) + ' ' + dShort(k)).join(' · ') || 'đăng ký: /dangkyca')
-    + o('Sổ tay', daDoc ? '✓ đã đọc' : '<a class="lnk toiStLnk" href="#sec-st-dd">⚠ chưa xác nhận</a>', 'bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : ''))
-    + o('Vi phạm', '/vipham', 'xem lỗi tháng này trên bot')
+    + o('Sổ tay', daDoc ? '✓ đã xác nhận' : '<a class="lnk toiStLnk" href="#sec-st-dd">⚠ chưa xác nhận</a>', '<span class="s">bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : '') + '</span>', daDoc ? 'toiS1' : 'toiS0')
+    + (() => { /* v1.7.218: cùng cách lọc bot /vipham — khoản PHAT trong tháng, bỏ "Điều chỉnh:"; 0đ = ghi nhận (quên chấm công 3 lần đầu); quá 3 lỗi phạt tiền → mất chuyên cần (bot VI_PHAM_MAX) */
+        const vp = (D.thuongPhat || []).filter(x => x.id === me.id && x.loai === 'PHAT' && x.k.slice(0, 7) === m0 && !/^Điều chỉnh:/i.test(x.lyDo || '')).sort((a, b) => a.k < b.k ? -1 : 1), nT = vp.filter(x => x.tien < 0).length, MAX = 3;
+        return o('Vi phạm tháng này', nT ? nT + ' lỗi' : vp.length ? '0 lỗi phạt' : 'Không có', (vp.length ? '<span class="vpl">' + vp.slice(-4).map(x => '<span>• ' + dShort(x.k) + (x.tien < 0 ? ' −' + fmt(-x.tien) + ' đ' : ' (ghi nhận)') + (x.lyDo ? ' – ' + esc(x.lyDo) : '') + '</span>').join('') + '</span>' : '')
+          + '<span class="s">' + (nT > MAX ? '⛔ quá ' + MAX + ' lỗi → mất thưởng chuyên cần' : nT ? 'thêm ' + (MAX - nT + 1) + ' lỗi nữa là mất chuyên cần' : 'chi tiết: /vipham trên bot') + '</span>', 'toiV'); })()
     + '</div>' + (daDoc ? '' : '<p style="margin:8px 0 0"><a class="lnk toiStLnk" href="#sec-st-dd" id="toiSt">Đọc và xác nhận Sổ tay →</a></p>');
   $('hrToi').querySelectorAll('.toiStLnk').forEach(a => a.onclick = e => { e.preventDefault(); $('tab-st').click(); setTimeout(() => hienThe('sec-st-dd'), 60); });   // v1.7.195 (chủ nhờ 11/11): mở thẳng mục Xác nhận đã đọc
 }
