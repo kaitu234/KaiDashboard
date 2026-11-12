@@ -841,8 +841,8 @@ html.mcap{background:var(--paper)}
       <div class="card">
         <div class="ct">Ca &amp; két hôm nay <span class="nt"></span></div>
         <div class="tblwrap" style="max-height:200px"><table id="tTdCong"></table></div>
-        <div class="lbl">Chi từ két</div>
-        <div class="tblwrap" style="max-height:160px"><table id="tTdChi"></table></div>
+        <div class="lbl">Bán theo người ghi đơn</div>
+        <div class="tblwrap" style="max-height:200px"><table id="tTdNguoi"></table></div>
         <div class="cmt" id="tdChot"></div>
       </div>
     </div>
@@ -1929,6 +1929,16 @@ function quayLaiKpi(list, nhan, truoc, nhanTruoc){
   const q = quayLai(list), qt = truoc ? quayLai(truoc) : null;
   return `<div class="kpi tgt"><span class="lb">🔁 Tỉ lệ khách quay lại · ${esc(nhan)}</span><span class="v">${q.p == null ? '—' : pct(q.p, 1)}</span><span class="s">${q.tong ? `<b>${fmt(q.tv)}</b> đơn thẻ thành viên ÷ ${fmt(q.tong)} đơn tại quầy T2–T6${qt && qt.p != null ? ` · ${dlt(q.p, qt.p)} vs ${esc(nhanTruoc)}` : ''}` : q.tv0 ? 'chưa có đơn T2–T6 trong kỳ (thẻ không áp T7, CN)' : 'chưa có đơn thẻ thành viên (gõ <b>tv</b> trên bot)'}</span></div>`;
 }
+/* v1.7.229 (chủ 12/11): thẻ Ca & két (Hôm nay) bỏ bảng Chi từ két (quán không chi từ két) → bảng Bán theo người ghi đơn: đơn · ly · doanh thu (đơn bot, gồm app) · giờ tính lương trong ca (cùng gioLuong của biểu đồ Hiệu suất theo giờ lương) · ly / giờ. Theo người nhập đơn (o.nv), không chia đơn khi hai người chung ca. */
+function banTheoNguoi(list, cong){
+  const per = {};
+  list.forEach(o => { const p = (per[o.nv || '?'] ??= {nv:o.nv || '?', ids:new Set(), ly:0, dt:0, gio:0}); p.ids.add(o.id); p.ly += o.sl; p.dt += o.tt; });
+  (cong || []).forEach(c => { const p = per[c.nv]; if (p) p.gio += gioLuong(c, c.ra || gioRaTam(c)); });
+  const rows = Object.values(per).map(p => ({nv:p.nv, don:p.ids.size, ly:p.ly, dt:p.dt, gio:p.gio || null, lyh:p.gio ? p.ly / p.gio : null})), f1 = v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1});
+  table({id:'tTdNguoi', rows, sortDefault:{k:'dt', d:-1}, total:rows.length > 1 ? {don:rows.reduce((a, r) => a + r.don, 0), ly:rows.reduce((a, r) => a + r.ly, 0), dt:rows.reduce((a, r) => a + r.dt, 0)} : null, cols:[
+    {k:'nv', l:'Người ghi', f:v => esc(v)}, {k:'don', l:'Đơn', r:1, f:fmt}, {k:'ly', l:'Ly', r:1, f:fmt}, {k:'dt', l:'Doanh thu', r:1, f:fmt}, {k:'gio', l:'Giờ ca', r:1, f:f1}, {k:'lyh', l:'Ly / giờ', r:1, f:f1}]});
+  if (!rows.length) $('tTdNguoi').querySelector('tbody').innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:12px">Chưa có đơn.</td></tr>';
+}
 function appKpi(list, nhan){
   const all = agg(list), ap = agg(list.filter(laApp)), apBe = agg(list.filter(o => o.pt === 'BE')), apX = agg(list.filter(o => o.pt === 'XANH'));
   return `<div class="kpi tgt"><span class="lb">🛵 Đơn app · ${esc(nhan)}</span><span class="v">${fmt(ap.app)}</span><span class="s">${ap.don ? `<b>${fmt(ap.don)} đơn · ${fmt(ap.ly)} ly</b> · ${pct(all.dt ? ap.app / all.dt : null, 0)} doanh thu<br>${LOGO_APP.BE}${fmt(apBe.app)} (${apBe.don} đơn) · ${LOGO_APP.XANH}${fmt(apX.app)} (${apX.don} đơn) · thực nhận, chủ giữ riêng` : 'chưa có đơn be / Xanh SM'}</span></div>`;
@@ -2649,7 +2659,7 @@ function renderTdKy(){
     <span>🏦 CK (kể cả tiền mặt đã nộp vào CK)</span><b>${fmt(TC.ck)} đ</b>
     ${TC.n ? `<span>⏳ Chưa chốt ca · ${TC.n} ngày (đơn bot)</span><b>${fmt(TC.chua)} đ</b>` : ''}
     ${TC.app ? `<span>🛵 Đơn app (để riêng, không vào két)</span><b>${fmt(TC.app)} đ</b>` : ''}
-    <span>Chi từ két trong kỳ</span><b>${chiKet ? '−' + fmt(chiKet) + ' đ' : '0 đ'}</b>
+    ${chiKet ? `<span>Chi từ két trong kỳ</span><b>−${fmt(chiKet)} đ</b>` : ''}
     <span class="sep"></span>
     ${tdPnlHtml(P, days, false)}`;
   $('tdSide').innerHTML = tdSideHtml(P, {mot:false, nd:K.nd, chuaChot:K.ket.filter(x => !x.chot && x.bot && !(x.k === tk && now.getHours() < 12)).map(x => x.k), huy:new Set(K.cancel.map(c => c.id)).size, don:A.don, lech:K.ket.filter(x => x.chot).reduce((a, x) => a + (x.chenh || 0), 0)});
@@ -2708,9 +2718,7 @@ function renderTdKy(){
     {k:'ra', l:'Ra', f:(v, r) => v ? tm(v) : (r.k === tk ? '<span class="pill good">đang làm</span>' : '—')},
     {k:'gio', l:'Giờ', r:1, f:(v, r) => r.ra ? (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'}]});
   if (!K.cong.length) $('tTdCong').querySelector('tbody').innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;padding:14px">Kỳ này chưa có ca chấm công.</td></tr>';
-  table({id:'tTdChi', rows:chiK, sortDefault:{k:'tien', d:-1}, total:chiK.length ? {tien:chiK.reduce((x, y) => x + y.tien, 0)} : null, cols:[
-    {k:'k', l:'Ngày', f:v => dShort(v)}, {k:'nd', l:'Nội dung'}, {k:'tien', l:'Số tiền', r:1, f:fmt}, {k:'nguon', l:'Nguồn', f:v => v === 'CK' ? '🏦 CK' : '💵 Két'}]});
-  if (!chiK.length) $('tTdChi').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center;padding:12px">Kỳ này không có khoản chi từ két.</td></tr>';
+  banTheoNguoi(K.L, K.cong);
   const daChot = K.ket.filter(x => x.chot), chuaChot = K.ket.filter(x => !x.chot && x.bot), lech = daChot.reduce((x, y) => x + (y.chenh || 0), 0);
   $('tdChot').innerHTML = K.ket.length ? `🔒 Đã chốt <b>${daChot.length}/${K.ket.length}</b> ngày bán · tổng lệch két ${lech === 0 ? '<b class="up">khớp</b>' : lech > 0 ? `<b>dư ${fmt(lech)} đ</b>` : `<b class="dn">thiếu ${fmt(-lech)} đ</b>`}${chuaChot.length ? ` · <b class="dn">chưa chốt: ${chuaChot.map(x => dShort(x.k)).join(', ')}</b>` : ''}` : 'Kỳ này chưa có ngày bán.';
 }
@@ -2759,7 +2767,7 @@ function renderToday(){
     <span>💵 Tiền mặt (giữ lại)</span><b>${fmt(n.tm)} đ</b>
     <span>🏦 CK (kể cả tiền mặt đã nộp vào CK)</span><b>${fmt(n.ck)} đ</b>` : `<span>⏳ Chưa chốt ca — tiền mặt / CK biết sau khi /chotca</span><b>—</b>`}` : ''; })()}
     <span class="sep"></span>
-    <span>Chi từ két</span><b>${chiKet ? '−' + fmt(chiKet) + ' đ' : '0 đ'}</b>
+    ${chiKet ? `<span>Chi từ két</span><b>−${fmt(chiKet)} đ</b>` : ''}
     <span class="sep"></span>
     ${tdPnlHtml(PN, [k], true)}`;
   $('tdSide').innerHTML = tdSideHtml(PN, {mot:true, nd:1, chuaChot:nt && !nt.chot && A.ly && !(isToday && now.getHours() < 12) ? [k] : [], huy:nHuy, don:A.don, lech:nt && nt.chot ? nt.chenh : 0});
@@ -2834,9 +2842,7 @@ function renderToday(){
     {k:'gio', l:'Giờ', r:1, f:(v, r) => r.ra ? (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'}, {k:'gioL', l:'Tính lương', r:1, f:v => v ? v.toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'}, {k:'gioDN', l:'Giờ danh nghĩa', r:1, f:v => v ? v.toLocaleString('vi-VN', {maximumFractionDigits:2}) : '—'},
     {k:'tienN', l:'Tiền công', r:1, f:(v, r) => v == null ? '—' : fmt(v) + (r.tamT ? ' <span class="muted">(tạm)</span>' : '')}, {k:'lgDN', l:'Lương/giờ danh nghĩa', r:1, f:v => v ? fmt(v) : '—'}, {k:'note', l:'Ghi chú', f:v => esc(v || '')}]});
   if (!cong.length) $('tTdCong').querySelector('tbody').innerHTML = `<tr><td colspan="9" class="muted" style="text-align:center;padding:14px">Chưa ai /checkin ${isToday ? 'hôm nay' : 'ngày này'}.</td></tr>`;
-  table({id:'tTdChi', rows:chiK, sortDefault:{k:'tien', d:-1}, total:chiK.length ? {tien:chiK.reduce((s, x) => s + x.tien, 0)} : null, cols:[
-    {k:'nd', l:'Nội dung'}, {k:'tien', l:'Số tiền', r:1, f:fmt}, {k:'nguon', l:'Nguồn', f:v => v === 'CK' ? '🏦 CK' : '💵 Két'}, {k:'ai', l:'Người ghi'}]});
-  if (!chiK.length) $('tTdChi').querySelector('tbody').innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center;padding:12px">Chưa có khoản chi từ két.</td></tr>';
+  banTheoNguoi(L, cong);
   const ch = D.chot.filter(x => x.k === k), apK = agg(L.filter(laApp)), apTd = apK.app ? `<br>🛵 <b>Đơn app</b> ${appTxt(apK.be, apK.xanh)} — để riêng, không tính vào két / chênh` : '';
   $('tdChot').innerHTML = (ch.length ? ch.map(x => `🔒 <b>Đã chốt ca</b> (${esc(x.nv)}): ${x.ckThuc != null ? `TM ${fmt(x.thucThu)} đ + CK ${fmt(x.ckThuc)} đ = ${fmt(x.thucThu + x.ckThuc)} đ` : `két thực thu ${fmt(x.thucThu)} đ`} / phải có theo bot ${fmt(x.phaiCo)} đ → ${x.chenh === 0 ? '<b class="up">khớp</b>' : x.chenh > 0 ? `<b>dư ${fmt(x.chenh)} đ</b>` : `<b class="dn">thiếu ${fmt(-x.chenh)} đ</b>`}`).join('<br>')
     : (tk => tk ? `🔒 <b>Đã chốt ca</b> (tick ở tab Doanh thu): Lệch ${tk.chenh === 0 ? '<b class="up">khớp</b>' : tk.chenh > 0 ? `<b>dư ${fmt(tk.chenh)} đ</b>` : `<b class="dn">thiếu ${fmt(-tk.chenh)} đ</b>`}`
@@ -3554,7 +3560,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.228';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.229';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3612,6 +3618,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.229', ngay:'12/11/2026', nd:['Hôm nay › Ca & két: bỏ bảng Chi từ két (quán không chi từ két; dòng Chi từ két ở Tiền & lãi chỉ hiện khi có), thay bằng bảng Bán theo người ghi đơn — đơn, ly, doanh thu, giờ ca, ly/giờ của từng người.']},
   {v:'v1.7.228', ngay:'12/11/2026', nd:['Nhân sự (tài khoản chủ): thẻ tô màu như thẻ Của tôi — giờ làm xanh dương, tiền công và lương/giờ xanh lá, % lương xanh/vàng/đỏ theo ngưỡng, Cảnh báo nền đỏ (Ổn thì xanh), Gợi ý nền xanh ngọc.', 'Điện thoại: bảng có cột đầu cố định mà cột đầu quá rộng (vd. công thức có ảnh món) thì cột đầu thu còn 40% màn hình, trượt ngang thấy đủ các cột; Lịch làm theo đợt, Ai làm ngày nào, bảng theo tháng không còn tràn mép mất chữ.', 'Hôm nay, Bán hàng, Hiệu suất: thẻ 🔁 Tỉ lệ khách quay lại = đơn thẻ thành viên (tv) ÷ đơn tại quầy T2–T6 (thẻ không áp T7, CN và đơn app), so kỳ trước.']},
   {v:'v1.7.227', ngay:'12/11/2026', nd:['Nhân sự (chỉ chủ): biểu đồ Hiệu suất theo giờ lương dưới hàng thẻ — đường doanh thu / giờ lương, cột ly / giờ lương theo ngày (đơn trong ca nhân viên ÷ giờ trong ca + vào sớm, không tính chủ); dòng dưới so từng người.']},
   {v:'v1.7.226', ngay:'12/11/2026', nd:['Nhân sự: thẻ Cảnh báo và Gợi ý nằm chung một hàng.']},
