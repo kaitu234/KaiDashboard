@@ -464,7 +464,7 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .kf-c .t{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--a)}
 .kf-c .w{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1;text-transform:uppercase;color:var(--ink)}
 .kf-c .w .tag{font-family:inherit;font-size:10.5px;font-weight:700;text-transform:none;letter-spacing:0;vertical-align:middle;margin-left:6px;padding:2px 7px;border-radius:99px;border:1.5px solid var(--kfl);background:var(--surface);color:var(--muted)}
-.kf-c .st{font-size:13px;color:var(--ink)} .kf-c .st b{color:var(--a);font-size:15px}
+.kf-c .kst{font-size:13px;color:var(--ink)} .kf-c .kst b{color:var(--a);font-size:15px}
 .kf-c .fun{font-size:12px;color:var(--muted);font-style:italic}
 .kf-bars{display:grid;gap:4px;margin-top:4px}
 .kf-bars div{display:grid;grid-template-columns:76px 1fr auto;gap:6px;align-items:center;font-size:11.5px}
@@ -694,6 +694,7 @@ html.mcap{background:var(--paper)}
     <button role="tab" id="tab-today" aria-selected="false" data-v="today"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="nm">Hôm nay<small>ca đang bán · két</small></span></button>
     <button role="tab" id="tab-hr" aria-selected="false" data-v="hr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.6 3.5 6"/></svg><span class="nm">Nhân sự<small>ca · giờ công · lương</small></span></button>
     <button role="tab" id="tab-st" aria-selected="false" data-v="st"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M8 7.5h8M8 11h6"/></svg><span class="nm">Sổ tay<small>nội quy · chính sách · công thức</small></span></button>
+    <button role="tab" id="tab-kf" aria-selected="false" data-v="kf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg><span class="nm">Kai's facts<small>chuyện vui về đội Kai</small></span></button>
     <div class="sgrp">Bán hàng</div>
     <button role="tab" id="tab-sales" aria-selected="true" data-v="sales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span class="nm">Bán hàng<small>doanh thu · ngày · giờ</small></span></button>
     <button role="tab" id="tab-dtt" aria-selected="false" data-v="dtt"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.6-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.6-3.1-1.6M12 6.5v11"/></svg><span class="nm">Doanh thu thuần<small>thực thu · tiền mặt · CK</small></span></button>
@@ -1403,6 +1404,12 @@ html.mcap{background:var(--paper)}
   </div>
 
   <!-- ================= SỔ TAY (v1.7.188) ================= -->
+  <div class="view" id="v-kf" hidden style="display:grid;gap:12px">
+    <div class="card" id="sec-kf" data-nvok>
+      <div class="ct">Đội Kai <span class="nt">· chuyện vui về đội Kai từ ngày mở bán · không theo bộ lọc kỳ · tính cả cựu nhân viên, không tính chủ</span></div>
+      <div class="kf" id="kaiFacts"></div>
+    </div>
+  </div>
   <div class="view" id="v-st" hidden style="display:grid;gap:12px">
     <nav class="jnav" aria-label="Mục lục tab Sổ tay"></nav>
     <div class="card" id="sec-st-dd" data-nvok>
@@ -1454,10 +1461,6 @@ html.mcap{background:var(--paper)}
       <div class="cw"><canvas id="cHrHs" aria-label="Doanh thu và số ly trên mỗi giờ lương theo ngày"></canvas></div>
       <div class="legend" id="lgHrHs"></div>
       <p class="muted" id="hrHsNguoi" style="margin:6px 0 0;font-size:12px"></p>
-    </div>
-    <div class="card" id="sec-hr-facts" data-nvok>
-      <div class="ct">Kai's facts <span class="nt">· chuyện vui về đội Kai từ ngày mở bán · không theo bộ lọc kỳ · tính cả cựu nhân viên, không tính chủ</span></div>
-      <div class="kf" id="kaiFacts"></div>
     </div>
     <div class="card" id="sec-hr-hoso">
       <div class="ct">Hồ sơ nhân viên <span class="nt">· như tab NhanVien của Sheet: vai trò, chức vụ, level, lương nền, thâm niên · cộng số ca / giờ từ chấm công · không theo bộ lọc kỳ</span></div>
@@ -1873,7 +1876,7 @@ function parseWorkbook(wb){
 
 /* ============ state ============ */
 let D = null;
-const VIEWS = ['ov', 'bc', 'today', 'sales', 'dtt', 'mon', 'perf', 'pnl', 'plan', 'kc', 'fin', 'kho', 'tb', 'hh', 'hr', 'st', 'qo', 'tl', 'new'];   // v1.7.188: + st (Sổ tay)   // v1.7.110: + tl (Tài liệu nội bộ)   // v1.7.61: + tb (Thiết bị)   // v1.7.43: + bc (Báo cáo tuần / tháng)
+const VIEWS = ['ov', 'bc', 'today', 'sales', 'dtt', 'mon', 'perf', 'pnl', 'plan', 'kc', 'fin', 'kho', 'tb', 'hh', 'hr', 'st', 'kf', 'qo', 'tl', 'new'];   // v1.7.234: + kf (Kai's facts)   // v1.7.188: + st (Sổ tay)   // v1.7.110: + tl (Tài liệu nội bộ)   // v1.7.61: + tb (Thiết bị)   // v1.7.43: + bc (Báo cáo tuần / tháng)
 /* Tiêu đề + câu mô tả mỗi tab (kiểu Squad: tab này trả lời câu hỏi gì) */
 const VIEW_INFO = {
   ov:['Tổng quan', 'Tháng này quán đang ở đâu so với mốc hoà vốn, và việc gì cần xử lý trước.'],
@@ -1883,6 +1886,7 @@ const VIEW_INFO = {
   sales:['Bán hàng', 'Doanh thu, số ly theo ngày và khung giờ trong kỳ đang lọc, so với kỳ trước.'],
   dtt:['Doanh thu thuần', 'Doanh thu THỰC THU theo ngày như tab Doanh thu của Sheet: tiền mặt, chuyển khoản, lệch so với đơn bot, chốt ca, mục tiêu tháng. Theo kỳ đang lọc (lọc nhân viên / món / thanh toán không áp dụng).'],
   mon:['Món', 'Món nào chạy, lời bao nhiêu mỗi ly, món nào chưa bán, chạy giờ nào, và đợt khai trương 10K có giữ được khách không.'],
+  kf:['Kai\'s facts', 'Chuyện vui về đội Kai từ ngày mở bán: ai gắn bó lâu nhất, pha nhanh nhất, dậy sớm nhất, vua size L, ca kỷ lục, sinh nhật sắp tới…'],
   st:['Sổ tay nhân viên', 'Nội quy, chính sách lương thưởng và bán hàng, công thức pha chế, checklist ca và lệnh bot — đọc xong bấm xác nhận.'],
   tl:['Tài liệu nội bộ', 'Công thức pha chế, checklist, nội quy và ấn phẩm in — bản mới nhất, bấm ảnh để xem to, có nút tải PDF để in.'],
   qo:['Mã món & order nhanh', 'Mã từng món, cách gõ tắt và cách order nhanh trên bot; bảng tự lấy từ tab Menu.'],
@@ -3629,7 +3633,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.233';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.234';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3687,6 +3691,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.234', ngay:'12/11/2026', nd:['Kai’s facts tách thành tab riêng ở nhóm Vận hành (dưới Sổ tay), bỏ khỏi tab Nhân sự.']},
   {v:'v1.7.233', ngay:'12/11/2026', nd:['Nhân sự: thêm mục Kai’s facts — infographic vui về đội Kai từ ngày mở bán: gắn bó lâu nhất, thâm niên, tay pha nhanh nhất (ly/giờ), AOV cao nhất, dậy sớm nhất, vua size L, vua thẻ thành viên, ca kỷ lục, đúng giờ nhất, anh/chị cả, sinh nhật sắp tới, món tủ từng người + số cả quán (tổng ly, ngày kỷ lục, món số 1, giờ đông).']},
   {v:'v1.7.232', ngay:'12/11/2026', nd:['Sửa lỗi v1.7.231: tab Hôm nay xem theo ngày không hiện được (chú thích nuốt mất dòng code). Gợi ý “Ít size L” không báo khi tỉ lệ L đã cao hơn mốc so sánh.']},
   {v:'v1.7.231', ngay:'12/11/2026', nd:['Hôm nay (tài khoản chủ): ô Phân tích nhanh thêm mục Bán hàng · nhắc nhân viên — cùng các gợi ý nhân viên đang thấy (ít size L, món bán chạy bán chậm, nhịp bán, thẻ thành viên, ly / giờ ca).']},
@@ -5136,7 +5141,7 @@ function renderKaiFacts(){
   if (!ds.length){ el.innerHTML = '<p class="kf-note">Chưa có ca chấm công nào.</p>'; return; }
   const tag = p => p.cu ? '<span class="tag">cựu thành viên</span>' : '', nm = p => esc(p.ten) + tag(p);
   const bars = (a, v, fv) => { const mx = Math.max(...a.map(v)) || 1; return '<div class="kf-bars">' + a.slice(0, 5).map(p => `<div><em>${esc(p.ten)}</em><i style="width:${Math.max(4, v(p) / mx * 100)}%"></i><small>${fv(p)}</small></div>`).join('') + '</div>'; };
-  const the = (cls, em, t, p, st, fun, rank) => `<div class="kf-c ${cls}"><div class="hd"><span class="em">${em}</span><span class="t">${t}</span></div><div class="w">${nm(p)}</div><div class="st">${st}</div>${fun ? `<div class="fun">${fun}</div>` : ''}${rank || ''}</div>`;
+  const the = (cls, em, t, p, st, fun, rank) => `<div class="kf-c ${cls}"><div class="hd"><span class="em">${em}</span><span class="t">${t}</span></div><div class="w">${nm(p)}</div><div class="kst">${st}</div>${fun ? `<div class="fun">${fun}</div>` : ''}${rank || ''}</div>`;
   const C = [], top = (a, v) => a.slice().sort((x, y) => v(y) - v(x));
   { const a = top(ds, p => p.ngay); C.push(the('a1', '🏆', 'Gắn bó lâu nhất', a[0], `<b>${a[0].ngay} ngày</b> ở Kai · ca đầu ${ngay(a[0].k0)}`, `${a[0].ca} ca, ${f1(a[0].gio)} giờ đứng quầy`, bars(a, p => p.ngay, p => p.ngay + ' ngày'))); }
   { const a = top(ds, p => p.gioTN); if (a[0].gioTN) C.push(the('a3', '⏳', 'Thâm niên cao nhất', a[0], `<b>${f1(a[0].gioTN)} giờ</b> thâm niên`, `≈ ${f1(a[0].gioTN / 5)} buổi sáng 5 tiếng`, bars(a, p => p.gioTN, p => f1(p.gioTN) + 'h'))); }
@@ -5168,7 +5173,6 @@ function renderKaiFacts(){
     <p class="kf-note">Ly / giờ và ca kỷ lục: đơn nằm trong giờ ca của người đó (hai người chung ca thì cả hai cùng được tính). AOV, size L, thẻ, món tủ: theo người ghi đơn trên bot. Tuổi lấy từ tab NhanVien (chỉ người đang làm có ngày sinh).</p>`;
 }
 function renderHr(){
-  try { renderKaiFacts(); } catch(e){ console.warn(e); }
   try { renderNhatKy(); } catch(e){ console.warn(e); }
   renderHoSo();
   renderAiLam();
@@ -6121,9 +6125,9 @@ function render(){
   $('hdrChao').innerHTML = chaoHtml();
   $('hdrRange').textContent = S.view === 'today' ? (S.tdKy !== 'ngay' ? (Q => `${TD_KY[Q.ky].toLowerCase()} ${dShort(Q.tu)} → ${dShort(Q.den)}/${Q.den.slice(0,4)}`)(tdKy()) : `ngày ${dShort(S.tdK || today())}/${(S.tdK || today()).slice(0,4)}`)
     : S.view === 'bc' ? (K => `${dShort(K.tu)}/${K.tu.slice(0,4)} → ${dShort(K.den)}/${K.den.slice(0,4)}`)(kyBaoCao(S.bcKy, today()))   // v1.7.43
-    : ['ov', 'fin', 'kho', 'tb', 'hh', 'plan', 'kc', 'new', 'qo', 'tl', 'st'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
+    : ['ov', 'fin', 'kho', 'tb', 'hh', 'plan', 'kc', 'new', 'qo', 'tl', 'st', 'kf'].includes(S.view) ? `tới ${dShort(today())}/${today().slice(0,4)}` : `${dShort(S.from)}/${S.from.slice(0,4)} → ${dShort(S.to)}/${S.to.slice(0,4)}`;
   renderChips(); demLoc();
-  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:() => { renderFin(); renderTb(); }, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, tl:renderTl, hr:renderHr, st:renderSt})[S.view]();
+  ({ov:renderOv, bc:renderBc, today:renderToday, sales:renderSales, dtt:renderDtt, mon:renderMon, perf:renderPerf, pnl:renderPnl, plan:renderPlan, kc:renderKc, qo:renderQo, new:renderNew, fin:() => { renderFin(); renderTb(); }, kho:() => { renderFin(); renderKho(); }, hh:renderHh, tb:renderTb, tl:renderTl, hr:renderHr, st:renderSt, kf:renderKaiFacts})[S.view]();
   nangCapThe($('v-' + S.view));
 }
 function fillOptions(){
