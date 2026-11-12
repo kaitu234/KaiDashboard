@@ -1409,6 +1409,12 @@ html.mcap{background:var(--paper)}
       <div class="tblwrap" style="max-height:360px"><table id="tHrNk"></table></div>
     </div>
     <div class="kpis" id="hrTop"></div>
+    <div class="card" id="sec-hr-hs" hidden>
+      <div class="ct">Hiệu suất theo giờ lương <span class="nt">· mỗi ngày: doanh thu và ly bán trong ca nhân viên ÷ giờ tính lương (trong ca + vào sớm) · không tính chủ · theo bộ lọc kỳ + nhân viên</span></div>
+      <div class="cw"><canvas id="cHrHs" aria-label="Doanh thu và số ly trên mỗi giờ lương theo ngày"></canvas></div>
+      <div class="legend" id="lgHrHs"></div>
+      <p class="muted" id="hrHsNguoi" style="margin:6px 0 0;font-size:12px"></p>
+    </div>
     <div class="card" id="sec-hr-hoso">
       <div class="ct">Hồ sơ nhân viên <span class="nt">· như tab NhanVien của Sheet: vai trò, chức vụ, level, lương nền, thâm niên · cộng số ca / giờ từ chấm công · không theo bộ lọc kỳ</span></div>
       <div class="tblwrap"><table id="tHoSo"></table></div>
@@ -3522,7 +3528,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.226';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.227';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3580,6 +3586,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.227', ngay:'12/11/2026', nd:['Nhân sự (chỉ chủ): biểu đồ Hiệu suất theo giờ lương dưới hàng thẻ — đường doanh thu / giờ lương, cột ly / giờ lương theo ngày (đơn trong ca nhân viên ÷ giờ trong ca + vào sớm, không tính chủ); dòng dưới so từng người.']},
   {v:'v1.7.226', ngay:'12/11/2026', nd:['Nhân sự: thẻ Cảnh báo và Gợi ý nằm chung một hàng.']},
   {v:'v1.7.225', ngay:'12/11/2026', nd:['Nhân sự (xem cả quán, chỉ chủ): thêm thẻ % Lương / doanh thu (tốt ≤ 25%, để ý ≤ 35%), thẻ Cảnh báo (lương cao, ca chưa tính tiền, ca quên check-out, đơn ngoài giờ ca, vào trễ) và thẻ Gợi ý.', 'Ô icon trên thẻ %Hoà vốn, %Đạt mục tiêu và các thẻ mục tiêu khác nền trắng kem.']},
   {v:'v1.7.224', ngay:'12/11/2026', nd:['Mục tiêu ly/ngày mặc định 40 (trước 80); tải lại trang luôn về 40.', 'Đơn khách mang ly / bình (bot gõ “ly” cuối đơn, −2.000đ/ly, dùng chung thẻ thành viên): chip 🥤 mang ly ở Đơn mới nhất, đếm ly / đơn / tiền đã giảm ở thẻ Thành viên & mang ly (tab Bán hàng).']},
@@ -5086,6 +5093,28 @@ function renderHr(){
       return `<div class="kpi tgt"><span class="lb">📊 % Lương / doanh thu · ${ky}</span><span class="v"${mau ? ` style="color:${mau}"` : ''}>${pct == null ? '—' : f0(pct) + '%'}</span><span class="s">tiền công ${fmt(luongK)} ÷ doanh thu ${fmt(dtK)} · tốt ≤ 25%</span></div>
     <div class="kpi tgt canh${cb.length ? '' : ' ok'}"><span class="lb">⚠️ Cảnh báo</span><span class="v">${cb.length || 'Ổn'}</span><span class="s">${cb.length ? ds(cb) : 'không có gì cần xử lý trong kỳ'}</span></div>
     <div class="kpi tgt goi"><span class="lb">💡 Gợi ý</span><span class="v">${gy.length}</span><span class="s">${gy.length ? ds(gy) : 'chưa có gợi ý'}</span></div>`; })() : ''}`; }
+  /* v1.7.227 (chủ 12/11): biểu đồ Hiệu suất theo giờ lương (chỉ chủ) — mỗi ngày: doanh thu (đường, trục trái) và ly (cột, trục phải) của đơn nằm TRONG ca nhân viên
+     (trongCa, mỗi đơn đếm 1 lần/ngày như ô Ly / giờ công) ÷ giờ tính lương nhân viên (gioLuong: trong ca + vào sớm ≤ 30p). Chủ không tính. Dòng dưới: từng người (đơn trong ca của người đó ÷ giờ lương của họ; hai người chung ca thì cả hai cùng được tính đơn). Chỉ dash, Sheet/bot không có số này. */
+  { const card = $('sec-hr-hs'); card.hidden = VAI === 'nhanvien';
+    if (!card.hidden){
+      const ngay = {}, nguoi = {}, f1 = v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:1}), k1 = v => Math.round(v / 1000) + 'k';
+      C.filter(c => !(c.chu || laChu(c.nv))).forEach(c => { const g = gioLuong(c, c.ra || gioRaTam(c)), d = (ngay[c.k] ??= {g:0, ly:0, dt:0, don:new Set()}), p = (nguoi[c.id || c.nv] ??= {ten:D.nhanNv(c), g:0, ly:0, dt:0});
+        d.g += g; p.g += g;
+        trongCa(c).forEach(o => { p.ly += o.sl; p.dt += o.tt || 0; if (!d.don.has(o)){ d.don.add(o); d.ly += o.sl; d.dt += o.tt || 0; } }); });
+      const ks = Object.keys(ngay).filter(k => ngay[k].g > 0).sort(), tg = ks.reduce((a, k) => a + ngay[k].g, 0), tly = ks.reduce((a, k) => a + ngay[k].ly, 0), tdt = ks.reduce((a, k) => a + ngay[k].dt, 0);
+      const s1 = css('--s1'), c2 = css('--c2');
+      mk('cHrHs', {type:'bar', data:{labels:ks.map(k => `${thu(k)} ${dShort(k)}`), datasets:[
+          Object.assign({label:'Ly / giờ lương', data:ks.map(k => +(ngay[k].ly / ngay[k].g).toFixed(2)), yAxisID:'y1', order:2}, barStyle(s1)),
+          {type:'line', label:'Doanh thu / giờ lương', data:ks.map(k => Math.round(ngay[k].dt / ngay[k].g)), yAxisID:'y', nhan:true, borderColor:c2, backgroundColor:c2, borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25, spanGaps:true, order:1}]},
+        options:{plugins:{nhanSo:{fmt:(v, j, di) => di === 1 ? k1(v) : soNhan(v)},
+            tooltip:{callbacks:{label:x => x.datasetIndex === 1 ? ` Doanh thu / giờ lương: ${fmt(x.raw)} đ` : ` Ly / giờ lương: ${soNhan(x.raw)} ly`,
+              afterBody:it => { const d = it.length && ngay[ks[it[0].dataIndex]]; return d ? `${fmt(d.dt)} đ · ${fmt(d.ly)} ly ÷ ${f1(d.g)} giờ lương` : ''; }}}},
+          scales:{y:{beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => k1(v)}},
+            y1:{position:'right', beginAtZero:true, grace:'10%', grid:{display:false}, border:{display:false}, ticks:{maxTicksLimit:5}}}}});
+      $('lgHrHs').innerHTML = ks.length ? `<span><i style="background:${c2}"></i>Doanh thu / giờ lương (đường, trục trái) · cả kỳ ${fmt(tdt / tg)} đ</span><span><i style="background:${s1}"></i>Ly / giờ lương (cột, trục phải) · cả kỳ ${f1(tly / tg)} ly</span>` : '<span>Chưa có ca nhân viên trong kỳ</span>';
+      const ds = Object.values(nguoi).filter(p => p.g > 0).sort((a, b) => b.dt / b.g - a.dt / a.g);
+      $('hrHsNguoi').innerHTML = ds.length ? '<b>Từng người:</b> ' + ds.map(p => `${esc(p.ten)} <b>${fmt(p.dt / p.g)} đ</b> · ${f1(p.ly / p.g)} ly / giờ lương (${f1(p.g)} giờ)`).join(' · ') : '';
+    } }
   $('hrKpis').innerHTML = `
     <div class="kpi main"><span class="lb">Ca đã chấm</span><span class="v">${fmt(C.length)}</span><span class="s">${rows.length} người${tre ? ` · <b>${tre} lần trễ</b>` : ' · không ai trễ'}</span></div>
     <div class="kpi main"><span class="lb">Giờ làm</span><span class="v">${gio.toLocaleString('vi-VN', {maximumFractionDigits:1})}</span><span class="s">TB ${C.length ? (gio / C.length).toLocaleString('vi-VN', {maximumFractionDigits:1}) : '—'} giờ/ca · tính lương ${gioL.toLocaleString('vi-VN', {maximumFractionDigits:1})} giờ (từ 01/11 về muộn không trả)</span></div>
