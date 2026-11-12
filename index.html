@@ -2892,7 +2892,7 @@ function renderFin(){
   if (D.orders.length && !D.legacyRev.length) A.push(['warn','Sổ sheet', `Tab Doanh thu trong sheet chưa có số, nên ô quỹ ở sheet Tổng hợp đang thấp hơn dashboard ${fmt(totalRev)} đ`,
     'Dashboard cộng doanh thu từ bot (tab DonHang); sheet Tổng hợp chỉ cộng tab Doanh thu nhập tay. Số trên dashboard là số đúng.', '→ nhập tab Doanh thu hoặc bỏ qua']);
   // v1.6: tồn tách XE + KHO (tinhKho, cùng công thức bot); số bot (tab Kho) chỉ hiện để đối chiếu (có thể cũ tới 24 giờ)
-  const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})} ${dv}`;
+  const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:3})} ${dv}`;   /* v1.7.200: đủ 3 số lẻ như bot khongtron-v1 (0,465 không thành 0,47) */
   const gioKiem = t => `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}`;
   const KH = khoTheoDoi();
   khoCanhBao().forEach(a => A.push(a));   // 🏠 kho tồn → 🚚 xe → nhắc kiểm
@@ -3474,7 +3474,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.199';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.200';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3532,6 +3532,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.200', ngay:'12/11/2026', nd:['Kho · hao hụt · kiểm xe: số đếm hiện đủ 3 số lẻ (cà phê 0,465 kg không còn hiện 0,47), khớp bot bản khongtron-v1.']},
   {v:'v1.7.199', ngay:'11/11/2026', nd:['Thưởng số ly theo ngày từ 12/11 (khớp bot): cả quán bán đạt 40 / 50 / 60 ly trong ngày → mỗi người có chấm công +10.000 / 20.000 / 30.000 đ (chỉ mốc cao nhất). Lương ngày, lãi PNL cộng khoản này (đọc cột V ChamCong bot ghi); Sổ tay · Chính sách mục 1 ghi luật mới; thêm 1 phép tự kiểm.', 'Ẩn chủ gốc ở cột Ca làm (Chi tiết theo ngày), thẻ Chuyên cần và người đứng ca của hao hụt.', 'Trả lại thẻ Gợi ý bán hàng ở tab Báo cáo cho tài khoản nhân viên.']},
   {v:'v1.7.198', ngay:'11/11/2026', nd:['Sổ tay · Chính sách · Thâm niên: tài khoản nhân viên thấy dòng bậc của mình tô màu kèm “👉 bạn đang ở đây · số giờ” (như bot khi tra chính sách).']},
   {v:'v1.7.197', ngay:'11/11/2026', nd:['Ảnh món Matcha latte đổi sang ảnh mới (ly 2 tầng xanh – trắng); hiện ở bảng có cột Món, công thức pha chế và kiểm tra công thức.', 'Cacao đường cát (bảng công thức) dùng ảnh Cacao sữa.']},
@@ -4290,7 +4291,7 @@ function renderTb(){
 }
 function renderHh(){
   const G = giaNL(), H = haoHutNay();
-  const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})}${dv ? ' ' + esc(dv) : ''}`, soD = (v, dv) => { if (v == null) return '—'; const r = Math.round(v * 100) / 100 || 0; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${so(Math.abs(r), dv)}`; };   // v1.7.125: hết "−0 chai"
+  const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:3})}${dv ? ' ' + esc(dv) : ''}`, soD = (v, dv) => { if (v == null) return '—'; const r = Math.round(v * 100) / 100 || 0; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${so(Math.abs(r), dv)}`; };   // v1.7.125: hết "−0 chai"
   const luc = t => t ? `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}` : '—';
   const MUC = {bad:['bad', 'Đáng lo'], warn:['warn', 'Cần xem'], good:['good', 'Bình thường'], du:['neu', 'Dùng ít hơn CT']}, pill = m => MUC[m] ? `<span class="pill ${MUC[m][0]}">${MUC[m][1]}</span>` : '<span class="muted">—</span>';
   const tienF = v => v == null ? '<span class="muted">chưa có giá</span>' : v === 0 ? '0' : `<span class="${v > 0 ? 'dn' : 'up'}">${v > 0 ? '−' : '+'}${fmt(Math.abs(v))}</span>`;
@@ -4363,7 +4364,7 @@ function renderBaoCaoXe(){
   const theoNgay = rows => { const m = {}; rows.forEach(x => (m[dk(x.luc)] ??= []).push(x)); return m; };
   const xeN = theoNgay(xe), khoN = theoNgay(kho), layN = theoNgay(D.layKho), bat = [...Object.keys(xeN), ...Object.keys(layN)].sort()[0] || null;
   const ly = {}; D.orders.forEach(o => ly[o.k] = (ly[o.k] || 0) + o.sl);
-  const so = (v, dv) => `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:2})}${dv ? ' ' + dv : ''}`, ai = rows => [...new Set(rows.map(x => x.ai).filter(Boolean))].join(', ');
+  const so = (v, dv) => `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:3})}${dv ? ' ' + dv : ''}`, ai = rows => [...new Set(rows.map(x => x.ai).filter(Boolean))].join(', ');
   const liet = (rows, f) => { const g = {}; rows.forEach(x => g[x.ma] = (g[x.ma] || 0) + f(x)); return Object.entries(g).map(([ma, v]) => `${esc(tenMa(ma))} ${so(v, esc(dvMa(ma)))}`).join(' · '); };
   const thuCua = k => new Date(k + 'T12:00:00').getDay();
   const days = [...new Set([...Object.keys(ly), ...Object.keys(xeN), ...Object.keys(layN)])].filter(k => k <= tk).sort().reverse().slice(0, 21);
