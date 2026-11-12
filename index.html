@@ -2612,12 +2612,12 @@ function renderTdKy(){
   /* đơn trong kỳ */
   datCt('tdFeed', 'Đơn trong kỳ');
   const ord = [...groupBy(K.L, o => o.id)].map(([id, l]) => ({id, k:l[0].k, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((x, o) => x + o.tt, 0), ly:l.reduce((x, o) => x + o.sl, 0),
-    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', '), anh:l.map(o => o.ma)})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
+    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${dShort(o.k)}<br>${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}</span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -2736,12 +2736,12 @@ function renderToday(){
 
   /* feed */
   const ord = [...groupBy(L, o => o.id)].map(([id, l]) => ({id, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((s, o) => s + o.tt, 0), ly:l.reduce((s, o) => s + o.sl, 0),
-    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', '), anh:l.map(o => o.ma)})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
+    it:l.map(o => `${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span></span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${esc(o.it)}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}</span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -3474,7 +3474,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.200';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.201';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3532,6 +3532,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.201', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: đơn có thẻ thành viên hiện chip ⭐ member cạnh TM/CK.']},
   {v:'v1.7.200', ngay:'12/11/2026', nd:['Kho · hao hụt · kiểm xe: số đếm hiện đủ 3 số lẻ (cà phê 0,465 kg không còn hiện 0,47), khớp bot bản khongtron-v1.']},
   {v:'v1.7.199', ngay:'11/11/2026', nd:['Thưởng số ly theo ngày từ 12/11 (khớp bot): cả quán bán đạt 40 / 50 / 60 ly trong ngày → mỗi người có chấm công +10.000 / 20.000 / 30.000 đ (chỉ mốc cao nhất). Lương ngày, lãi PNL cộng khoản này (đọc cột V ChamCong bot ghi); Sổ tay · Chính sách mục 1 ghi luật mới; thêm 1 phép tự kiểm.', 'Ẩn chủ gốc ở cột Ca làm (Chi tiết theo ngày), thẻ Chuyên cần và người đứng ca của hao hụt.', 'Trả lại thẻ Gợi ý bán hàng ở tab Báo cáo cho tài khoản nhân viên.']},
   {v:'v1.7.198', ngay:'11/11/2026', nd:['Sổ tay · Chính sách · Thâm niên: tài khoản nhân viên thấy dòng bậc của mình tô màu kèm “👉 bạn đang ở đây · số giờ” (như bot khi tra chính sách).']},
