@@ -1228,6 +1228,14 @@ html.mcap{background:var(--paper)}
       <div class="tblwrap" style="max-height:380px"><table id="tPerfSlot"></table></div>
       <div class="cmt" id="perfSlotCmt"></div>
     </div>
+    <div class="card" id="sec-perf-nv">
+      <div class="ct">Hiệu suất theo nhân viên <span class="nt">· kỳ đang lọc (không theo bộ lọc nhân viên) · ly làm = mỗi đơn chia đều cho những người đang có mặt lúc ghi đơn · bỏ chủ gốc</span></div>
+      <div class="g2">
+        <div><div class="lbl">Ly làm / giờ công</div><div class="cw"><canvas id="cPerfNv" aria-label="Ly làm mỗi giờ công theo nhân viên"></canvas></div></div>
+        <div class="tblwrap" style="max-height:320px"><table id="tPerfNv"></table></div>
+      </div>
+      <div class="cmt" id="perfNvCmt"></div>
+    </div>
     <div class="g2">
       <div class="card" id="sec-perf-combo" style="grid-column:1/-1">
         <div class="ct">Giỏ hàng &amp; combo <span class="nt">· món hay mua cùng đơn · ly/đơn theo giờ</span></div>
@@ -3660,7 +3668,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.240';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.241';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3718,6 +3726,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.241', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Hiệu suất theo nhân viên” — mỗi người: số ca, giờ công, ly làm (mỗi đơn chia đều cho người đang có mặt lúc ghi), ly / giờ, ly / ngày làm, ngày cao nhất, ly tự ghi; biểu đồ ly / giờ và nhận xét cao nhất / thấp nhất (chỉ so người có ≥ 5 giờ công).']},
   {v:'v1.7.240', ngay:'12/11/2026', nd:['Hiệu suất · Khung giờ × người đứng ca: gộp khung 1 tiếng (trước 30 phút) cho cả 2 biểu đồ (ly TB, lãi sau lương) và bảng; nhãn ghi rõ khung, vd 07:00–08:00. Ngưỡng thiếu / thừa người quy theo tiếng (gấp đôi năng lực 30 phút).']},
   {v:'v1.7.239', ngay:'12/11/2026', nd:['Hiệu suất · Dự báo ngày mai: dòng “Nguyên liệu cho ngày mai” hiện lại tên nguyên liệu (bản trước bị mất tên, chỉ còn số) — viết gọn kèm icon: ☕ CF hạt · 🟤 CF phin · 🥫 Sữa đặc · 🥛 Sữa tươi · 🥤 Ly (ly làm tròn số nguyên); rê chuột xem tên đầy đủ.']},
   {v:'v1.7.238', ngay:'12/11/2026', nd:['Kai’s facts: đổi tên “Đội Kai” thành “Kai’s Team”. Thêm góc nhìn: chốt két khớp nhiều lần nhất, chốt ca nhiều nhất, kiểm kho / xe khớp nhiều nhất (lệch dưới ngưỡng bot cảnh báo), ca dài nhất, giờ cháy nhất, vua cuối tuần, chuỗi ngày làm liền, xanh nhất (mang ly), vua đơn app, chuyên gia từng nhóm món; Góc cần cải thiện thêm lệch két nhiều lần nhất.']},
@@ -5878,6 +5887,31 @@ function renderPerf(){
       thua.length ? `<b>Có thể thừa người:</b> ${thua.map(r => r.khung).join(', ')} (≥ 2 người mà dưới ${(2 * NL30()).toLocaleString('vi-VN', {maximumFractionDigits:1})} ly/tiếng).` : ''].filter(Boolean).join(' ');
   })();
 
+
+  /* 4 · Hiệu suất theo nhân viên — v1.7.241 (chủ 12/11). Giờ công = gioLuong (cùng bảng Bán theo người ghi / lương).
+     Ly làm: mỗi đơn chia đều cho người đang có mặt (vào ≤ giờ ghi ≤ ra, ca chưa ra dùng gioRaTam) → công bằng khi 2 người chung ca; đơn ngoài giờ có mặt của ai thì tính cho người ghi. */
+  (() => {
+    const LL = sel(new Set(['nv'])), ngay = new Set(LL.map(o => o.k)), cong = D.cong.filter(c => !c.goc && ngay.has(c.k) && dayOk(c.k)), per = {};
+    const P = nv => per[nv] ??= {nv, ca:0, ngay:new Set(), gio:0, lyGhi:0, lyLam:0, ngayLy:{}};
+    cong.forEach(c => { const p = P(c.nv), het = c.ra || gioRaTam(c); p.ca++; p.ngay.add(c.k); p.gio += gioLuong(c, het); c._het = het; });
+    const byK = groupBy(cong, c => c.k);
+    LL.forEach(o => { if (!laChu(o.nv) || per[o.nv]) P(o.nv).lyGhi += o.sl;
+      const co = o.t ? (byK.get(o.k) || []).filter(c => c.vao <= o.t && (!c._het || o.t <= c._het)) : [];
+      const ai = co.length ? [...new Set(co.map(c => c.nv))] : (laChu(o.nv) && !per[o.nv] ? [] : [o.nv]);
+      ai.forEach(nv => { const p = P(nv); p.lyLam += o.sl / ai.length; p.ngayLy[o.k] = (p.ngayLy[o.k] || 0) + o.sl / ai.length; }); });
+    const f1 = v => v == null ? '—' : (+v).toLocaleString('vi-VN', {maximumFractionDigits:1});
+    const rows = Object.values(per).filter(p => p.gio || p.lyGhi).map(p => { const nl = Object.values(p.ngayLy);
+      return {nv:p.nv, ca:p.ca, gio:p.gio || null, lyGhi:p.lyGhi, lyLam:p.lyLam, lyh: p.gio ? p.lyLam / p.gio : null, lyCa: p.ngay.size ? p.lyLam / p.ngay.size : null, max: nl.length ? Math.max(...nl) : null}; });
+    table({id:'tPerfNv', rows, sortDefault:{k:'lyh', d:-1}, cols:[{k:'nv', l:'Nhân viên', f:v => esc(v)}, {k:'ca', l:'Ca', r:1, f:fmt}, {k:'gio', l:'Giờ công', r:1, f:f1},
+      {k:'lyLam', l:'Ly làm', r:1, heat:1, f:v => fmt(Math.round(v))}, {k:'lyh', l:'Ly / giờ', r:1, heat:1, f:f1}, {k:'lyCa', l:'Ly / ngày làm', r:1, f:f1},
+      {k:'max', l:'Ngày cao nhất', r:1, f:v => v == null ? '—' : fmt(Math.round(v))}, {k:'lyGhi', l:'Ly tự ghi', r:1, f:fmt}]});
+    const xs = rows.filter(r => r.lyh != null).sort((a, b) => b.lyh - a.lyh);
+    mk('cPerfNv', {type:'bar', data:{labels:xs.map(r => r.nv), datasets:[Object.assign({label:'Ly / giờ', data:xs.map(r => +r.lyh.toFixed(1))}, barStyle(css('--s1')))]},
+      options:{indexAxis:'y', plugins:{tooltip:{callbacks:{label:c => ` ${f1(c.raw)} ly / giờ công · ${f1(xs[c.dataIndex].gio)} giờ`}}}}});
+    const ok = rows.filter(r => r.lyh != null && r.gio >= 5).sort((a, b) => b.lyh - a.lyh), tbh = ok.length ? ok.reduce((x, r) => x + r.lyLam, 0) / ok.reduce((x, r) => x + r.gio, 0) : null;
+    $('perfNvCmt').innerHTML = !rows.length ? 'Chưa có chấm công / đơn trong kỳ.' : !ok.length ? 'Chưa ai đủ 5 giờ công trong kỳ để so.' :
+      `Bình quân cả quán <b>${f1(tbh)} ly/giờ công</b>. Cao nhất: <b>${esc(ok[0].nv)}</b> ${f1(ok[0].lyh)} ly/giờ${ok.length > 1 ? ` · thấp nhất: <b>${esc(ok[ok.length - 1].nv)}</b> ${f1(ok[ok.length - 1].lyh)} ly/giờ` : ''}. <span class="muted">Ly / giờ phụ thuộc ca được xếp (ca sáng sớm, cuối tuần đông hơn) nên chỉ là tham khảo, không phải điểm năng lực; ly tự ghi là người cầm bot ghi đơn.</span>`;
+  })();
 
   /* 5 · Giỏ hàng & combo */
   (() => {
