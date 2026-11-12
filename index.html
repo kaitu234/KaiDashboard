@@ -414,7 +414,7 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .toi>div.toiC{background:var(--warn-bg);box-shadow:inset 3px 0 0 var(--warn)}   /* v1.7.209: ô chuyên cần nổi bật */
 .toi .toiC .lb{color:var(--warn)} .toi .toiC .v{font-size:22px;color:var(--warn)}
 .toi .toiC .chip{background:var(--warn);color:var(--warn-bg)}
-.toi .chip{justify-self:start;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;margin:2px 0}
+.toi .chip{justify-self:start;white-space:nowrap;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;margin:2px 0}
 .toi .toiL .chip{justify-self:start;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--good);color:var(--good-bg);margin:2px 0}
 .ddl{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.5;cursor:pointer}
 .ddl input{margin-top:3px;width:18px;height:18px;flex:none}
@@ -3490,7 +3490,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.211';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.212';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3548,6 +3548,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.212', ngay:'12/11/2026', nd:['Chip chuyên cần gọn một dòng: “còn N ca → +50.000 đ”.']},
   {v:'v1.7.211', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: chip size L ghi kèm phụ thu thật so với giá M (L +5K chuẩn; L +2K / +3K tô cam là bán lệch phụ thu), ly gộp ghi “gộp N”.']},
   {v:'v1.7.210', ngay:'12/11/2026', nd:['Tự kiểm: bất biến lương ngày cộng phần chuyên cần chia đều của mọi ca trong ngày (cả ca chưa có tiền công) — hết lệch ở tài khoản nhân viên.']},
   {v:'v1.7.209', ngay:'12/11/2026', nd:['Thẻ “Của tôi”: ô Chuyên cần nổi bật (nền vàng, số lớn) với chip “còn N ca → +50.000 đ”.', 'Tab Nhân sự (tài khoản nhân viên): thẻ đầu tab có “Lương / giờ của bạn” — lương của chính mình ÷ giờ trong ca, theo kỳ đang lọc.', 'Tự kiểm: bất biến lương ngày tính cả phần chuyên cần chia đều.']},
@@ -4811,7 +4812,7 @@ function renderCuaToi(){
     + o('Tháng này', th.length + ' ca', th.reduce((s, c) => s + (c.gio || 0), 0).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ làm')
     + o('Lương tháng này', th.length ? fmt(luongT) + ' đ' : '—', th.length ? (gioCa ? '<span class="chip">≈ ' + fmt(luongT / gioCa) + ' đ/giờ</span>' : '') + '<span class="s">' + gioCa.toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ trong ca' + (tamL ? ' · tạm tính' : '') + '</span>' : '<span class="s">chưa có ca</span>', 'toiL')
     + (() => { const lan = cc ? cc.thuong.filter(k => String(k).slice(0, 7) === m0).length : 0;   /* v1.7.209 (chủ 12/11): ô chuyên cần nổi bật + chip */
-        return o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? '<span class="chip">' + (cc.chuoi ? 'còn ' + (CC.soCa - cc.chuoi) + ' ca → +' + fmt(CC.tien) + ' đ' : 'đếm lại · đủ ' + CC.soCa + ' ca → +' + fmt(CC.tien) + ' đ') + '</span>'
+        return o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? '<span class="chip">' + 'còn ' + (CC.soCa - cc.chuoi) + ' ca → +' + fmt(CC.tien) + ' đ' + '</span>'
           + '<span class="s">' + (lan ? 'đạt ' + lan + ' lần tháng này · +' + fmt(lan * CC.tien) + ' đ' : 'chưa đạt lần nào tháng này') + '</span>' : '<span class="s">chưa có ca</span>', 'toiC'); })()
     + o('Ca sắp tới', lich.length ? lich.length + ' ca' : 'chưa đăng ký', lich.slice(0, 6).map(k => thu(k) + ' ' + dShort(k)).join(' · ') || 'đăng ký: /dangkyca')
     + o('Sổ tay', daDoc ? '✓ đã đọc' : '<a class="lnk toiStLnk" href="#sec-st-dd">⚠ chưa xác nhận</a>', 'bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : ''))
