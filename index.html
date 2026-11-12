@@ -1217,7 +1217,7 @@ html.mcap{background:var(--paper)}
       <div class="ct">Phân tích sâu · nên làm gì <span class="nt">· tự tính từ đơn bot, công thức, sổ chi, kiểm kho · mỗi gợi ý kèm số làm bằng chứng · chỉ là gợi ý, chủ quyết</span></div>
       <div class="lbl">Việc nên cải thiện</div>
       <div class="cmt" id="perfSauViec"></div>
-      <div class="lbl" style="margin-top:10px">Nguyên liệu: mua thêm hay bớt <span class="muted" style="text-transform:none;font-weight:400">· dùng / ngày = 14 ngày bán gần nhất (công thức × ly bán) · xu hướng = so 14 ngày bán trước đó (bỏ ngày 10K) · hao hụt xem tab Kho, mục Đối chiếu tổng · đủ ~ngày theo tồn hiện tại · nên mua 7 ngày = dùng / ngày × (1 + xu hướng, tối đa ±30%) × 7 − tồn</span></div>
+      <div class="lbl" style="margin-top:10px">Nguyên liệu: mua thêm hay bớt <span class="muted" style="text-transform:none;font-weight:400">· dùng / ngày = 14 ngày bán gần nhất (công thức × ly bán) · xu hướng = so 14 ngày bán trước đó (bỏ ngày 10K) · hao hụt xem tab Kho, mục Đối chiếu tổng · bỏ đá viên (mua ngày nào dùng ngày đó) · đủ ~ngày theo tồn hiện tại · nên mua 7 ngày = dùng / ngày × (1 + xu hướng, tối đa ±30%) × 7 − tồn</span></div>
       <div class="tblwrap" style="max-height:380px"><table id="tPerfNL"></table></div>
       <div class="lbl" style="margin-top:10px">Món: đẩy, giữ hay xem lại <span class="muted" style="text-transform:none;font-weight:400">· kỳ đang lọc · chia 4 nhóm theo trung vị ly / ngày và lời gộp / ly · xu hướng = so kỳ trước cùng độ dài</span></div>
       <div class="tblwrap" style="max-height:380px"><table id="tPerfMonSau"></table></div>
@@ -3677,7 +3677,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.243';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.244';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3735,6 +3735,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.244', ngay:'12/11/2026', nd:['Phân tích sâu: bỏ đá viên khỏi bảng Nguyên liệu mua thêm / bớt — đá mua ngày nào dùng ngày đó, không trữ nên tồn theo sổ chi không có nghĩa.']},
   {v:'v1.7.243', ngay:'12/11/2026', nd:['Phân tích sâu: “Mua ít lại / Đang mua dư” chỉ báo khi 30 ngày qua mua > 1,5× dùng VÀ tồn còn đủ > 30 ngày (trước: > 21 ngày) — bớt báo nhầm hàng vừa nhập 1 đợt.']},
   {v:'v1.7.242', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Phân tích sâu · nên làm gì” ở đầu tab — danh sách việc nên cải thiện xếp theo mức gấp (sắp hết hàng, dùng tăng/giảm, mua dư, món giảm/lên, món lời mỏng, món nên đẩy, thứ bán yếu, đơn 1 ly + cặp combo, khung lỗ sau lương, thiếu người, chênh năng suất), mỗi dòng kèm số.', 'Bảng Nguyên liệu: mua thêm hay bớt — dùng/ngày 14 ngày bán gần nhất (bỏ ngày 10K), xu hướng so 14 ngày trước, tồn, đủ ~ngày, mua vs dùng 30 ngày, lượng nên mua cho 7 ngày, kết luận 🔴🟠🔵🟡🟢.', 'Bảng Món: đẩy, giữ hay xem lại — 4 nhóm theo ly/ngày và lời gộp/ly (⭐ chủ lực · 💰 lời mỏng · 📣 nên đẩy · ✂️ cân nhắc bỏ) kèm xu hướng so kỳ trước.']},
   {v:'v1.7.241', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Hiệu suất theo nhân viên” — mỗi người: số ca, giờ công, ly làm (mỗi đơn chia đều cho người đang có mặt lúc ghi), ly / giờ, ly / ngày làm, ngày cao nhất, ly tự ghi; biểu đồ ly / giờ và nhận xét cao nhất / thấp nhất (chỉ so người có ≥ 5 giờ công).']},
@@ -5926,6 +5927,8 @@ function renderPerf(){
       `Bình quân cả quán <b>${f1(tbh)} ly/giờ công</b>. Cao nhất: <b>${esc(ok[0].nv)}</b> ${f1(ok[0].lyh)} ly/giờ${ok.length > 1 ? ` · thấp nhất: <b>${esc(ok[ok.length - 1].nv)}</b> ${f1(ok[ok.length - 1].lyh)} ly/giờ` : ''}. <span class="muted">Ly / giờ phụ thuộc ca được xếp (ca sáng sớm, cuối tuần đông hơn) nên chỉ là tham khảo, không phải điểm năng lực; ly tự ghi là người cầm bot ghi đơn.</span>`;
   })();
 
+  /* v1.7.244 (chủ 12/11): đá viên mua ngày nào xài ngày đó, không trữ → không xét mua thêm / bớt theo tồn */
+  const NL_MUA_NGAY = new Set(['da']);
   /* 4b · Phân tích sâu · nên làm gì — v1.7.242 (chủ 12/11: "phân tích sâu hơn để biết nên cải thiện chỗ nào, mua thêm / mua ít nguyên liệu nào").
      Nguyên liệu: dùng theo công thức (cùng cách tinhKhoCore: ctTheoNgay × heSoNL ÷ quy đổi; hàng kèm = kemLy × ly) 14 ngày bán gần nhất vs 14 ngày trước; mua / dùng 30 ngày từ sổ chi (khopNL);
      hao hụt đo = nhịp đo từ kiểm xe ÷ nhịp công thức − 1. Món: tinhPnl kỳ đang lọc (lời gộp / ly) + ly / ngày kỳ trước cùng độ dài. Chỉ dash, không đổi số nào ở Sheet / bot. */
@@ -5938,7 +5941,7 @@ function renderPerf(){
       n14 = ngayBan.slice(-14), p14 = ngayBan.slice(-28, -14), s14 = new Set(n14), sp = new Set(p14), m30 = addDays(tk, -30);
     const O14 = D.orders.filter(o => s14.has(o.k)), Op = D.orders.filter(o => sp.has(o.k)), O30 = D.orders.filter(o => o.k > m30 && o.k <= tk), khoM = Object.fromEntries(D.khoAll.map(k => [k.ma, k]));
     const dungCT = (k, list) => list.reduce((s, o) => { const ct = ctTheoNgay(D.congThuc[String(o.ma).toLowerCase()], DINH_LUONG_CU, o.k); return s + (k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0); }, 0);
-    const nl = tinhKho().filter(x => x.nhip > 0 && khoM[x.ma] && (x.dungCT || khoM[x.ma].kemLy > 0)).map(x => { const k = khoM[x.ma];
+    const nl = tinhKho().filter(x => x.nhip > 0 && khoM[x.ma] && (x.dungCT || khoM[x.ma].kemLy > 0) && !NL_MUA_NGAY.has(String(x.ma).toLowerCase())).map(x => { const k = khoM[x.ma];
       const u = list => x.dungCT ? dungCT(k, list) : k.kemLy * list.reduce((s, o) => s + o.sl, 0);
       const d14 = n14.length ? u(O14) / n14.length : null, dp = p14.length >= 7 ? u(Op) / p14.length : null, xh = d14 != null && dp > 0 ? d14 / dp - 1 : null;
       const du = x.ngay != null ? x.ngay : x.tonBiet != null ? x.tonBiet / x.nhip : null;
