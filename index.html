@@ -716,7 +716,7 @@ html.mcap{background:var(--paper)}
     <div class="fi"><label for="fPt">Thanh toán</label><select id="fPt"><option value="">Tất cả</option><option value="TM">💵 Tiền mặt</option><option value="CK">🏦 Chuyển khoản</option><option value="BE">🛵 App be</option><option value="XANH">🛵 App Xanh SM</option></select></div>
     <div class="fi"><label for="fMon">Món</label><select id="fMon"><option value="">Tất cả</option></select></div>
     <div class="fi"><label for="fDay">Loại ngày</label><select id="fDay"><option value="">Tất cả</option><option value="thuong">Ngày giá thường</option><option value="km">🏷 Mọi ngày khuyến mãi</option><option value="dg15">🏷 Đồng giá 15K</option><option value="promo">🏷 Khai trương 10K</option><option value="wkend">Cuối tuần (T7–CN)</option><option value="wkday">Ngày thường (T2–T6)</option></select></div>
-    <div class="fi"><label for="fTgt">Mục tiêu ly/ngày</label><input type="number" id="fTgt" min="1" step="5" value="80"></div>
+    <div class="fi"><label for="fTgt">Mục tiêu ly/ngày</label><input type="number" id="fTgt" min="1" step="5" value="40"></div>
     <button class="clr" id="clearAll">Xoá mọi bộ lọc</button>
   </div>
 
@@ -737,7 +737,7 @@ html.mcap{background:var(--paper)}
     <ul>
       <li>4 thẻ nâu: <b>Doanh thu · Số ly · Số đơn · Giá TB/ly</b>. ▲▼ so với kỳ liền trước cùng số ngày (vd xem 7 ngày thì so với 7 ngày trước đó).</li>
       <li><b>%Hoà vốn tháng</b> = ly cả quán trong tháng ÷ mốc hoà vốn (chi cố định ÷ lãi gộp mỗi ly, sửa ở ô Hoà vốn tab Thu chi). Vạch đỏ là % số ngày bán đã qua, tính từ ngày mở bán: thanh vượt vạch là kịp tiến độ.</li>
-      <li><b>%Đạt mục tiêu</b> = ly bán ÷ (mục tiêu ly/ngày × số ngày có bán). Sửa mục tiêu ở ô <b>Mục tiêu ly/ngày</b> (đang 80). Biểu đồ tạm không vẽ đường mục tiêu, chỉ vẽ số liệu thật.</li>
+      <li><b>%Đạt mục tiêu</b> = ly bán ÷ (mục tiêu ly/ngày × số ngày có bán). Sửa mục tiêu ở ô <b>Mục tiêu ly/ngày</b> (mặc định 40, tải lại trang về 40). Biểu đồ tạm không vẽ đường mục tiêu, chỉ vẽ số liệu thật.</li>
     </ul>
     <h4>Thao tác</h4>
     <ul>
@@ -886,7 +886,7 @@ html.mcap{background:var(--paper)}
       </div>
     </div>
     <div class="card" id="sec-sales-tv">   <!-- v1.7.110 -->
-      <div class="ct">Thẻ thành viên <span class="nt">· 1 hạng, giảm 2.000đ mỗi ly từ T2 đến T6 (T7, CN đồng giá không giảm) · đơn có ghi chú "Thành viên" (nhân viên gõ kèm tv trên bot) · theo bộ lọc kỳ</span></div>
+      <div class="ct">Thẻ thành viên &amp; mang ly <span class="nt">· thành viên giảm 2.000đ mỗi ly từ T2 đến T6 (T7, CN đồng giá không giảm), gõ tv · khách mang ly / bình giảm 2.000đ mỗi ly mọi ngày, gõ ly cuối đơn · dùng chung được · theo bộ lọc kỳ</span></div>
       <div id="tvTom" class="cmt"></div>
       <div class="tblwrap" style="max-height:300px"><table id="tTv"></table></div>
     </div>
@@ -1662,7 +1662,7 @@ function parseWorkbook(wb){
     const t = toDate(r[1]);
     if (txt(r[10]).toUpperCase() !== 'OK'){ if (txt(r[10]).toUpperCase() === 'HUY') D.cancel.push({id:txt(r[0]), k, tt:num(r[8]), sl:num(r[6])}); return; }
     D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: (p => p === 'CK' || p === 'BE' || p === 'XANH' ? p : 'TM')(txt(r[9]).toUpperCase()),   // v1.7.134 (bot apptv-v1 @205): J = BE / XANH là đơn app — đơn giá đã là thực nhận; tiền app để riêng, không vào TM/CK/chốt ca/quỹ
-      hs: num(r[12]) > 0 ? num(r[12]) : 1, tv: /th[aà]nh\s*vi[eê]n/i.test(txt(r[11]))});   // v1.7.110: đơn thẻ thành viên (bot ghi chú "Thành viên −2.000/ly")   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
+      hs: num(r[12]) > 0 ? num(r[12]) : 1, tv: /th[aà]nh\s*vi[eê]n/i.test(txt(r[11])), ml: /mang\s*ly/i.test(txt(r[11]))});   // v1.7.221: đơn khách mang ly / bình (bot mangly-v1 ghi "Mang ly −2.000/ly", 1 ly mang = −2.000)   // v1.7.110: đơn thẻ thành viên (bot ghi chú "Thành viên −2.000/ly")   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
   });
   rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE', tat:tatMon(r[5])}; });
   // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái · Sổ chi (H = "202610:47" nếu /chiphi đã tự ghi vào dòng 47 sổ Chi T10-2026; trống = chưa vào sổ)
@@ -1841,9 +1841,9 @@ const VIEW_INFO = {
 };
 /** Đường mục tiêu ly trên biểu đồ (số ly theo ngày, nhịp bán cộng dồn): TẠM TẮT 16/10/2026 theo chủ quán — chỉ vẽ số liệu thật. Bật lại = true (và trả chữ "vạch / chấm = mục tiêu" vào tiêu đề 2 biểu đồ). */
 const HIEN_LINE_MUC_TIEU = false;
-const S = {view:'ov', tdK:'', preset:'mtd', gKy:'thang', gMoc:'', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:80,   // mục tiêu ly/ngày: 80 (chủ quán chốt 16/10/2026)
+const S = {view:'ov', tdK:'', preset:'mtd', gKy:'thang', gMoc:'', from:'', to:'', nv:'', pt:'', mon:'', day:'', hour:null, tgt:40,   // mục tiêu ly/ngày: 40 (chủ quán chốt 12/11/2026; trước 80) — tải lại trang luôn về 40, không nhớ số gõ tay
   sort:{}, open:new Set(), finMonth:'all'};
-try { const t = +localStorage.getItem('kai_tgt2'); if (t > 0) S.tgt = t; } catch(e){}   // khoá mới 'kai_tgt2': bỏ mục tiêu 60 cũ còn lưu trong trình duyệt
+try { localStorage.removeItem('kai_tgt2'); } catch(e){}   // v1.7.221: bỏ mục tiêu đã lưu trong trình duyệt → luôn mặc định 40
 try { const v = localStorage.getItem('kai_view'); if (v) S.view = v; } catch(e){}
 $('fTgt').value = S.tgt;
 
@@ -2292,7 +2292,10 @@ function renderSales(){
   { // v1.7.110: thẻ thành viên — số ly, đơn, tiền đã giảm (2.000đ/ly) trong kỳ
     const L = sel().filter(o => o.tv), A = agg(sel()), ly = L.reduce((x, o) => x + o.sl, 0), don = new Set(L.map(o => o.id)).size, giam = ly * 2000;
     $('tvTom').innerHTML = ly ? `Kỳ đang xem: <b>${fmt(ly)} ly</b> thành viên (${pct(A.ly ? ly / A.ly : 0)} số ly) · <b>${fmt(don)} đơn</b> · đã giảm <b>${fmt(giam)} đ</b>.`
-      : 'Chưa có đơn thành viên trong kỳ. Khi bot nhận cú pháp <b>tv</b> (vd "csm tv") đơn sẽ ghi chú "Thành viên −2.000/ly" và hiện ở đây (đang chờ phiên Bot làm).';
+      : 'Chưa có đơn thành viên trong kỳ (nhân viên gõ <b>tv</b> trên bot, vd "csm tv").';
+    { const M = sel().filter(o => o.ml), lyM = M.reduce((x, o) => x + o.sl, 0);   // v1.7.221: mang ly / bình — 1 ly mang theo = −2.000 (gộp N ly vào 1 bình vẫn 1 lần)
+      $('tvTom').innerHTML += '<br>' + (lyM ? `🥤 Mang ly / bình: <b>${fmt(lyM)} ly</b> (${pct(A.ly ? lyM / A.ly : 0)} số ly) · <b>${fmt(new Set(M.map(o => o.id)).size)} đơn</b> · đã giảm <b>${fmt(lyM * 2000)} đ</b>.`
+        : '🥤 Chưa có đơn mang ly / bình trong kỳ (gõ <b>ly</b> cuối đơn, vd "2 csm ly").'); }
     const byK = [...groupBy(L, o => o.k)].map(([k, l]) => { const n = l.reduce((x, o) => x + o.sl, 0); return {k, ly:n, don:new Set(l.map(o => o.id)).size, giam:n * 2000, dt:l.reduce((x, o) => x + o.tt, 0)}; });
     table({id:'tTv', rows:byK, sortDefault:{k:'k', d:-1}, total:byK.length ? {ly, don, giam, dt:L.reduce((x, o) => x + o.tt, 0)} : null, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`}, {k:'ly', l:'Ly thành viên', r:1, f:fmt}, {k:'don', l:'Đơn', r:1, f:fmt}, {k:'dt', l:'Doanh thu (sau giảm)', r:1, f:fmt}, {k:'giam', l:'Tiền đã giảm', r:1, f:fmt}]}); }
   const L = sel(), A = agg(L);
@@ -2574,7 +2577,7 @@ function tdSideHtml(P, o){
 /* v1.7.202: chip cỡ ly ở Đơn mới nhất / Đơn trong kỳ — hệ số DonHang cột M: 1 < hs < 2 = size L (1,3) · hs nguyên ≥ 2 = ly gộp (+N) */
 const chipLy = o => { const hs = o.hs || 1; if (!(hs > 1)) return ''; if (hs >= 2 && Number.isInteger(hs)) return ` <span class="pill neu" title="Ly gộp hệ số ${hs}">gộp ${hs}</span>`;
   /* v1.7.211: chip L kèm phụ thu thật so với giá M ở Menu (cộng lại −2K thẻ thành viên; đơn app không so) → L +5K chuẩn, L +2K / +3K là bán lệch */
-  const m = D && D.menu[o.mon], pt = m && m.gia && o.pt !== 'BE' && o.pt !== 'XANH' ? Math.round((o.gia + (o.tv ? 2000 : 0) - m.gia) / 1000) : null;
+  const m = D && D.menu[o.mon], pt = m && m.gia && o.pt !== 'BE' && o.pt !== 'XANH' ? Math.round((o.gia + (o.tv ? 2000 : 0) + (o.ml ? 2000 : 0) - m.gia) / 1000) : null;
   return ` <span class="pill ${pt != null && pt !== 5 ? 'warn' : 'neu'}" title="Size lớn (hệ số ${String(hs).replace('.', ',')})${pt != null ? ' · ' + fmt(o.gia) + ' đ/ly so với giá M ' + fmt(m.gia) + ' đ' : ''}" style="font-weight:700">L${pt != null && pt > 0 ? ' +' + pt + 'K' : ''}</span>`; };
 function renderTdKy(){
   const now = new Date(), tk = today(), Q = tdKy(), K = soKyBaoCao(Q.tu, Q.den), KT = soKyBaoCao(Q.tuT, Q.denT), P = K.P, A = K.A, days = K.denThuc >= Q.tu ? rangeDays(Q.tu, K.denThuc) : [];
@@ -2650,12 +2653,12 @@ function renderTdKy(){
   /* đơn trong kỳ */
   datCt('tdFeed', 'Đơn trong kỳ');
   const ord = [...groupBy(K.L, o => o.id)].map(([id, l]) => ({id, k:l[0].k, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((x, o) => x + o.tt, 0), ly:l.reduce((x, o) => x + o.sl, 0),
-    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
+    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv), ml:l.some(o => o.ml)})).sort((a, b) => a.k === b.k ? (b.min ?? 0) - (a.min ?? 0) : a.k < b.k ? 1 : -1);
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${dShort(o.k)}<br>${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}</span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}${o.ml ? ' <span class="pill good" title="Khách mang ly / bình cá nhân (−2.000 đ/ly)">🥤 mang ly</span>' : ''}</span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -2774,12 +2777,12 @@ function renderToday(){
 
   /* feed */
   const ord = [...groupBy(L, o => o.id)].map(([id, l]) => ({id, t:l[0].t, min:l[0].min, nv:l[0].nv, pt:l[0].pt, tt:l.reduce((s, o) => s + o.tt, 0), ly:l.reduce((s, o) => s + o.sl, 0),
-    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv)})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
+    it:l.map(o => esc(`${o.sl}× ${o.mon.replace('Cà phê', 'CF')}`) + chipLy(o)).join(', '), anh:l.map(o => o.ma), tv:l.some(o => o.tv), ml:l.some(o => o.ml)})).sort((a, b) => (b.min ?? 0) - (a.min ?? 0));
   const nFeed = S.feedAll ? ord.length : Math.min(40, ord.length);
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}</span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}${o.ml ? ' <span class="pill good" title="Khách mang ly / bình cá nhân (−2.000 đ/ly)">🥤 mang ly</span>' : ''}</span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -3512,7 +3515,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.223';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.224';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3570,6 +3573,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.224', ngay:'12/11/2026', nd:['Mục tiêu ly/ngày mặc định 40 (trước 80); tải lại trang luôn về 40.', 'Đơn khách mang ly / bình (bot gõ “ly” cuối đơn, −2.000đ/ly, dùng chung thẻ thành viên): chip 🥤 mang ly ở Đơn mới nhất, đếm ly / đơn / tiền đã giảm ở thẻ Thành viên & mang ly (tab Bán hàng).']},
   {v:'v1.7.223', ngay:'12/11/2026', nd:['Ô icon trên các thẻ nâu (Tổng quan, Bán hàng, Nhân sự…) đổi nền trắng kem cho icon nổi rõ.']},
   {v:'v1.7.222', ngay:'12/11/2026', nd:['Nhân sự: dải tên trên thẻ sáng hơn (nâu ấm, viền nhạt) để hàng 4 ô tóm tắt đỡ tối.']},
   {v:'v1.7.221', ngay:'12/11/2026', nd:['Nhân sự: thẻ tên đổi sang kiểu thẻ nhân viên — dải nâu ghi tên, thân kem ghi bậc chữ nâu (bỏ chuyển màu và viền chữ cho dễ đọc). Ô Bậc ở “Của tôi” cùng kiểu.']},
@@ -3894,9 +3898,9 @@ function tuKiem(){
     const ttA = ['2026-11-16', '2026-03-31', '2027-01-05', '2028-03-31', '2026-12-31'].map(ngayThangTruoc);
     ok('Cùng ngày tháng trước: 16/11 → 16/10 · 31/03 → 28/02 · 05/01/2027 → 05/12/2026 · 31/03/2028 → 29/02 · 31/12 → 30/11; tháng trước của ngày bán đầu tiên chưa có dữ liệu',
       ttA.join() === '2026-10-16,2026-02-28,2026-12-05,2028-02-29,2026-11-30' && !coDuLieuNgay(ngayThangTruoc(D.first)), ttA.join(' '));
-    // 36. Tạm tắt đường mục tiêu ly: không biểu đồ nào đang vẽ đường tên "mục tiêu" khi HIEN_LINE_MUC_TIEU = false; mục tiêu mặc định 80 ly/ngày
+    // 36. Tạm tắt đường mục tiêu ly: không biểu đồ nào đang vẽ đường tên "mục tiêu" khi HIEN_LINE_MUC_TIEU = false; mục tiêu mặc định 40 ly/ngày
     const mtC = Object.values(charts).filter(c => c && c.data && c.data.datasets.some(d => /mục tiêu/i.test(d.label || ''))).length;
-    ok('Đường mục tiêu ly tạm tắt (không biểu đồ nào vẽ đường "mục tiêu") và mục tiêu mặc định = 80 ly / ngày',
+    ok('Đường mục tiêu ly tạm tắt (không biểu đồ nào vẽ đường "mục tiêu") và mục tiêu mặc định = 40 ly / ngày',
       (HIEN_LINE_MUC_TIEU || mtC === 0) && S.tgt > 0 && (!($('fTgt')) || +$('fTgt').value === S.tgt), `${mtC} biểu đồ có đường mục tiêu · mục tiêu ${S.tgt}`);
     // 37. Bố cục điện thoại / máy tính: điều kiện @media được tính theo bề ngang giả lập (điện thoại 390 px, máy tính 1280 px), điều kiện không phải bề ngang giữ nguyên
     const gdA = [mqVoiRong('(max-width: 899px)', 390), mqVoiRong('(min-width: 900px)', 390), mqVoiRong('(max-width: 899px)', 1280), mqVoiRong('(min-width: 900px)', 1280), mqVoiRong('(max-width:560px) and (prefers-reduced-motion: reduce)', 1280), mqVoiRong('(prefers-color-scheme: dark)', 390), mqVoiRong('(max-width: 899px)', null), mqVoiRong('(max-width: 380px)', 390)];
@@ -5924,7 +5928,7 @@ $('gPick').onchange = () => { if (!D) return; const v = $('gPick').value; S.gMoc
 $('dFrom').onchange = () => { S.preset = ''; S.gKy = 'khoang'; S.from = $('dFrom').value || S.from; if (S.to < S.from) S.to = S.from; syncFilters(); render(); };
 $('dTo').onchange = () => { S.preset = ''; S.gKy = 'khoang'; S.to = $('dTo').value || S.to; if (S.to < S.from) S.from = S.to; syncFilters(); render(); };
 [['fNv', 'nv'], ['fPt', 'pt'], ['fMon', 'mon'], ['fDay', 'day']].forEach(([id, k]) => $(id).onchange = () => { S[k] = $(id).value; render(); });
-$('fTgt').oninput = () => { const v = +$('fTgt').value; if (v > 0){ S.tgt = v; try { localStorage.setItem('kai_tgt2', v); } catch(e){} render(); } };
+$('fTgt').oninput = () => { const v = +$('fTgt').value; if (v > 0){ S.tgt = v; render(); } };
 $('clearAll').onclick = () => { S.nv = S.pt = S.mon = S.day = ''; S.hour = null; S.open.clear(); setPreset('mtd'); syncFilters(); render(); };
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setView(b.dataset.v));
 // v1.7.49: lùi / tới theo kỳ đang xem (ngày · tuần · tháng)
