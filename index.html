@@ -3671,7 +3671,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.247';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.248';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3729,6 +3729,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.248', ngay:'12/11/2026', nd:['Tab Hao hụt · đối chiếu tổng: mục có tồn đếm được nhiều hơn tổng đã mua (dùng thật âm, vd siro caramel) hiện "Đếm > mua" thay vì "Dùng ít hơn CT" kèm số tiền dư ảo — cần bổ sung dòng mua hoặc đếm lại.']},
   {v:'v1.7.247', ngay:'12/11/2026', nd:['Hao hụt thật ở tab Kho và Kiểm chứng giờ lấy cùng số với tab Hao hụt và bot /haohut: đã trừ /dungnoibo, chỉ lấy lần đếm cuối ngày, kỳ cách ≥ 6 giờ (trước đây bỏ sót kỳ đếm sớm hơn hôm trước vài phút và chưa trừ đồ test).', 'Tab Hao hụt tính nhanh hơn: công thức theo ngày bán của mỗi đơn chỉ tra 1 lần.']},
   {v:'v1.7.246', ngay:'12/11/2026', nd:['Tab Kho · bảng tồn: 2 cột Kiểm xe / Kiểm kho gần nhất dời ra sau cột Giá trị còn lại.']},
   {v:'v1.7.245', ngay:'12/11/2026', nd:['Tab Kho gọn lại: Cần xử lý → Kế hoạch mua 7 ngày → Báo cáo nhân viên → Tồn hiện tại (cột Trạng thái + Việc cần làm lên ngay sau tên). Biểu đồ Đủ dùng và Lịch sử kiểm & hao hụt gập sẵn (▾ để mở). Bỏ thẻ Vật tư 1 cái/ly và ô Giá trị / Ổn (đã có trong bảng tồn, Cần xử lý). Không đổi cách tính.']},
@@ -4492,7 +4493,7 @@ function renderHh(){
     {k:'tongMua', l:'Tổng mua', r:1, f:(v, r) => so(v, r.dv)}, {k:'xe', l:'Tồn xe + kho (đếm)', r:1, f:(v, r) => r.thieu ? `<span class="muted">${esc(r.thieu)}</span>` : `${so(r.xe + r.kho, r.dv)} <span class="muted">(xe ${so(r.xe)} · kho ${so(r.kho)})</span>`},
     {k:'dungThat', l:'Dùng thật (đã trừ dùng nội bộ)', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv) + (r.nb ? ` <span class="muted" title="/dungnoibo: thử nghiệm, đổ bỏ, mời khách">(nội bộ ${so(r.nb)})</span>` : '')}, {k:'dung', l:'Theo công thức', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv)},
     {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'s', l:'% so với CT', r:1, f:(v, r) => r.ty == null ? '—' : pctS(r.ty, 1)},
-    {k:'tien', l:'Tiền (đ)', r:1, f:(v, r) => r.thieu ? '—' : tienF(v)}, {k:'muc', l:'Mức', f:pill}, {k:'den', l:'Tính tới', f:(v, r) => r.thieu ? '—' : luc(v)}]});
+    {k:'tien', l:'Tiền (đ)', r:1, f:(v, r) => r.thieu || r.dungThat < 0 ? '—' : tienF(v)}, {k:'muc', l:'Mức', f:(m, r) => r.dungThat < 0 ? '<span class="pill warn" title="Tồn đếm được (xe + kho) nhiều hơn tổng đã mua: thiếu dòng mua trong sổ chi (hoặc hàng bàn giao chưa ghi), hoặc đếm / quy đổi sai">Đếm &gt; mua</span>' : pill(m)}, {k:'den', l:'Tính tới', f:(v, r) => r.thieu ? '—' : luc(v)}]});
   $('hhTongNote').innerHTML = `Kho không tiêu hao, chỉ nhận hàng mua và xuất ra xe, nên phần dùng nhiều hơn công thức nằm ở xe (pha chế, đổ bỏ, làm lại) hoặc ở hàng lấy kho mà không báo. Mục "chưa đếm xe / kho" sẽ có số khi đếm đủ (Chủ nhật nhân viên đếm đủ mọi mục ở xe). Hàng cho kèm (ly trà, bịch đựng đá, trà sâm dứa) không có định lượng trong CongThuc nên không đối chiếu ở đây. Dư nhiều (dùng ít hơn công thức) thường là định lượng trong CongThuc cao hơn thực tế, nên sửa CongThuc chứ không phải thất thoát.`;
   /* 2 · kỳ kiểm xe */
   const xeRows = H.xe.map(r => Object.assign({}, r, {t:r.den.getTime()})), hutXe = H.xe.filter(r => r.tien > 0).reduce((s, r) => s + r.tien, 0), duXe = H.xe.filter(r => r.tien < 0).reduce((s, r) => s - r.tien, 0);
