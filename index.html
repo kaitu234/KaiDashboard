@@ -3476,7 +3476,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.203';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.204';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3534,6 +3534,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.204', ngay:'12/11/2026', nd:['Thẻ “Của tôi” (tài khoản nhân viên) có thêm ô Lương tháng này và lương trung bình mỗi giờ (chia cho giờ trong ca). Mỗi người chỉ thấy lương của chính mình — server chỉ gửi cột lương ở dòng chấm công / thưởng phạt của người đăng nhập.', 'Thẻ “Dẫn đầu thâm niên” chỉ tính nhân viên, không tính chủ.']},
   {v:'v1.7.203', ngay:'12/11/2026', nd:['Nhóm món mới 4 nhóm: Cà phê · Cacao · Phindi · Matcha & trà sữa (tab Menu Sheet đã đổi, bỏ “Đặc biệt”/“Không cà phê”) — biểu đồ cơ cấu nhóm, bảng món, Gợi ý bán hàng theo đúng nhóm mới.', 'Sổ tay công thức chia theo 4 nhóm: món muối về đúng nhóm gốc (cà phê muối, bạc xỉu muối → Cà phê; cacao muối → Cacao; matcha latte muối → Matcha & trà sữa).']},
   {v:'v1.7.202', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: ly size L hiện chip L, ly gộp hiện chip +2 / +3… ngay sau tên món.']},
   {v:'v1.7.201', ngay:'12/11/2026', nd:['Đơn mới nhất / Đơn trong kỳ: đơn có thẻ thành viên hiện chip ⭐ member cạnh TM/CK.']},
@@ -4768,7 +4769,9 @@ function renderLs(){
   /* v1.7.191 (chủ nhờ 11/11): bỏ thẻ Lịch sử thay đổi khỏi Sổ tay — không cho nhân viên xem; LS_CS giữ làm ghi chép */
   if ($('stLs')) $('stLs').innerHTML = LS_CS.map((x, i) => '<details' + (i < 2 ? ' open' : '') + '><summary>' + esc(x.ngay) + '</summary><ul>' + x.nd.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul></details>').join('');
 }
-/* Thẻ "Của tôi" (đầu tab Nhân sự, chỉ tài khoản nhân viên): khớp tên đăng nhập (TaiKhoanDash cột B) với tab NhanVien. Không có số tiền. */
+/* Thẻ "Của tôi" (đầu tab Nhân sự, chỉ tài khoản nhân viên): khớp tên đăng nhập (TaiKhoanDash cột B) với tab NhanVien.
+   v1.7.204 (chủ 12/11): thêm ô Lương tháng này — cùng cách tính luongNgay (tiền công P, chưa có thì tạm theo giờ × lương/giờ, + chuyên cần + thưởng ly + thưởng/phạt), chia cho giờ trong ca (gioDN, không gồm vào sớm) để ra lương/giờ.
+   Server chỉ gửi cột lương ở dòng của chính người này (luongtoi-v1) nên không ai xem được lương người khác. */
 function renderCuaToi(){
   const card = $('sec-hr-toi'), chuan = v => String(v || '').normalize('NFC').trim().toLowerCase();
   const me = VAI === 'nhanvien' && (D.nhanVien || []).find(n => chuan(n.ten) === chuan(TEN_DN));
@@ -4776,12 +4779,17 @@ function renderCuaToi(){
   const tk = today(), m0 = tk.slice(0, 7), th = D.cong.filter(c => c.id === me.id && c.k.slice(0, 7) === m0), CC = CHUYEN_CAN;
   const cc = Object.values(D.ccRes || {}).find(o => o.id === me.id), thu = k => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][new Date(k + 'T12:00:00').getDay()];
   const lich = D.lich ? D.lich.dk.filter(x => x.id === me.id && (x.k > tk || (x.k === tk && new Date().getHours() * 60 + new Date().getMinutes() < 630)) && x.tt === 'OK').map(x => x.k).sort() : [];
+  let luongT = 0, gioCa = 0, tamL = false;
+  th.forEach(c => { const het = c.ra || gioRaTam(c); luongT += (c.cc || 0) + (c.tl || 0); gioCa += gioDN(c, het);
+    if (c.tien != null){ luongT += c.tien; if (!c.ra) tamL = true; } else if (c.luongGio && het){ luongT += gioLuong(c, het) * c.luongGio; tamL = true; } });
+  luongT += (D.thuongPhat || []).filter(x => x.id === me.id && x.k.slice(0, 7) === m0).reduce((s, x) => s + x.tien, 0);
   const daDoc = DD.some(x => x[3] === SO_TAY_BAN), qz = QZ.slice().sort((a, b) => b[3] / (b[4] || 1) - a[3] / (a[4] || 1))[0];
   const o = (lb, v, sub) => '<div><span class="lb">' + lb + '</span><span class="v">' + v + '</span>' + (sub ? '<span class="s">' + sub + '</span>' : '') + '</div>';
   $('hrToiNt').textContent = '· ' + me.ten + ' · chỉ bạn thấy';
   $('hrToi').innerHTML = '<div class="toi">'
     + o('Bậc', esc(me.bac || '—'), (me.gioTN != null ? (+me.gioTN).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ thâm niên' : '') + (me.conLen != null ? ' · còn ' + (+me.conLen).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ lên bậc' : ''))
     + o('Tháng này', th.length + ' ca', th.reduce((s, c) => s + (c.gio || 0), 0).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ làm')
+    + o('Lương tháng này', th.length ? fmt(luongT) + ' đ' : '—', th.length ? (gioCa ? '≈ ' + fmt(luongT / gioCa) + ' đ/giờ · ' : '') + gioCa.toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ trong ca' + (tamL ? ' · tạm tính' : '') : 'chưa có ca')
     + o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? (cc.chuoi ? 'còn ' + (CC.soCa - cc.chuoi) + ' ca nữa đạt' : 'đang đếm lại từ đầu') + ' · đạt ' + cc.thuong.filter(k => String(k).slice(0, 7) === m0).length + ' lần tháng này' : 'chưa có ca')
     + o('Ca sắp tới', lich.length ? lich.length + ' ca' : 'chưa đăng ký', lich.slice(0, 6).map(k => thu(k) + ' ' + dShort(k)).join(' · ') || 'đăng ký: /dangkyca')
     + o('Sổ tay', daDoc ? '✓ đã đọc' : '<a class="lnk toiStLnk" href="#sec-st-dd">⚠ chưa xác nhận</a>', 'bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : ''))
@@ -4984,7 +4992,7 @@ function renderHr(){
   $('hrCmt').innerHTML = ng.length ? '⚠ <b>Đơn ghi ngoài giờ ca</b> (đã checkout hoặc trước checkin): ' + ng.map(x => `${esc(x.nv)} ${dShort(x.k)}: ${x.ly} ly (${hm(x.tu)}–${hm(x.den)})`).join(' · ') + '. Nhắc nhân viên checkout đúng giờ hoặc kiểm tra lại.' : '';
   // v1.7.137 (chủ nhờ 06/11): khối thẻ đầu tab như bảng "NHÂN VIÊN & LEVEL" của Sheet, CHẠY THEO bộ lọc kỳ + nhân viên — tháng đó làm bao nhiêu giờ, lương/giờ bao nhiêu
   { const NV = (D.nhanVien || []).filter(n => !n.cu), nvF = S.nv ? NV.find(n => n.ten === S.nv || D.nhanNv({nv:n.ten, id:n.id}) === S.nv) : null;
-    const tv = NV.filter(n => /^th(ử|u) vi(ệ|e)c$/i.test(n.chucVu || '')), sap = NV.filter(n => !n.chu && n.conLen != null && n.conLen > 0 && n.conLen <= 20), dan = NV.slice().sort((a, b) => (b.gioTN || 0) - (a.gioTN || 0))[0];
+    const tv = NV.filter(n => /^th(ử|u) vi(ệ|e)c$/i.test(n.chucVu || '')), sap = NV.filter(n => !n.chu && n.conLen != null && n.conLen > 0 && n.conLen <= 20), dan = NV.filter(n => !n.chu).sort((a, b) => (b.gioTN || 0) - (a.gioTN || 0))[0];   /* v1.7.204 (chủ 12/11): dẫn đầu thâm niên chỉ tính nhân viên */
     const tienNV = rows.filter(r => !r.chu).reduce((a, r) => a + r.tien, 0), dnNV = rows.filter(r => !r.chu).reduce((a, r) => a + r.gioDNt, 0), glNV = rows.filter(r => !r.chu && r.tien).reduce((a, r) => a + r.gioL, 0);
     const f1 = v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:1}), ky = S.from === S.to ? dShort(S.from) : `${dShort(S.from)} – ${dShort(S.to)}`;
     $('hrTop').innerHTML = (nvF ? `
@@ -5922,14 +5930,23 @@ try { API = localStorage.getItem('kai_dash_api') || ''; KEY = localStorage.getIt
 /* ---- vaitro-v1 (v1.7.181, chủ quán 11/11): vai trò nhân viên. Server (Dashboard.gs) kiểm tài khoản ở tab TaiKhoanDash và KHÔNG gửi tab tiền cho nhân viên;
    trang chỉ ẩn tab tương ứng. NV_BO_TAB / NV_CHI_XOA_COT là bản sao y hệt DASH_NV_BO_TAB / DASH_NV_CHI_XOA_COT của server (dùng cho nút "Xem như nhân viên" của chủ) — đổi một bên thì đổi bên kia. */
 const NV_AN_VIEW = ['pnl', 'kc', 'fin', 'tb', 'hh'];   // Phân tích chỉ chừa Hiệu suất + Kế hoạch; Tiền & kho chỉ chừa Kho
-const NV_BO_TAB = ['Vốn & Thu', 'Tổng hợp', 'Quỹ tiền', 'Chi cố định', 'Thiết bị', 'LuongDaChot', 'ThuongPhat'], NV_CHI_XOA_COT = [5, 6, 8, 9, 11, 12];
-const NV_XOA_COT = {ChamCong:[13, 14, 15, 16, 18], NhanVien:[5, 9, 10, 15], Kho:[17]};   // v1.7.182: = DASH_NV_XOA_COT (cột lương, giá mua)
+const NV_BO_TAB = ['Vốn & Thu', 'Tổng hợp', 'Quỹ tiền', 'Chi cố định', 'Thiết bị', 'LuongDaChot'], NV_CHI_XOA_COT = [5, 6, 8, 9, 11, 12], NV_COT_ID = {ChamCong:2, ThuongPhat:1};   // v1.7.204 luongtoi-v1: ThuongPhat / ChamCong chỉ giữ lương ở dòng của chính người đăng nhập
+const NV_XOA_COT = {ChamCong:[13, 14, 15, 16, 18, 21], NhanVien:[5, 9, 10, 15], Kho:[17]};   // v1.7.182: = DASH_NV_XOA_COT (cột lương, giá mua)
 let VAI = 'chu', XEM_NV = false, RES_GOC = null, NK = [], NK_V = null, TEN_DN = '';
+function idCuaTenNV(res, tenDn){
+  const rows = (res.sheets || {}).NhanVien, chuan = v => String(v ?? '').normalize('NFC').trim().toLowerCase();
+  if (!rows || !rows.length || !tenDn) return '';
+  const hd = rows[0].map(c => chuan(c).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')), cId = hd.findIndex(x => /telegram id/.test(x)), cTen = hd.findIndex(x => /^ten$/.test(x));
+  const r = cId >= 0 && cTen >= 0 && rows.slice(1).find(x => chuan(x[cTen]) === chuan(tenDn));
+  return r ? String(r[cId]).trim() : '';
+}
 function locNV(res){
-  const names = [], sheets = {};
+  const names = [], sheets = {}, idToi = idCuaTenNV(res, res.ten);
   (res.names || []).forEach(n => { if (NV_BO_TAB.includes(n)) return; let rows = (res.sheets || {})[n];
     if (/^Chi\s*T\d{1,2}-\d{4}$/i.test(n) && rows) rows = rows.map((r, i) => { if (i < 11) return []; const x = r.slice(); NV_CHI_XOA_COT.forEach(c => { if (c < x.length) x[c] = ''; }); return x; });
-    if (NV_XOA_COT[n] && rows) rows = rows.map(r => { const x = r.slice(); NV_XOA_COT[n].forEach(c => { if (c < x.length) x[c] = ''; }); return x; });
+    const cId = NV_COT_ID[n], cuaToi = r => !!idToi && String(r[cId]).trim() === idToi;
+    if (n === 'ThuongPhat' && rows) rows = rows.filter((r, i) => i === 0 || cuaToi(r));
+    if (NV_XOA_COT[n] && rows) rows = rows.map((r, i) => { if (i > 0 && cId != null && cuaToi(r)) return r; const x = r.slice(); NV_XOA_COT[n].forEach(c => { if (c < x.length) x[c] = ''; }); return x; });
     names.push(n); sheets[n] = rows; });
   return Object.assign({}, res, {names, sheets, bac:null});
 }
