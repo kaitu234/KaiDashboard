@@ -875,6 +875,7 @@ html.mcap{background:var(--paper)}
         <div class="tblwrap" style="max-height:200px"><table id="tTdCong"></table></div>
         <div class="lbl">Bán theo người ghi đơn</div>
         <div class="tblwrap" style="max-height:200px"><table id="tTdNguoi"></table></div>
+        <div id="tdTrung"></div>
         <div class="cmt" id="tdChot"></div>
       </div>
     </div>
@@ -1977,6 +1978,18 @@ function banTheoNguoi(list, cong){
   table({id:'tTdNguoi', rows, sortDefault:{k:'dt', d:-1}, total:rows.length > 1 ? {don:rows.reduce((a, r) => a + r.don, 0), ly:rows.reduce((a, r) => a + r.ly, 0), dt:rows.reduce((a, r) => a + r.dt, 0)} : null, cols:[
     {k:'nv', l:'Người ghi', f:v => esc(v)}, {k:'don', l:'Đơn', r:1, f:fmt}, {k:'ly', l:'Ly', r:1, f:fmt}, {k:'dt', l:'Doanh thu', r:1, f:fmt}, {k:'gio', l:'Giờ ca', r:1, f:f1}, {k:'lyh', l:'Ly / giờ', r:1, f:f1}]});
   if (!rows.length) $('tTdNguoi').querySelector('tbody').innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:12px">Chưa có đơn.</td></tr>';
+  canhBaoGhiTrung(list);
+}
+/* v1.7.235 (chủ 12/11): cảnh báo khả năng GHI TRÙNG — 2 đơn do 2 người ghi khác nhau, giờ ghi (cột Thời gian bot, có giây) cách nhau dưới 5 giây.
+   Gộp theo mã đơn (giờ sớm nhất của đơn); chỉ cảnh báo, không tự loại đơn — trùng thật thì huỷ trên bot. Chỉ dash. */
+function canhBaoGhiTrung(list){
+  const don = {};
+  list.forEach(o => { if (!o.t) return; const d = (don[o.id] ??= {id:o.id, nv:o.nv, t:o.t, dt:0, mon:[]}); if (o.t < d.t) d.t = o.t; d.dt += o.tt; d.mon.push(o.sl + ' ' + (o.mon || o.ma)); });
+  const L = Object.values(don).sort((a, b) => a.t - b.t), cap = [];
+  for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length && L[j].t - L[i].t < 5000; j++) if (L[j].nv !== L[i].nv) cap.push([L[i], L[j]]);
+  const gio = t => [t.getHours(), t.getMinutes(), t.getSeconds()].map(x => String(x).padStart(2, '0')).join(':'),
+        mo = d => `<b>${esc(d.nv)}</b> ${gio(d.t)} · đơn ${esc(d.id)} · ${esc(d.mon.join(', '))} · ${fmt(d.dt)}`;
+  $('tdTrung').innerHTML = cap.length ? `<div class="cmt" style="border-left-color:var(--bad);background:var(--bad-bg);margin-top:6px">⚠️ <b>Có thể ghi trùng</b> — ${cap.length} cặp đơn do 2 người khác nhau ghi cách nhau dưới 5 giây. Kiểm lại, trùng thật thì huỷ 1 đơn trên bot:${cap.map(([a, b]) => `<div style="margin-top:4px">• ${mo(a)}<br>&nbsp;&nbsp;và ${mo(b)} <span class="muted">(cách ${Math.round((b.t - a.t) / 1000)} giây)</span></div>`).join('')}</div>` : '';
 }
 function appKpi(list, nhan){
   const all = agg(list), ap = agg(list.filter(laApp)), apBe = agg(list.filter(o => o.pt === 'BE')), apX = agg(list.filter(o => o.pt === 'XANH'));
@@ -3633,7 +3646,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.234';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.235';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3691,6 +3704,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.235', ngay:'12/11/2026', nd:['Hôm nay › Bán theo người ghi đơn: cảnh báo "Có thể ghi trùng" khi 2 đơn do 2 người khác nhau ghi cách nhau dưới 5 giây — hiện giờ (có giây), mã đơn, món, tiền của cả hai đơn để kiểm và huỷ đơn trùng trên bot.']},
   {v:'v1.7.234', ngay:'12/11/2026', nd:['Kai’s facts tách thành tab riêng ở nhóm Vận hành (dưới Sổ tay), bỏ khỏi tab Nhân sự.']},
   {v:'v1.7.233', ngay:'12/11/2026', nd:['Nhân sự: thêm mục Kai’s facts — infographic vui về đội Kai từ ngày mở bán: gắn bó lâu nhất, thâm niên, tay pha nhanh nhất (ly/giờ), AOV cao nhất, dậy sớm nhất, vua size L, vua thẻ thành viên, ca kỷ lục, đúng giờ nhất, anh/chị cả, sinh nhật sắp tới, món tủ từng người + số cả quán (tổng ly, ngày kỷ lục, món số 1, giờ đông).']},
   {v:'v1.7.232', ngay:'12/11/2026', nd:['Sửa lỗi v1.7.231: tab Hôm nay xem theo ngày không hiện được (chú thích nuốt mất dòng code). Gợi ý “Ít size L” không báo khi tỉ lệ L đã cao hơn mốc so sánh.']},
