@@ -3671,7 +3671,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.246';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.247';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3729,6 +3729,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.247', ngay:'12/11/2026', nd:['Hao hụt thật ở tab Kho và Kiểm chứng giờ lấy cùng số với tab Hao hụt và bot /haohut: đã trừ /dungnoibo, chỉ lấy lần đếm cuối ngày, kỳ cách ≥ 6 giờ (trước đây bỏ sót kỳ đếm sớm hơn hôm trước vài phút và chưa trừ đồ test).', 'Tab Hao hụt tính nhanh hơn: công thức theo ngày bán của mỗi đơn chỉ tra 1 lần.']},
   {v:'v1.7.246', ngay:'12/11/2026', nd:['Tab Kho · bảng tồn: 2 cột Kiểm xe / Kiểm kho gần nhất dời ra sau cột Giá trị còn lại.']},
   {v:'v1.7.245', ngay:'12/11/2026', nd:['Tab Kho gọn lại: Cần xử lý → Kế hoạch mua 7 ngày → Báo cáo nhân viên → Tồn hiện tại (cột Trạng thái + Việc cần làm lên ngay sau tên). Biểu đồ Đủ dùng và Lịch sử kiểm & hao hụt gập sẵn (▾ để mở). Bỏ thẻ Vật tư 1 cái/ly và ô Giá trị / Ổn (đã có trong bảng tồn, Cần xử lý). Không đổi cách tính.']},
   {v:'v1.7.244', ngay:'12/11/2026', nd:['Phân tích sâu: bỏ đá viên khỏi bảng Nguyên liệu mua thêm / bớt — đá mua ngày nào dùng ngày đó, không trữ nên tồn theo sổ chi không có nghĩa.']},
@@ -4321,18 +4322,11 @@ function tuKiem(){
 /** v1.6 — Hao hụt THẬT đo từ KiemKho nơi "xe", chỉ hiển thị cạnh 5% (không thay 5%, không dùng để tính). Với mỗi nguyên liệu có ≥ 2 lần kiểm xe cách ≥ 1 ngày:
  *  giữa 2 lần kiểm xe liên tiếp t1 < t2: dự kiến tại t2 = đếm(t1) + hàng lấy từ kho trong (t1, t2] (/laykho) − dùng theo công thức trong (t1, t2];
  *  hụt = dự kiến − đếm(t2); hao hụt thật = Σ hụt ÷ Σ dùng theo công thức (các cặp hợp lệ). Đủ mẫu khi ≥ 3 cặp. */
-function haoHutThat(){
-  const out = {};
+function haoHutThat(){   // v1.7.247: lấy từ kỳ xe của haoHutKyCore (cùng tab Hao hụt + bot /haohut): đã trừ /dungnoibo, chỉ lấy lần đếm cuối ngày, kỳ cách ≥ 6 giờ
+  const out = {}, X = haoHutNay().xe;
   D.khoAll.filter(k => k.quyDoi > 0).forEach(k => {
-    const ks = D.kiemKho.filter(x => x.ma === k.ma && x.luc && x.noi === 'xe').sort((a, b) => a.luc - b.luc);
-    const dungCua = o => { const ct = ctTheoNgay(D.congThuc[String(o.ma).toLowerCase()], DINH_LUONG_CU, o.k); return ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0; };
-    let hut = 0, dung = 0, cap = 0;
-    for (let i = 1; i < ks.length; i++){ const a = ks[i - 1], b = ks[i]; if ((b.luc - a.luc) / 864e5 < 1) continue;
-      const ka = dk(a.luc), kb = dk(b.luc), lay = D.layKho.filter(x => x.ma === k.ma && x.luc > a.luc && x.luc <= b.luc).reduce((s, x) => s + x.sl, 0);
-      const d = D.orders.filter(o => o.t ? (o.t > a.luc && o.t <= b.luc) : (o.k > ka && o.k <= kb)).reduce((s, o) => s + dungCua(o), 0);
-      if (!(d > 0)) continue;
-      hut += (a.dem + lay - d) - b.dem; dung += d; cap++; }
-    out[k.ma] = cap ? {ty: hut / dung, cap, dung, hut, lanKiem: ks.length} : {ty:null, cap:0, lanKiem: ks.length};
+    const r = X.filter(x => x.ma === k.ma), dung = r.reduce((t, x) => t + x.dung, 0), hut = r.reduce((t, x) => t + x.hut, 0), lanKiem = D.kiemKho.filter(x => x.ma === k.ma && x.luc && x.noi === 'xe').length;
+    out[k.ma] = r.length && dung > 0 ? {ty: hut / dung, cap: r.length, dung, hut, lanKiem} : {ty:null, cap:0, lanKiem};
   });
   return out;
 }
@@ -4351,9 +4345,9 @@ function haoHutKyCore(src){
   const trong = (o, a, b) => o.t ? (ms(o.t) > ms(a) && ms(o.t) <= ms(b)) : (o.k > dk(a) && o.k <= dk(b));
   const layGiua = (ma, a, b) => lay.reduce((s, x) => x.ma === ma && (a == null || ms(x.luc) > ms(a)) && (b == null || ms(x.luc) <= ms(b)) ? s + x.sl : s, 0);
   const ai = (a, b) => { const c = [...new Set(cong.filter(x => ms(x.vao) < ms(b) && ms(x.ra || x.vao) > ms(a)).map(x => x.nv))]; return c.length ? c : [...new Set(src.orders.filter(o => trong(o, a, b)).map(o => o.nv))]; };
-  const tong = [], xe = [], kho = [];
+  const tong = [], xe = [], kho = [], ctO = new Map(), ctCua = o => { let c = ctO.get(o); if (c === undefined) ctO.set(o, c = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k) || null); return c; };   // v1.7.247: nhớ công thức theo ngày của từng đơn
   src.khoAll.filter(k => k.quyDoi > 0 && k.theoDoi).forEach(k => {   // chỉ mục đang theo dõi (tab Kho cột K)
-    const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0; };
+    const dO = new Map(), dungCua = o => { let v = dO.get(o); if (v === undefined){ const ct = ctCua(o); dO.set(o, v = ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0); } return v; };
     const coCT = Object.values(src.congThuc).some(ct => ct[k.ma]), gia = src.gia && src.gia[k.ma] > 0 ? src.gia[k.ma] : null, tien = h => gia == null ? null : h * gia;
     const muaRows = src.chi.filter(r => khopNL(k, r) && !laHdCu(r)), tongMua = muaRows.reduce((s, r) => s + r.qty, 0);
     const ks = src.kiemKho.filter(x => x.ma === k.ma && x.luc).sort((a, b) => ms(a.luc) - ms(b.luc)), cuoiNgay = a => a.filter((x, i) => i === a.length - 1 || dk(a[i + 1].luc) !== dk(x.luc)), xs = cuoiNgay(ks.filter(x => x.noi === 'xe')), hs = cuoiNgay(ks.filter(x => x.noi === 'kho'));   // v1.7.x: đếm lại trong cùng ngày (vd 23/10 ly 23 cây → sửa 1.150) → chỉ lấy lần CUỐI của ngày, tránh báo hụt giả
@@ -4507,7 +4501,7 @@ function renderHh(){
     {k:'duKien', l:'= Dự kiến', r:1, f:(v, r) => so(v, r.dv)}, {k:'dem', l:'Đếm được', r:1, f:(v, r) => so(v, r.dv)},
     {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'ty', l:'% so với CT', r:1, f:v => pctS(v, 1)},
     {k:'tien', l:'Tiền (đ)', r:1, f:tienF}, {k:'muc', l:'Mức', f:pill}, {k:'nv', l:'Người đứng ca', f:v => esc(v.join(', ')) || '<span class="muted">—</span>'}]});
-  if (!H.xe.length) $('tHhXe').querySelector('tbody').innerHTML = '<tr><td colspan="12" class="muted" style="text-align:center;padding:14px">Chưa có 2 lần kiểm xe liên tiếp (cách ≥ 6 giờ, giữa hai lần có bán món dùng nguyên liệu đó). Nhân viên gõ <b>/kiemxe</b> cuối mỗi ngày.</td></tr>';
+  if (!H.xe.length) $('tHhXe').querySelector('tbody').innerHTML = '<tr><td colspan="13" class="muted" style="text-align:center;padding:14px">Chưa có 2 lần kiểm xe liên tiếp (cách ≥ 6 giờ, giữa hai lần có bán món dùng nguyên liệu đó). Nhân viên gõ <b>/kiemxe</b> cuối mỗi ngày.</td></tr>';
   /* 3 · theo người đứng ca */
   table({id:'tHhNv', rows:H.nguoi, sortDefault:{k:'rong', d:-1}, cols:[{k:'nv', l:'Người'}, {k:'ky', l:'Số kỳ xe', r:1, f:fmt},
     {k:'hut', l:'Phần hụt (đ)', r:1, f:v => v ? `<span class="dn">−${fmt(v)}</span>` : '0'}, {k:'du', l:'Phần dư (đ)', r:1, f:v => v ? `<span class="up">+${fmt(v)}</span>` : '0'},
@@ -4550,7 +4544,7 @@ function renderHaoHut(){
   if (!D.kiemKho.length) $('tKhoHH').querySelector('tbody').innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center;padding:14px">Chưa có lần kiểm nào. Nhân viên gõ <b>/kiemxe</b> cuối ngày, chủ gõ <b>/kiemkho</b> 1–2 lần mỗi tuần để bot so số đếm thực tế với số dự kiến (xe: theo định lượng, kho: theo sổ nhập).</td></tr>';
   { const HH = haoHutThat(), co = Object.entries(HH).filter(([, v]) => v && v.ty != null);   // hao hụt thật đo giữa các lần kiểm xe, chỉ hiển thị
     const old = $('khoHHNote'); if (old) old.remove();
-    $('tKhoHH').insertAdjacentHTML('afterend', `<div class="muted" id="khoHHNote" style="font-size:11.5px;margin-top:4px">Hao hụt thật đo giữa 2 lần kiểm xe cách ≥ 1 ngày (so với 5% đang áp, chỉ để đối chiếu): ${co.length ? co.map(([ma, v]) => `${esc((D.khoAll.find(k => k.ma === ma) || {}).ten || ma)} ${pct(v.ty, 1)} (${v.cap} cặp${v.cap >= 3 ? '' : ', chưa đủ mẫu'})`).join(' · ') : 'chưa có số thật (cần ≥ 2 lần /kiemxe cách ≥ 1 ngày, giữa hai lần có ly bán dùng nguyên liệu đó và có định lượng trong CongThuc)'}.</div>`); }
+    $('tKhoHH').insertAdjacentHTML('afterend', `<div class="muted" id="khoHHNote" style="font-size:11.5px;margin-top:4px">Hao hụt thật đo giữa 2 lần kiểm xe cách ≥ 6 giờ, đã trừ /dungnoibo — cùng số tab Hao hụt (so với 5% đang áp, chỉ để đối chiếu): ${co.length ? co.map(([ma, v]) => `${esc((D.khoAll.find(k => k.ma === ma) || {}).ten || ma)} ${pct(v.ty, 1)} (${v.cap} cặp${v.cap >= 3 ? '' : ', chưa đủ mẫu'})`).join(' · ') : 'chưa có số thật (cần ≥ 2 lần /kiemxe khác ngày, giữa hai lần có ly bán dùng nguyên liệu đó và có định lượng trong CongThuc)'}.</div>`); }
 }
 /** Ngày kiểm tuần: nhân viên đếm đủ mọi mục ở xe, chủ kiểm kho (cùng hằng KIEM_TUAN_THU của bot; 0 = Chủ nhật) */
 const KIEM_TUAN_THU = 0, TEN_THU = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
