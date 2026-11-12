@@ -409,6 +409,9 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .toi .lb{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-family:var(--f-display);font-weight:700}
 .toi .v{font-size:18px;font-weight:700;color:var(--ink)}
 .toi .s{font-size:12px;color:var(--muted)}
+.toi>div.toiL{background:var(--good-bg);box-shadow:inset 3px 0 0 var(--good)}   /* v1.7.206: ô lương nổi bật */
+.toi .toiL .lb{color:var(--good)} .toi .toiL .v{font-size:22px;color:var(--good)}
+.toi .toiL .chip{justify-self:start;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--good);color:var(--good-bg);margin:2px 0}
 .ddl{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.5;cursor:pointer}
 .ddl input{margin-top:3px;width:18px;height:18px;flex:none}
 .ddb{font:inherit;font-weight:700;padding:9px 18px;border-radius:8px;border:0;background:var(--brand);color:var(--surface);cursor:pointer;justify-self:start}
@@ -3476,7 +3479,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.205';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.206';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3534,6 +3537,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.206', ngay:'12/11/2026', nd:['Thẻ “Của tôi”: ô Lương tháng này nổi bật (nền xanh, số lớn) và lương mỗi giờ hiện thành chip.']},
   {v:'v1.7.205', ngay:'12/11/2026', nd:['Tên món theo menu mới: Cacao đường cát (cc), Cacao sữa (ccs) — đã đổi ở tab Menu và các đơn cũ (DonHang) nên số theo món không tách đôi.', 'Tab Tài liệu: bỏ bảng công thức bản ngắn A4, chỉ dùng bảng công thức size M │ L có ảnh món.']},
   {v:'v1.7.204', ngay:'12/11/2026', nd:['Thẻ “Của tôi” (tài khoản nhân viên) có thêm ô Lương tháng này và lương trung bình mỗi giờ (chia cho giờ trong ca). Mỗi người chỉ thấy lương của chính mình — server chỉ gửi cột lương ở dòng chấm công / thưởng phạt của người đăng nhập.', 'Thẻ “Dẫn đầu thâm niên” chỉ tính nhân viên, không tính chủ.']},
   {v:'v1.7.203', ngay:'12/11/2026', nd:['Nhóm món mới 4 nhóm: Cà phê · Cacao · Phindi · Matcha & trà sữa (tab Menu Sheet đã đổi, bỏ “Đặc biệt”/“Không cà phê”) — biểu đồ cơ cấu nhóm, bảng món, Gợi ý bán hàng theo đúng nhóm mới.', 'Sổ tay công thức chia theo 4 nhóm: món muối về đúng nhóm gốc (cà phê muối, bạc xỉu muối → Cà phê; cacao muối → Cacao; matcha latte muối → Matcha & trà sữa).']},
@@ -4784,12 +4788,12 @@ function renderCuaToi(){
     if (c.tien != null){ luongT += c.tien; if (!c.ra) tamL = true; } else if (c.luongGio && het){ luongT += gioLuong(c, het) * c.luongGio; tamL = true; } });
   luongT += (D.thuongPhat || []).filter(x => x.id === me.id && x.k.slice(0, 7) === m0).reduce((s, x) => s + x.tien, 0);
   const daDoc = DD.some(x => x[3] === SO_TAY_BAN), qz = QZ.slice().sort((a, b) => b[3] / (b[4] || 1) - a[3] / (a[4] || 1))[0];
-  const o = (lb, v, sub) => '<div><span class="lb">' + lb + '</span><span class="v">' + v + '</span>' + (sub ? '<span class="s">' + sub + '</span>' : '') + '</div>';
+  const o = (lb, v, sub, cls) => '<div' + (cls ? ' class="' + cls + '"' : '') + '><span class="lb">' + lb + '</span><span class="v">' + v + '</span>' + (sub ? (cls ? sub : '<span class="s">' + sub + '</span>') : '') + '</div>';
   $('hrToiNt').textContent = '· ' + me.ten + ' · chỉ bạn thấy';
   $('hrToi').innerHTML = '<div class="toi">'
     + o('Bậc', esc(me.bac || '—'), (me.gioTN != null ? (+me.gioTN).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ thâm niên' : '') + (me.conLen != null ? ' · còn ' + (+me.conLen).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ lên bậc' : ''))
     + o('Tháng này', th.length + ' ca', th.reduce((s, c) => s + (c.gio || 0), 0).toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ làm')
-    + o('Lương tháng này', th.length ? fmt(luongT) + ' đ' : '—', th.length ? (gioCa ? '≈ ' + fmt(luongT / gioCa) + ' đ/giờ · ' : '') + gioCa.toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ trong ca' + (tamL ? ' · tạm tính' : '') : 'chưa có ca')
+    + o('Lương tháng này', th.length ? fmt(luongT) + ' đ' : '—', th.length ? (gioCa ? '<span class="chip">≈ ' + fmt(luongT / gioCa) + ' đ/giờ</span>' : '') + '<span class="s">' + gioCa.toLocaleString('vi-VN', {maximumFractionDigits:1}) + ' giờ trong ca' + (tamL ? ' · tạm tính' : '') + '</span>' : '<span class="s">chưa có ca</span>', 'toiL')
     + o('Chuyên cần', cc ? cc.chuoi + '/' + CC.soCa + ' ca' : '—', cc ? (cc.chuoi ? 'còn ' + (CC.soCa - cc.chuoi) + ' ca nữa đạt' : 'đang đếm lại từ đầu') + ' · đạt ' + cc.thuong.filter(k => String(k).slice(0, 7) === m0).length + ' lần tháng này' : 'chưa có ca')
     + o('Ca sắp tới', lich.length ? lich.length + ' ca' : 'chưa đăng ký', lich.slice(0, 6).map(k => thu(k) + ' ' + dShort(k)).join(' · ') || 'đăng ký: /dangkyca')
     + o('Sổ tay', daDoc ? '✓ đã đọc' : '<a class="lnk toiStLnk" href="#sec-st-dd">⚠ chưa xác nhận</a>', 'bản ' + SO_TAY_BAN + (qz ? ' · kiểm tra công thức cao nhất ' + qz[3] + '/' + qz[4] : ''))
