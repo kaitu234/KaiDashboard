@@ -1847,7 +1847,7 @@ function parseWorkbook(wb){
   D.danhBa = rowsOf(wb, 'DanhBa').slice(1).map(r => ({ai:txt(r[0]), ten:txt(r[1]), sdt:txt(r[2]), gc:txt(r[3])})).filter(x => x.ai || x.ten || x.sdt);   // v1.7.188: tab DanhBa (chủ tự điền)
   D.ctSoCot = Math.max(0, ...rowsOf(wb, 'CongThuc').map(r => r.length));   // v1.7.45 (V-10): số cột CongThuc API gửi (Dashboard.gs: CongThuc 40 cột, tab khác 24)
   D.goTatHoc = docGoTatHoc(rowsOf(wb, 'GoTatHoc'));   // v1.7.38: cụm gõ bot đã tự học (bot ghi, dòng 1 tiêu đề)
-  D.dtSheet = docDtSheet(rowsOf(wb, 'Doanh thu'));   // v1.7.35: ghi chú, chênh MoMo, mục tiêu tháng cho tab Doanh thu thuần
+  D.dtSheet = docDtSheet(rowsOf(wb, 'Doanh thu'));   // v1.7.35: ghi chú, mục tiêu tháng cho tab Doanh thu thuần (v1.7.251: bỏ MoMo)
   const rv = rowsOf(wb, 'Doanh thu'); const hdr = dongTieuDeDT(rv);   // v1.7.41: dò theo ô A = NGÀY (trước dò nhầm dòng tổng)
   D.dtHdr = {co: rv.length > 0, i: hdr, a: hdr >= 0 ? txt(rv[hdr][0]) : ''};   // v1.7.42: bất biến 46 kiểm trên tab thật đang xem
   const hRow = hdr >= 0 ? rv[hdr].slice(0, 15) : [], iDaCK = hRow.findIndex(c => /^ĐÃ CHUYỂN TM/i.test(txt(c))), iChot = hRow.findIndex(c => /^CHỐT CA$/i.test(txt(c))), iLech = hRow.findIndex(c => /^(Lệch|KHÁC)/i.test(txt(c)));   // tìm cột theo tên tiêu đề (chỉ khối ngày, bỏ khối THEO THÁNG bên phải)
@@ -3408,7 +3408,7 @@ function renderPnl(){
   const bien = v => dtv ? pct(v / dtv, 0) : '—';
   $('pnlNote').innerHTML = `Kỳ đang lọc <b>${nDays(S.from, S.to)} ngày</b> (${ngBan} ngày có bán). PNL tính cho <b>cả quán</b>: chỉ theo kỳ và loại ngày, bộ lọc nhân viên / món / thanh toán không áp dụng. `
     + `Giá vốn = công thức × giá mua trong sổ chi (chỉ dòng có tiền; hàng tặng 0 đ không kéo giá xuống), đã gồm ${pct(HAO_HUT, 0)} hao hụt trừ nguyên liệu có đơn vị tính bắt đầu bằng "ly" (kem muối, đường, đá: tính theo ly thực tế; cacao tính theo g nên vẫn có hao hụt). Lương do bot tính${P.luongTam ? ' (có ca chưa checkout → tạm tính tới giờ)' : ''}${P.luongSoChi ? `; tháng có sổ chi khối Nhân sự thì lấy tổng sổ chi phân bổ theo ngày (kỳ này ${fmt(P.luongSoChi)} đ)` : ''}. `
-    + `Phí MoMo 0%. Lãi KHÔNG trừ khấu hao (chủ quán chốt 18/10/2026): phí nhượng quyền, cọc, trang thiết bị là vốn đầu tư — xem mục Thu hồi vốn đầu tư ở tab Thu chi.`
+    + `Lãi KHÔNG trừ khấu hao (chủ quán chốt 18/10/2026): phí nhượng quyền, cọc, trang thiết bị là vốn đầu tư — xem mục Thu hồi vốn đầu tư ở tab Thu chi.`
     + (P.boQuaMk || P.boQuaCK ? ` <span class="pill neu">Đã bỏ qua theo chủ quán (T10/2026): ${[P.boQuaMk ? 'vận hành hệ thống / marketing ' + fmt(P.boQuaMk) : '', P.boQuaCK ? 'hàng cho kèm ' + fmt(P.boQuaCK) : ''].filter(Boolean).join(' + ')} đ · từ T11 hàng cho kèm tính theo kho thực</span>` : '')
     + (P.chuaCT.size ? ` <span class="pill warn">Chưa có công thức: ${esc([...P.chuaCT].join(', '))} → ${P.khongGiaVon ? `giá vốn 0 cho ${fmt(P.khongGiaVon)} ly (chưa tính được giá vốn/ly bình quân, chưa có số thật)` : 'tạm tính theo giá vốn/ly bình quân'}</span>` : '')
     + (P.thieu.size ? ` <span class="pill warn">Thiếu giá mua: ${esc([...P.thieu].join(', '))}</span>` : '')
@@ -3700,7 +3700,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.250';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.251';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3758,6 +3758,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.251', ngay:'13/11/2026', nd:['Bỏ hẳn MoMo đối soát (chủ quán 12/11: không còn dùng): Sheet đã xoá tab MoMo - dán data / MoMo - xử lý và các cột MoMo ở tab Doanh thu; dashboard bỏ cột Chênh MoMo ở Doanh thu thuần, câu Phí MoMo 0% ở PNL, việc kỹ thuật MoMo. Mã QR MoMo nhận tiền ở tab Tài liệu giữ nguyên. Không đổi số nào']},
   {v:'v1.7.250', ngay:'12/11/2026', nd:['PNL: thêm dòng Đối chiếu ngay dưới Lãi vận hành khi xem trọn tháng — giải thích phần lệch với lãi tháng ở Tổng quan / Thu chi: lệch két (Tổng quan tính thực thu, PNL tính đơn bot), phí cả tháng phần chưa tới ngày (PNL chia theo ngày, Tổng quan trừ đủ khi ghi sổ), chi cố định PNL tạm tính, khác. Không đổi số nào', 'Tự kiểm số học thêm mục 93 (đối chiếu PNL ↔ Tổng quan)']},
   {v:'v1.7.249', ngay:'12/11/2026', nd:['Tồn xe trừ cả dùng nội bộ (/dungnoibo: test, đổ bỏ, mời khách) ghi sau lần đếm xe gần nhất — mục xe tự trừ theo món (vd kem muối, sữa đặc) hết bị cao hơn thật; mục đếm hằng ngày thì số dự kiến khi kiểm xe đã trừ phần này. Cùng bot tonnb-v1 và Sheet Bảng kho.']},
   {v:'v1.7.248', ngay:'12/11/2026', nd:['Tab Hao hụt · đối chiếu tổng: mục có tồn đếm được nhiều hơn tổng đã mua (dùng thật âm, vd siro caramel) hiện "Đếm > mua" thay vì "Dùng ít hơn CT" kèm số tiền dư ảo — cần bổ sung dòng mua hoặc đếm lại.']},
@@ -3782,7 +3783,6 @@ const BACKLOG = [
   {nhom:'Chờ chủ quán', viec:'Giá siro caramel / hạt phỉ / chocolate đang là giá chủ báo ước 180.000 đ/chai 750 ml (cột R tab Kho, "giá tham chiếu"); cà phê phin của Phindi dùng chung dòng Cà phê phin (bột) = mua thật Cà phê Phố Núi 375.000 đ / 1,5 kg = 250.000 đ/kg (chủ nói tầm 230.000)', can:'Khi mua siro 3 vị, ghi vào sổ chi (nội dung bắt đầu "Siro caramel", "Siro hạt phỉ", "Siro chocolate") để giá vốn tự lấy giá thật; báo Claude nếu cà phê phin là loại khác Phố Núi'},
   {nhom:'Chờ chủ quán', viec:'Tách tiền mặt / CK mỗi ngày: sau khi chốt ca, chủ báo số giữ lại thành tiền mặt (đã ghi 13/10: 500.000 mặt + 380.000 CK; 14/10: 669.000 mặt + 120.000 CK). Ngày chưa báo coi như toàn bộ đã vào CK; chi tiền mặt và vốn góp tiền mặt chưa tách (đang mặc định CK)', can:'Chủ báo số giữ lại tiền mặt mỗi ngày (ghi vào cột Trích tiền mặt tab Doanh thu); khi có khoản chi / góp bằng tiền mặt thì báo để tách', xong:() => { const NT = nguonTien(); const ds = Object.values(NT).filter(d => d.tt); return ds.length > 0 && ds.every(d => d.chot); }},
   {nhom:'Chờ chủ quán', viec:'Chốt ca mọi ngày bán (tick CHỐT CA ở tab Doanh thu) để doanh thu thực thu có tiền thật; ngày chưa chốt đang tạm tính theo đơn bot', can:'Chốt bằng /chotca ở bot (hoặc báo số tiền mặt / chuyển khoản cho Claude): tab Doanh thu tự tick CHỐT CA + ghi Lệch; bot nhắc chủ từ 12:00 rồi 3 tiếng 1 lần; ngày thiếu thì chốt bù: /chotca 11/10 tm <tiền mặt> ck <chuyển khoản>', xong:() => doanhThuThu().chuaChot.length === 0, tt:() => doanhThuThu().chuaChot.length ? doanhThuThu().chuaChot.length + ' ngày chưa chốt' : ''},
-  {nhom:'Việc kỹ thuật', viec:'Điều chỉnh phần chuyển khoản bằng MoMo thực nhận khi có dữ liệu (chưa có giao dịch nào ở sheet MoMo - dán data). Chênh két đã tự ghi vào cột Lệch + tick CHỐT CA tab Doanh thu khi chốt ca (10–14/10 đã tick: 12/10 −70.000, 13/10 +10.000, 14/10 −1.000)', can:'Chủ dán dữ liệu MoMo'},
   {nhom:'Chờ chủ quán', viec:'Kiểm kho tổng lần đầu (13/10): chủ gõ /kiemkho đủ mọi mục (cf, ly, sd, st, mt, cc, ong, tui, dgc, bd + 3 mục mới nắp đỏ, ly hồng, túi xốp trà tắc); nhân viên đếm xe /kiemxe đủ mọi mục. Từ đó tồn lấy thẳng từ số đếm, kho kiểm 1–2 lần/tuần', can:'Chủ quán + nhân viên', xong:() => D.kiemKho.some(x => x.noi === 'kho'), tt:() => `${D.kiemKho.filter(x => x.noi === 'kho').length} lần kiểm kho`},
   {nhom:'Chờ chủ quán', viec:'Ghi dòng cà phê hạt 5 kg còn lại vào sổ chi khi mua', can:'Chủ quán ghi sổ chi (tồn tính ra khoảng 2 kg, đủ khoảng 1 ngày)', xong:() => D.chi.some(r => /^cà phê \(hạt\)/i.test(r.cat) && r.amt > 0)},
   {nhom:'Chờ chủ quán', viec:'Ghi tiền đá mỗi ngày (2 bao = 40.000 đ) vào sổ chi, hạng mục "Đá viên"', can:'Chủ quán ghi sổ chi mỗi ngày; quỹ đang cao hơn thực tế', xong:() => D.chi.some(r => /^da vien/.test(boDau(r.cat)) && r.amt > 0)},
@@ -4171,13 +4171,13 @@ function tuKiem(){
       ok('Lịch làm theo đợt: bơ 7–9/11 là 1 đợt 3 ngày, 14/11 đợt riêng · bỏ ca HUY và ngày ngoài khoảng · 4 ngày × 5 giờ × 25.000 = 500.000',
         rl.dots.length === 3 && rl.dots[0].nv === 'bơ' && rl.dots[0].n === 3 && rl.dots[2].tu === '2026-11-14' && !rl.byDay['2026-11-12'] && !rl.byDay['2026-10-01'] && tb.ngay === 4 && tb.gio === 20 && tb.luong === 500000 && tb.du.dat.join() === '2026-11-08' && tb.du.cuoi === 2,
         `đợt ${rl.dots.length} · bơ ${tb && tb.ngay} ngày ${tb && tb.luong}`); }
-    // 42. Tab Doanh thu thuần: đọc ghi chú / chênh MoMo / mục tiêu tháng của tab Doanh thu theo TÊN cột (dời cột vẫn đúng); dòng trước tiêu đề và ô '-' bỏ qua
-    const dsR = [['DOANH THU THEO NGÀY'], ['Tháng', 'x'], ['NGÀY', 'THỨ', 'TIỀN MẶT (= Trích)', 'CHUYỂN KHOẢN', 'Lệch', 'GHI CHÚ', 'CHÊNH MOMO − CK', 'THÁNG', 'TỔNG DOANH THU', 'MỤC TIÊU'],
-      ['D:2026-10-12 00:00:00', 'T2', 0, 770000, -70000, 'Thiếu két', '-', 'T10/2026', 6284000, 23760000], ['D:2026-10-13 00:00:00', 'T3', 500000, 380000, 10000, '', 15000, 'T11/2026', 0, 38400000], ['D:2026-10-14 00:00:00', 'T4', 0, 0, 0, '', '', 'TỔNG', 1, 2]],
+    // 42. Tab Doanh thu thuần: đọc ghi chú / mục tiêu tháng của tab Doanh thu theo TÊN cột (dời cột vẫn đúng); dòng trước tiêu đề và ô '-' bỏ qua
+    const dsR = [['DOANH THU THEO NGÀY'], ['Tháng', 'x'], ['NGÀY', 'THỨ', 'TIỀN MẶT (= Trích)', 'CHUYỂN KHOẢN', 'Lệch', 'GHI CHÚ', 'THÁNG', 'TỔNG DOANH THU', 'MỤC TIÊU'],
+      ['D:2026-10-12 00:00:00', 'T2', 0, 770000, -70000, 'Thiếu két', 'T10/2026', 6284000, 23760000], ['D:2026-10-13 00:00:00', 'T3', 500000, 380000, 10000, '', 'T11/2026', 0, 38400000], ['D:2026-10-14 00:00:00', 'T4', 0, 0, 0, '', 'TỔNG', 1, 2]],
       dsO = docDtSheet(dsR), dsN = docDtSheet([['a'], ['b']]);
-    ok('Doanh thu thuần: đọc tab Doanh thu theo tên cột — ghi chú 12/10 "Thiếu két", chênh MoMo 13/10 = 15.000 (ô "-" và ô trống bỏ qua), mục tiêu T10 23.760.000 · T11 38.400.000 (dòng TỔNG bỏ qua); không có dòng tiêu đề → rỗng',
-      dsO.note['2026-10-12'] === 'Thiếu két' && dsO.momo['2026-10-13'] === 15000 && !('2026-10-12' in dsO.momo) && !('2026-10-14' in dsO.momo) && dsO.mucTieu['2026-10'] === 23760000 && dsO.mucTieu['2026-11'] === 38400000 && Object.keys(dsO.mucTieu).length === 2 && !Object.keys(dsN.note).length,
-      `${Object.keys(dsO.note).length} ghi chú · ${Object.keys(dsO.momo).length} MoMo · ${Object.keys(dsO.mucTieu).join(', ')}`);
+    ok('Doanh thu thuần: đọc tab Doanh thu theo tên cột — ghi chú 12/10 "Thiếu két" (ô trống bỏ qua), mục tiêu T10 23.760.000 · T11 38.400.000 (dòng TỔNG bỏ qua); không có dòng tiêu đề → rỗng',
+      dsO.note['2026-10-12'] === 'Thiếu két' && !('2026-10-13' in dsO.note) && dsO.mucTieu['2026-10'] === 23760000 && dsO.mucTieu['2026-11'] === 38400000 && Object.keys(dsO.mucTieu).length === 2 && !Object.keys(dsN.note).length,
+      `${Object.keys(dsO.note).length} ghi chú · ${Object.keys(dsO.mucTieu).join(', ')}`);
     // 43. Lịch định lượng cacao theo ngày (mốc mới đứng trước) + đọc tab GoTatHoc theo tên cột
     const dlC = {cc:4.9, ly:1}, dlA = ['2026-10-12', '2026-10-13', '2026-10-15', '2026-10-16'].map(k => ctTheoNgay(dlC, DINH_LUONG_CU, k).cc), gtH = docGoTatHoc([['Cụm gõ', 'Mã món', 'Tên món', 'Học lúc', 'Số lần'], ['den da', 'CDM', 'Cà phê đen máy', '', 3], ['den nong', 'cdm', 'Cà phê đen máy', '', 3], ['', 'bx', '', '', '']]);
     ok('Cacao: ly bán 12/10 tính 10 g · 13/10 và 15/10 tính 7 g · 16/10 tính theo CongThuc (thử với số giả 4,9 g); tab GoTatHoc: 2 cụm của cdm (mã viết hoa vẫn nhận), dòng thiếu cụm bỏ qua, không có tab → rỗng',
@@ -4466,7 +4466,7 @@ function renderKc(){
   /* 8 · công thức / định nghĩa, điểm mù, kiểm kho, lịch sử */
   $('kcGloss').innerHTML = '<thead><tr><th>Con số</th><th>Công thức / định nghĩa</th><th>Nguồn</th><th>Dùng ở</th></tr></thead><tbody>' + GLOSS_KAI.map(g => `<tr><td><b>${esc(g[0])}</b></td><td style="white-space:normal">${esc(g[1])}</td><td class="muted">${esc(g[2])}</td><td class="muted">${esc(g[3])}</td></tr>`).join('') + '</tbody>';
   $('kcMu').innerHTML = [['Hao hụt 5% do chủ quán chốt chung cho nguyên liệu không tính theo ly; hao hụt thật từ /kiemkho chỉ hiển thị cạnh (cột "Hao hụt thật" ở trên), không thay 5%.', ''], ['Đường, nắp ly chưa rõ: đường tính theo ly dùng (ước tính), nắp có thể chưa nằm trong giá ly 900 đ.', ''], ['Lương theo bot gồm cả chủ quán; ngày khai trương có thể cao hơn ngày thường.', ''],
-    ['Phí MoMo 0% và chi cố định 2.000.000 đ/tháng từ T1/2027 (thuê chỗ + điện nước, miễn phí tới hết T12/2026) do chủ quán chốt, chưa có hoá đơn thật.', ''], ['Hàng cho kèm và chi vận hành hệ thống T10 bỏ qua theo chủ quán; từ T11 hàng cho kèm sẽ tính theo kho thực.', ''], ['Trang thiết bị (đầu tư ngoài phí NQ) không khấu hao, không vào lãi.', ''],
+    ['Chi cố định 2.000.000 đ/tháng từ T1/2027 (thuê chỗ + điện nước, miễn phí tới hết T12/2026) do chủ quán chốt, chưa có hoá đơn thật.', ''], ['Hàng cho kèm và chi vận hành hệ thống T10 bỏ qua theo chủ quán; từ T11 hàng cho kèm sẽ tính theo kho thực.', ''], ['Trang thiết bị (đầu tư ngoài phí NQ) không khấu hao, không vào lãi.', ''],
     ['Giá bán "thường" hiện lấy theo giá menu (cơ cấu món đã bán) vì chưa có ngày bán giá thường.', ''], ['Dự phóng 12 tháng giữ nguyên số ly, giá vốn/ly và lương/ngày đang đo được (không thêm giả định); chưa có số ly thật ở giá menu cho tới khi hết đợt 10K, và chưa có dải bất định (cần ≥ 14 ngày bán).', '']]
     .map(x => `<li>${esc(x[0])} ${esc(x[1])}</li>`).join('');
   $('kcNote').innerHTML = `Chỉ dùng số thật trong sheet: <b>kiểm data trước khi tin số</b> · <b>chỉ kết luận khi đủ mẫu</b> · số nào còn là ước tính thì đánh dấu đỏ · tự kiểm bất biến bằng code chạy trên chính data đang xem.`;
@@ -5424,27 +5424,27 @@ function renderHr(){
 
 /* ============ doanh thu thuần (v1.7.35) ============
  * Tab theo dõi doanh thu THỰC THU như tab "Doanh thu" của Sheet: số mỗi ngày lấy từ nguonTien() (cùng nguồn với Tổng quan / Thu chi:
- * ngày đã chốt ca = đơn bot + chênh két, tiền mặt = trích tiền mặt cột C; ngày chưa chốt = đơn bot TM / CK). Ghi chú, chênh MoMo và mục tiêu tháng đọc thêm từ tab Doanh thu (theo tên cột). */
-/** Đọc phần riêng của tab Doanh thu (Sheet): ghi chú + chênh MoMo − CK theo ngày, mục tiêu theo tháng. rv = các dòng thô của tab. Hàm thuần (bất biến 42). */
+ * ngày đã chốt ca = đơn bot + chênh két, tiền mặt = trích tiền mặt cột C; ngày chưa chốt = đơn bot TM / CK). Ghi chú và mục tiêu tháng đọc thêm từ tab Doanh thu (theo tên cột). */
+/** Đọc phần riêng của tab Doanh thu (Sheet): ghi chú theo ngày, mục tiêu theo tháng (v1.7.251: bỏ cột MoMo — Sheet đã xoá). rv = các dòng thô của tab. Hàm thuần (bất biến 42). */
 function docDtSheet(rv){
-  const out = {note:{}, momo:{}, mucTieu:{}};
+  const out = {note:{}, mucTieu:{}};
   const hdr = dongTieuDeDT(rv);   // v1.7.41 (Fable 5 C-01)
   if (hdr < 0) return out;
   const H = rv[hdr].map(c => txt(c).toUpperCase()), col = re => H.findIndex(h => re.test(h));
-  const iNote = col(/^GHI CHÚ/), iMm = col(/^CHÊNH MOMO/), iTh = col(/^THÁNG$/), iMt = col(/^MỤC TIÊU/);
+  const iNote = col(/^GHI CHÚ/), iTh = col(/^THÁNG$/), iMt = col(/^MỤC TIÊU/);
   rv.slice(hdr + 1).forEach(r => {
     const d = toDate(r[0]);
-    if (d){ const k = dk(d); if (iNote >= 0 && txt(r[iNote])) out.note[k] = txt(r[iNote]); if (iMm >= 0 && txt(r[iMm]) !== '' && txt(r[iMm]) !== '-') out.momo[k] = num(r[iMm]); }
+    if (d){ const k = dk(d); if (iNote >= 0 && txt(r[iNote])) out.note[k] = txt(r[iNote]); }
     if (iTh >= 0 && iMt >= 0){ const m = /^T(\d{1,2})\/(\d{4})$/.exec(txt(r[iTh])); if (m && num(r[iMt])) out.mucTieu[`${m[2]}-${p2(+m[1])}`] = num(r[iMt]); }
   });
   return out;
 }
 function renderDtt(){
-  const NT = nguonTien(), SH = D.dtSheet || {note:{}, momo:{}, mucTieu:{}}, s1 = css('--s1'), s2 = css('--s2'), ghost = css('--ghost');
+  const NT = nguonTien(), SH = D.dtSheet || {note:{}, mucTieu:{}}, s1 = css('--s1'), s2 = css('--s2'), ghost = css('--ghost');
   const lyNgay = {}; D.orders.forEach(o => { lyNgay[o.k] = (lyNgay[o.k] || 0) + o.sl; });
   const days = rangeDays(S.from, S.to).filter(k => dayOk(k) && NT[k] && (NT[k].tt || NT[k].bot));
   const rows = days.map(k => { const d = NT[k], ly = lyNgay[k] || 0;
-    return {k, thu:thu(k), tm:d.tm, ck:d.ck, app:d.app, be:d.be, xanh:d.xanh, tt:d.tt, bot:d.bot, lech: d.chot ? d.tt - d.bot : null, ly, gia: ly ? d.tt / ly : null, chot:d.chot, momo: k in SH.momo ? SH.momo[k] : null, note:SH.note[k] || ''}; });
+    return {k, thu:thu(k), tm:d.tm, ck:d.ck, app:d.app, be:d.be, xanh:d.xanh, tt:d.tt, bot:d.bot, lech: d.chot ? d.tt - d.bot : null, ly, gia: ly ? d.tt / ly : null, chot:d.chot, note:SH.note[k] || ''}; });
   const T = rows.reduce((a, r) => { a.tt += r.tt; a.tm += r.tm; a.ck += r.ck; a.app += r.app; a.bot += r.bot; a.ly += r.ly; a.lech += r.lech || 0; a.chot += r.chot ? 1 : 0; return a; }, {tt:0, tm:0, ck:0, app:0, bot:0, ly:0, lech:0, chot:0});
   const n = rows.length, chua = rows.filter(r => !r.chot).length;
   $('dttKpis').innerHTML = `
@@ -5463,15 +5463,13 @@ function renderDtt(){
     options:{scales:{x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:css('--line')}, border:{display:false}, ticks:{maxTicksLimit:5, callback:v => fmtK(v)}}},
       plugins:{tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${fmt(c.raw)} đ`, footer:it => { const r = rows[it[0].dataIndex]; return r ? `Thực thu: ${fmt(r.tt)} đ${r.chot ? '' : ' (chưa chốt ca)'}` : ''; }}}}}});
   $('lgDtt').innerHTML = `<span><i style="background:${s1}"></i>Tiền mặt</span><span><i style="background:${s2}"></i>Chuyển khoản</span><span><i style="background:${MAU_APP.BE}"></i>${LOGO_APP.BE}be</span><span><i style="background:${MAU_APP.XANH}"></i>${LOGO_APP.XANH}</span><span><i class="dash"></i>Bot ghi đơn</span>`;
-  $('dttCmt').innerHTML = !n ? 'Chưa có ngày bán trong kỳ.' : `Kỳ ${dShort(S.from)} → ${dShort(S.to)}: thực thu <b>${fmt(T.tt)} đ</b> (tiền mặt ${fmt(T.tm)} · CK ${fmt(T.ck)}${T.app ? ` · app để riêng ${fmt(T.app)}` : ''}), bot ghi ${fmt(T.bot)} đ, lệch <b class="${T.lech < 0 ? 'dn' : ''}">${T.lech > 0 ? '+' : ''}${fmt(T.lech)} đ</b>.${chua ? ` <span class="pill warn">${chua} ngày chưa chốt ca</span> đang tạm lấy theo đơn bot.` : ''} Ngày đã chốt: thực thu = đơn bot + chênh két, tiền mặt = trích tiền mặt (cột C tab Doanh thu), còn lại là CK. MoMo chỉ để đối soát, không cộng vào doanh thu.`;
-  const coMomo = rows.some(r => r.momo != null);
+  $('dttCmt').innerHTML = !n ? 'Chưa có ngày bán trong kỳ.' : `Kỳ ${dShort(S.from)} → ${dShort(S.to)}: thực thu <b>${fmt(T.tt)} đ</b> (tiền mặt ${fmt(T.tm)} · CK ${fmt(T.ck)}${T.app ? ` · app để riêng ${fmt(T.app)}` : ''}), bot ghi ${fmt(T.bot)} đ, lệch <b class="${T.lech < 0 ? 'dn' : ''}">${T.lech > 0 ? '+' : ''}${fmt(T.lech)} đ</b>.${chua ? ` <span class="pill warn">${chua} ngày chưa chốt ca</span> đang tạm lấy theo đơn bot.` : ''} Ngày đã chốt: thực thu = đơn bot + chênh két, tiền mặt = trích tiền mặt (cột C tab Doanh thu), còn lại là CK.`;
   table({id:'tDtt', rows, sortDefault:{k:'k', d:-1}, total:{tm:T.tm, ck:T.ck, app:T.app, tt:T.tt, bot:T.bot, lech:T.lech, ly:T.ly, gia: T.ly ? T.tt / T.ly : null}, cols:[
     {k:'k', l:'Ngày', f:(v, r) => r && r.thu ? `${r.thu} ${dShort(v)}` : ''},
     {k:'tm', l:'Tiền mặt', r:1, f:fmt}, {k:'ck', l:'Chuyển khoản', r:1, f:fmt}, ...(T.app ? [{k:'app', l:'🛵 App (riêng)', r:1, f:v => v ? fmt(v) : '—'}] : []), {k:'tt', l:'Thực thu', r:1, heat:1, f:fmt},
     {k:'bot', l:'Bot ghi', r:1, f:fmt}, {k:'lech', l:'Lệch', r:1, f:v => v == null ? '—' : v === 0 ? '<span class="up">khớp</span>' : (v > 0 ? '+' : '') + fmt(v), cls:v => v ? (v < 0 ? 'dn' : '') : ''},
     {k:'ly', l:'Ly', r:1, f:fmt}, {k:'gia', l:'Giá TB/ly', r:1, f:v => v == null ? '—' : fmt(Math.round(v))},
     {k:'chot', l:'Chốt ca', f:(v, r) => !r || r.thu === undefined ? '' : v ? '<span class="pill good">✓</span>' : '<span class="pill warn">chưa</span>'},
-    ...(coMomo ? [{k:'momo', l:'Chênh MoMo', r:1, f:v => v == null ? '—' : fmt(v), cls:v => v ? 'dn' : ''}] : []),
     {k:'note', l:'Ghi chú', f:v => v ? `<span class="muted" style="font-size:11.5px">${esc(v)}</span>` : ''}]});
   const thang = {}; Object.values(NT).forEach(d => { const m = d.k.slice(0, 7); thang[m] = (thang[m] || 0) + d.tt; });
   const tk = today(), mNay = tk.slice(0, 7), ms = [...new Set(Object.keys(thang).concat([mNay]))].sort().filter(m => thang[m] || m === mNay);   // tháng đã có doanh thu + tháng này
