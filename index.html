@@ -879,7 +879,7 @@ html.mcap{background:var(--paper)}
       </div>
     </div>
     <div class="card" id="sec-td-tvml">   <!-- v1.7.257 -->
-      <div class="ct">Thành viên &amp; mang ly <span class="nt">· cột = ly thành viên / ly mang ly mỗi ngày · đường = tiền đã giảm (trục phải) · ngày: 14 ngày gần nhất · tuần/tháng: các ngày trong kỳ</span></div>
+      <div class="ct">Thành viên &amp; mang ly <span class="nt">· cột = ly · đường = tiền giảm (trục phải)</span></div>
       <div id="tdTvTom" class="cmt"></div>
       <div class="cw"><canvas id="cTdTv" aria-label="Ly thành viên, ly mang ly và tiền đã giảm theo ngày"></canvas></div>
       <div class="legend" id="lgTdTv"></div>
@@ -2753,7 +2753,8 @@ const chipLy = o => { const hs = o.hs || 1; if (!(hs > 1)) return ''; if (hs >= 
    Cùng cờ o.tv / o.ml và cùng 2.000đ/ly như bảng tTv tab Bán hàng. ds = các ngày vẽ (bỏ ngày không bán), tom = đơn của kỳ đang xem cho dòng tóm tắt. Chỉ dash. */
 function tdTvMl(ds, tom, nhanTom){
   const by = groupBy(D.orders.filter(o => ds.includes(o.k)), o => o.k), sl = l => l.reduce((x, o) => x + o.sl, 0);
-  const cot = ds.filter(k => by.has(k)).map(k => { const l = by.get(k), tv = sl(l.filter(o => o.tv)), ml = sl(l.filter(o => o.ml)); return {k, tv, ml, giam:(tv + ml) * 2000}; });
+  let cot = ds.filter(k => by.has(k)).map(k => { const l = by.get(k), tv = sl(l.filter(o => o.tv)), ml = sl(l.filter(o => o.ml)); return {k, tv, ml, giam:(tv + ml) * 2000}; });
+  while (cot.length > 1 && !cot[0].tv && !cot[0].ml) cot.shift();   // v1.7.258: bỏ các ngày đầu chưa có tv / mang ly (trước khi phát thẻ)
   const T = agg(tom), tv = sl(tom.filter(o => o.tv)), ml = sl(tom.filter(o => o.ml));
   $('tdTvTom').innerHTML = `${nhanTom}: <b>${fmt(tv)} ly thành viên</b> (${pct(T.ly ? tv / T.ly : 0, 1)} số ly) · <b>${fmt(ml)} ly mang ly</b> (${pct(T.ly ? ml / T.ly : 0, 1)}) · đã giảm <b>${fmt((tv + ml) * 2000)} đ</b>`;
   const c1 = css('--c1'), c2 = css('--c2'), c3 = css('--c3'), k1 = v => v >= 1000 ? Math.round(v / 1000) + 'k' : String(v);
@@ -3731,7 +3732,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.257';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.258';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3789,6 +3790,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.258', ngay:'13/11/2026', nd:['Hôm nay — biểu đồ Thành viên & mang ly bỏ các ngày đầu chưa có thành viên / mang ly, chú thích gọn hơn.']},
   {v:'v1.7.257', ngay:'13/11/2026', nd:['Hôm nay — thêm thẻ Thành viên & mang ly: dòng tóm tắt (ly thành viên, ly mang ly, tỉ lệ, tiền đã giảm) + biểu đồ mỗi ngày 2 cột (ly thành viên · ly mang ly) và đường tiền đã giảm (trục phải); chế độ Ngày vẽ 14 ngày gần nhất, Tuần/Tháng vẽ các ngày trong kỳ.']},
   {v:'v1.7.256', ngay:'13/11/2026', nd:['Bán hàng — bảng Thẻ thành viên & mang ly theo ngày thêm cột Tổng ly, Ly mang ly, Tỉ lệ thành viên, Tỉ lệ mang ly (trên tổng ly ngày đó); hiện mọi ngày có bán trong kỳ; Tiền đã giảm gồm cả thành viên lẫn mang ly.']},
   {v:'v1.7.255', ngay:'13/11/2026', nd:['Sổ tay — Kiểm tra kiến thức thêm bài thứ 4 "Lên bậc": bắt buộc khi lên L3 🥇 Gold trở lên; 20 câu, mỗi câu 1 phút (đồng hồ đếm ngược, hết giờ tính sai), đạt từ 14/20 (70%). Câu gồm công thức lệch 1 số, tính tiền đơn nhiều món, lương 1 ca, thâm niên, thưởng ly, chuyên cần, lệnh bot & sự cố, cách pha / sơ chế, và 5 câu riêng về trách nhiệm (kho & hao hụt, quên đơn, khách chê, ghi trùng, xét tăng lương). Kết quả lưu cột Bài = "Lên bậc".', 'Nội quy IV + Chính sách thâm niên ghi điều kiện thi Lên bậc; Sổ tay đổi bản 13/11 → nhân viên xác nhận đọc lại.']},
