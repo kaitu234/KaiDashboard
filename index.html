@@ -2962,7 +2962,7 @@ function renderToday(){
     c.push(`Giờ đông nhất <b>${p2(peak)}h</b> (${Math.max(...hv)} ly). Món bán nhiều nhất: <b>${esc(top1.mon)}</b> (${top1.ly} ly).`);
     if (isToday && nowMin < shiftE){ const need = Math.max(0, S.tgt - A.ly), left = (shiftE - nowMin) / 60;
       c.push(need ? `Cần thêm <b>${need} ly</b> trong ${left.toLocaleString('vi-VN', {maximumFractionDigits:1})} giờ còn lại (≈ ${Math.ceil(need / Math.max(left, .25))} ly/giờ) để đạt mục tiêu.` : '<span class="up">Đã đạt mục tiêu ngày.</span>'); }
-    if (lastO && lastO.t && isToday){ const gap = nowMin - lastO.min; if (gap >= 30 && nowMin < shiftE + 30) c.push(`<span class="dn">⚠ ${gap} phút chưa có đơn mới</span> (đơn cuối ${p2(lastO.t.getHours())}:${p2(lastO.t.getMinutes())}).`); }
+    if (lastO && lastO.t && isToday && !(nt && nt.chot)){ const gap = nowMin - lastO.min; if (gap >= 30 && nowMin < shiftE + 30) c.push(`<span class="dn">⚠ ${gap} phút chưa có đơn mới</span> (đơn cuối ${p2(lastO.t.getHours())}:${p2(lastO.t.getMinutes())}).`); }
     if (loaiNgay(k) !== 'thuong') c.push(`<span class="pill warn">${LOAI_NGAY_TEN[loaiNgay(k)]}</span>`);
   } else c.push(isToday ? 'Chưa có đơn nào hôm nay. Khi nhân viên bấm 💵 / 🏦 Chốt đơn trên bot, số sẽ hiện ở đây sau tối đa 1 phút (hoặc bấm ⟳ Làm mới).' : 'Ngày này không có đơn nào.');
   $('tdCmt').innerHTML = c.join(' ');
@@ -3732,7 +3732,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.258';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.259';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3790,6 +3790,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.259', ngay:'13/11/2026', nd:['Hôm nay — đã chốt ca thì không còn cảnh báo "… phút chưa có đơn mới".']},
   {v:'v1.7.258', ngay:'13/11/2026', nd:['Hôm nay — biểu đồ Thành viên & mang ly bỏ các ngày đầu chưa có thành viên / mang ly, chú thích gọn hơn.']},
   {v:'v1.7.257', ngay:'13/11/2026', nd:['Hôm nay — thêm thẻ Thành viên & mang ly: dòng tóm tắt (ly thành viên, ly mang ly, tỉ lệ, tiền đã giảm) + biểu đồ mỗi ngày 2 cột (ly thành viên · ly mang ly) và đường tiền đã giảm (trục phải); chế độ Ngày vẽ 14 ngày gần nhất, Tuần/Tháng vẽ các ngày trong kỳ.']},
   {v:'v1.7.256', ngay:'13/11/2026', nd:['Bán hàng — bảng Thẻ thành viên & mang ly theo ngày thêm cột Tổng ly, Ly mang ly, Tỉ lệ thành viên, Tỉ lệ mang ly (trên tổng ly ngày đó); hiện mọi ngày có bán trong kỳ; Tiền đã giảm gồm cả thành viên lẫn mang ly.']},
