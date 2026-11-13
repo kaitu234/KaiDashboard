@@ -1456,7 +1456,7 @@ html.mcap{background:var(--paper)}
       <div class="st" id="hrCt"></div>
     </div>
     <div class="card" id="sec-st-qz" data-nvok>
-      <div class="ct">Kiểm tra kiến thức <span class="nt">· 3 bài Dễ · Trung bình · Khó, mỗi bài 10 câu ngẫu nhiên: công thức, giá, tính tiền (size L, thành viên, mang ly, T7–CN), mã bot, sơ chế, nội quy, lương · nhân viên làm xong tự lưu kết quả cho chủ xem</span></div>
+      <div class="ct">Kiểm tra kiến thức <span class="nt">· 3 bài Dễ · Trung bình · Khó, mỗi bài 10 câu ngẫu nhiên: công thức, giá, tính tiền (size L, thành viên, mang ly, T7–CN), mã bot, sơ chế, nội quy, lương, checklist ca & lệnh bot · nhân viên làm xong tự lưu kết quả cho chủ xem</span></div>
       <div class="st" id="stQz"></div>
       <div class="st" id="stQzLs"></div>
     </div>
@@ -3700,7 +3700,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.253';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.254';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3758,6 +3758,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.254', ngay:'13/11/2026', nd:['Kiểm tra kiến thức (Sổ tay) thêm câu Checklist ca & lệnh bot: Dễ 1 câu (/checkin, thêm ck, huỷ đơn nhầm, can nước, /luong, /doica, khoá bánh xe); Trung bình 2 câu (thay nước 60 ly, tồn tối thiểu trên xe, /laykho, /dungnoibo, /chiphi, thứ tự cuối ca, đếm xe, gõ mang ly, rời quầy); Khó 2 câu (cú pháp /chotca, /kiemxe, /laykho, /quencong, gõ nhanh đơn — csp 2 bx = 2 sữa phin + 1 bạc xỉu — và xử lý sự cố: CK chưa thấy tiền, két lệch, hết hàng, máy hỏng, mưa). Mỗi bài vẫn 10 câu']},
   {v:'v1.7.253', ngay:'13/11/2026', nd:['Kiểm tra kiến thức (Sổ tay) thêm câu Nội quy & chính sách lương: Dễ 2 câu (giờ ca, bấm đơn trước khi pha, bàn giao T4 + CN, báo nghỉ trước 2 ngày, phạt lỗi, lương căn bản, ngày trả lương, dậy sớm); Trung bình 3 câu (hạn dậy sớm, vào sớm tối đa 30 phút, ở lại không trả, trễ quá 30 phút, chuyên cần, thưởng ly, thử việc, quên công, thâm niên); Khó 4 câu — luôn có 1 câu tự tính tiền 1 ca theo bậc + giờ check-in (vào sớm, dậy sớm, trễ nặng), cùng thâm niên theo giờ, thưởng ly theo số ly, tình huống chuỗi chuyên cần / quên công lần 4 / 4 lỗi. Số lấy từ cùng hằng chính sách với bot']},
   {v:'v1.7.252', ngay:'13/11/2026', nd:['Sổ tay — Kiểm tra kiến thức thành 3 bài Dễ · Trung bình · Khó (10 câu/bài): Dễ = công thức (đáp án sai khác nhóm), giá menu, mã bot, chính sách; Trung bình = công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món (size L, thành viên, mang ly, T7–CN đồng giá), cách pha, sơ chế; Khó = công thức chỉ lệch đúng 1 con số, tính tiền cả đơn nhiều món gộp điều kiện (phương án sai là lỗi hay gặp: quên đồng giá, tv ngày T7–CN, mang ly tính 1 lần), sơ chế. Trả lời xong hiện cách tính. Tính tiền cùng luật bot. Kết quả ghi thêm tên bài; bảng kết quả có cột Bài']},
   {v:'v1.7.251', ngay:'13/11/2026', nd:['Bỏ hẳn MoMo đối soát (chủ quán 12/11: không còn dùng): Sheet đã xoá tab MoMo - dán data / MoMo - xử lý và các cột MoMo ở tab Doanh thu; dashboard bỏ cột Chênh MoMo ở Doanh thu thuần, câu Phí MoMo 0% ở PNL, việc kỹ thuật MoMo. Mã QR MoMo nhận tiền ở tab Tài liệu giữ nguyên. Không đổi số nào']},
@@ -3769,15 +3770,6 @@ const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều 
   {v:'v1.7.245', ngay:'12/11/2026', nd:['Tab Kho gọn lại: Cần xử lý → Kế hoạch mua 7 ngày → Báo cáo nhân viên → Tồn hiện tại (cột Trạng thái + Việc cần làm lên ngay sau tên). Biểu đồ Đủ dùng và Lịch sử kiểm & hao hụt gập sẵn (▾ để mở). Bỏ thẻ Vật tư 1 cái/ly và ô Giá trị / Ổn (đã có trong bảng tồn, Cần xử lý). Không đổi cách tính.']},
   {v:'v1.7.244', ngay:'12/11/2026', nd:['Phân tích sâu: bỏ đá viên khỏi bảng Nguyên liệu mua thêm / bớt — đá mua ngày nào dùng ngày đó, không trữ nên tồn theo sổ chi không có nghĩa.']},
   {v:'v1.7.243', ngay:'12/11/2026', nd:['Phân tích sâu: “Mua ít lại / Đang mua dư” chỉ báo khi 30 ngày qua mua > 1,5× dùng VÀ tồn còn đủ > 30 ngày (trước: > 21 ngày) — bớt báo nhầm hàng vừa nhập 1 đợt.']},
-  {v:'v1.7.242', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Phân tích sâu · nên làm gì” ở đầu tab — danh sách việc nên cải thiện xếp theo mức gấp (sắp hết hàng, dùng tăng/giảm, mua dư, món giảm/lên, món lời mỏng, món nên đẩy, thứ bán yếu, đơn 1 ly + cặp combo, khung lỗ sau lương, thiếu người, chênh năng suất), mỗi dòng kèm số.', 'Bảng Nguyên liệu: mua thêm hay bớt — dùng/ngày 14 ngày bán gần nhất (bỏ ngày 10K), xu hướng so 14 ngày trước, tồn, đủ ~ngày, mua vs dùng 30 ngày, lượng nên mua cho 7 ngày, kết luận 🔴🟠🔵🟡🟢.', 'Bảng Món: đẩy, giữ hay xem lại — 4 nhóm theo ly/ngày và lời gộp/ly (⭐ chủ lực · 💰 lời mỏng · 📣 nên đẩy · ✂️ cân nhắc bỏ) kèm xu hướng so kỳ trước.']},
-  {v:'v1.7.241', ngay:'12/11/2026', nd:['Hiệu suất: thêm thẻ “Hiệu suất theo nhân viên” — mỗi người: số ca, giờ công, ly làm (mỗi đơn chia đều cho người đang có mặt lúc ghi), ly / giờ, ly / ngày làm, ngày cao nhất, ly tự ghi; biểu đồ ly / giờ và nhận xét cao nhất / thấp nhất (chỉ so người có ≥ 5 giờ công).']},
-  {v:'v1.7.240', ngay:'12/11/2026', nd:['Hiệu suất · Khung giờ × người đứng ca: gộp khung 1 tiếng (trước 30 phút) cho cả 2 biểu đồ (ly TB, lãi sau lương) và bảng; nhãn ghi rõ khung, vd 07:00–08:00. Ngưỡng thiếu / thừa người quy theo tiếng (gấp đôi năng lực 30 phút).']},
-  {v:'v1.7.239', ngay:'12/11/2026', nd:['Hiệu suất · Dự báo ngày mai: dòng “Nguyên liệu cho ngày mai” hiện lại tên nguyên liệu (bản trước bị mất tên, chỉ còn số) — viết gọn kèm icon: ☕ CF hạt · 🟤 CF phin · 🥫 Sữa đặc · 🥛 Sữa tươi · 🥤 Ly (ly làm tròn số nguyên); rê chuột xem tên đầy đủ.']},
-  {v:'v1.7.238', ngay:'12/11/2026', nd:['Kai’s facts: đổi tên “Đội Kai” thành “Kai’s Team”. Thêm góc nhìn: chốt két khớp nhiều lần nhất, chốt ca nhiều nhất, kiểm kho / xe khớp nhiều nhất (lệch dưới ngưỡng bot cảnh báo), ca dài nhất, giờ cháy nhất, vua cuối tuần, chuỗi ngày làm liền, xanh nhất (mang ly), vua đơn app, chuyên gia từng nhóm món; Góc cần cải thiện thêm lệch két nhiều lần nhất.']},
-  {v:'v1.7.237', ngay:'12/11/2026', nd:['Kai’s facts: thẻ “Đếm xe hụt” đổi thành “Đếm kho / xe hay lệch nhất” (số lần lệch / số lần đếm), không quy ra tiền vì một lần đếm sai làm số tiền phình.']},
-  {v:'v1.7.236', ngay:'12/11/2026', nd:['Kai’s facts: chia hai mục Bảng vàng và Góc cần cải thiện. Thêm: ghi nhiều đơn nhất, đơn to nhất, ly đầu tiên sớm nhất, chốt két chuẩn nhất, chăm kiểm kho nhất, được thưởng nhiều lần nhất; két thiếu / dư nhiều nhất, lần lệch két lớn nhất, đếm xe hụt nhiều nhất (ước theo giá chuẩn), huỷ đơn nhiều nhất, đi trễ, quên check-out, bị phạt (số lần).', 'Giao diện học theo mẫu trang McKinsey: chip sticker, chữ tô dạ quang, tiêu đề mục có ô icon nghiêng — vẫn màu nâu–be Kai.']},
-  {v:'v1.7.235', ngay:'12/11/2026', nd:['Hôm nay › Bán theo người ghi đơn: cảnh báo "Có thể ghi trùng" khi 2 đơn do 2 người khác nhau ghi cách nhau dưới 5 giây — hiện giờ (có giây), mã đơn, món, tiền của cả hai đơn để kiểm và huỷ đơn trùng trên bot.']},
-  {v:'v1.7.234', ngay:'12/11/2026', nd:['Kai’s facts tách thành tab riêng ở nhóm Vận hành (dưới Sổ tay), bỏ khỏi tab Nhân sự.']},
 ];
 /** Còn treo: nhóm · việc (chuỗi hoặc hàm) · cần gì / từ ai · xong() tự kiểm theo dữ liệu (không có thì chỉ xoá tay khỏi danh sách này khi đã giải quyết) · tt() chữ trạng thái */
 const BACKLOG = [
@@ -4951,9 +4943,9 @@ const DS_QZ = () => CONG_THUC_IN.flatMap(([n, ds]) => ds.filter(r => r[1] !== '�
    Kết quả lưu như cũ (api quiz), cột Câu sai ghi kèm "[Dễ]" / "[TB]" / "[Khó]" ở đầu để biết bài nào. */
 const QZ_ML = 2000;
 const QZ_BAI = {
-  de:{t:'Dễ', ma:'Dễ', mo:'Công thức (đáp án sai khác hẳn nhóm), giá menu, mã bot, chính sách bán hàng, nội quy & lương cơ bản.'},
-  tb:{t:'Trung bình', ma:'TB', mo:'Công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món: size L, thành viên, mang ly, T7–CN; cách pha, sơ chế; nội quy, dậy sớm, trễ, chuyên cần, thưởng ly.'},
-  kho:{t:'Khó', ma:'Khó', mo:'Công thức chỉ lệch 1 con số, tính tiền cả đơn nhiều món gộp nhiều điều kiện, tự tính tiền 1 ca (thâm niên, vào sớm, trễ), tình huống chuyên cần / lỗi.'},
+  de:{t:'Dễ', ma:'Dễ', mo:'Công thức (đáp án sai khác hẳn nhóm), giá menu, mã bot, chính sách bán hàng, nội quy & lương cơ bản, lệnh bot.'},
+  tb:{t:'Trung bình', ma:'TB', mo:'Công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món: size L, thành viên, mang ly, T7–CN; cách pha, sơ chế; nội quy, dậy sớm, trễ, chuyên cần, thưởng ly; checklist ca, lệnh bot.'},
+  kho:{t:'Khó', ma:'Khó', mo:'Công thức chỉ lệch 1 con số, tính tiền cả đơn nhiều món gộp nhiều điều kiện, tự tính tiền 1 ca (thâm niên, vào sớm, trễ), tình huống chuyên cần / lỗi, cú pháp lệnh bot, xử lý sự cố.'},
 };
 const qzTron = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
 const qzK = v => (v / 1000).toLocaleString('vi-VN') + 'K';
@@ -5107,12 +5099,53 @@ function qzCauThuongLy(){
   return {nhan:'thưởng ' + ly + ' ly', hoi:'Hôm nay cả quán bán <b>' + ly + ' ly</b> (đã gồm đơn app). Mỗi người có chấm công hôm đó được thưởng?', dung:qzD(dung), chon:qzTron([qzD(dung)].concat(sai)),
     giai:'Mốc ' + M.map(([m, x]) => m + ' ly +' + qzK(x)).join(' · ') + ' — chỉ lấy mốc cao nhất đã đạt, không cộng dồn, không chia.'};
 }
+/* v1.7.254 (chủ nhờ 13/11): câu Checklist ca & lệnh bot (theo thẻ Checklist ca & lệnh bot + Xử lý sự cố). Dễ 1 · Trung bình 2 · Khó 2 (cú pháp lệnh, tình huống). */
+function qzCL(muc){
+  const sai3 = (d, ds) => qzTron([...new Set(ds)].filter(x => x !== d)).slice(0, 3);
+  const bank = {
+    de:[
+      ['BOT: vào ca', 'Tới xe bắt đầu ca, gõ lệnh nào để chấm công?', '/checkin', ['/chotca', '/order', '/canhan'], 'Bấm 📍 gửi vị trí trong ' + CS_BOT.banKinh + ' m quanh xe.'],
+      ['BOT: ck', 'Khách chuyển khoản thì gõ đơn thêm gì?', 'Thêm ck vào đơn, vd csp 2 bx ck', ['Thêm tm vào đơn', 'Không cần, bot tự biết', 'Ghi vào /chiphi'], ''],
+      ['BOT: nhầm đơn', 'Bấm đơn nhầm thì làm gì?', 'Bấm ↩️ Huỷ dưới tin xác nhận, hoặc /huydon', ['Gõ lại đơn đúng, để nguyên đơn sai', 'Báo chủ cuối tháng', 'Ghi /chiphi để bù'], ''],
+      ['CL: can nước', 'Đầu ca chuẩn bị nước cho máy thế nào?', '2 can nước 10 L', ['1 can nước 10 L', '2 can nước 5 L', '3 can nước 10 L'], ''],
+      ['BOT: lương', 'Xem phiếu lương kỳ này bằng lệnh nào?', '/luong', ['/luongtruoc', '/chinhsach', '/vipham'], '/luongtruoc là kỳ trước; /canhan xem thâm niên, chuyên cần.'],
+      ['BOT: đổi ca', 'Nhờ người khác làm thay ca của bạn bằng lệnh nào?', '/doica', ['/dangkyca', '/lichca', '/quencong'], 'Người nhận đồng ý và chủ duyệt thì lịch mới đổi.'],
+      ['CL: khoá xe', 'Đầu ca, việc cần làm ngay với bánh xe?', 'Gạt ON ở bánh xe, khoá xe', ['Để bánh xe tự do cho dễ đẩy', 'Kê gạch dưới bánh', 'Chỉ khoá khi rời quầy'], 'Tránh xe trượt ra đường.'],
+    ],
+    tb:[
+      ['CL: thay nước', 'Thay nước máy sau mỗi bao nhiêu ly?', '60 ly', ['40 ly', '80 ly', '100 ly'], 'Để tránh cháy máy.'],
+      ['CL: tồn ly', 'Ly cà phê tối thiểu trên xe đầu ca?', '100 cái (2 cây)', ['50 cái (1 cây)', '150 cái (3 cây)', '200 cái (4 cây)'], 'Nắp cũng 100 cái (2 cây).'],
+      ['CL: tồn cf', 'Cà phê hạt tối thiểu trên xe đầu ca?', '2 kg', ['1 kg', '3 kg', '0,5 kg'], ''],
+      ['CL: tồn sữa', 'Sữa đặc, sữa tươi tối thiểu trên xe?', 'Mỗi loại 02 hộp', ['Mỗi loại 01 hộp', 'Mỗi loại 04 hộp', 'Sữa đặc 02, sữa tươi 01'], ''],
+      ['BOT: lấy kho', 'Lấy hàng từ kho ra xe ghi bằng lệnh nào?', '/laykho', ['/kho', '/kiemxe', '/chiphi'], '/kho chỉ xem tồn; /kiemxe đếm xe cuối ca.'],
+      ['BOT: đổ bỏ', 'Pha thử, đổ bỏ ly hỏng ghi bằng lệnh nào?', '/dungnoibo', ['/huydon', '/chiphi', '/laykho'], 'Để không tính vào hao hụt.'],
+      ['BOT: chi két', 'Mua đá / sữa bằng tiền két trong ca, ghi thế nào?', '/chiphi 85 đá sữa', ['/laykho đá 85', '/order đá', 'Không cần ghi, chủ tự trừ'], ''],
+      ['CL: thứ tự cuối ca', 'Thứ tự đúng cuối ca?', '/kiemxe → /chotca → /checkout', ['/checkout → /kiemxe → /chotca', '/chotca → /checkout → /kiemxe', '/kiemxe → /checkout → /chotca'], 'Check-out chỉ sau khi xong đủ việc cuối ca.'],
+      ['CL: đếm xe', 'Cuối ca ngày thường đếm những gì trên xe?', 'Chỉ ly + cà phê (cuối tuần đếm đủ các món)', ['Đếm đủ mọi món mỗi ngày', 'Không cần đếm, bot tự trừ', 'Chỉ đếm tiền'], ''],
+      ['BOT: mang ly', '1 cà phê sữa máy, khách mang ly riêng. Gõ đơn thế nào?', 'csm ly', ['csm 1 ly', 'ly csm', 'csm ml'], '"ly" ở cuối đơn = mang ly −2K/ly; có số ngay trước (csm 2 ly) thì bot hiểu là đếm số ly.'],
+      ['CL: rời quầy', 'Có việc phải rời quầy thì sao?', 'Luôn có 1 người ở quầy; phải đi thì nhờ bảo vệ trông, gạt ON khoá bánh xe', ['Treo bảng "quay lại ngay"', 'Đóng tủ tiền là được', 'Nhờ khách quen trông'], ''],
+    ],
+    kho:[
+      ['BOT: cú pháp chốt ca', 'Két đếm được 745.000đ tiền mặt và 220.000đ chuyển khoản. Gõ lệnh chốt ca nào?', '/chotca tm 745 ck 220', ['/chotca tm 220 ck 745', '/checkout tm 745 ck 220', '/kiemxe tm 745 ck 220'], 'Sau đó /checkout (hoặc chốt ca đã tự check-out).'],
+      ['BOT: cú pháp kiểm xe', 'Cuối ca còn 120 ly và 2,4 kg cà phê trên xe. Gõ lệnh nào?', '/kiemxe ly 120 cf 2,4', ['/laykho ly 120 cf 2,4', '/kiemxe cf 120 ly 2,4', '/kho ly 120 cf 2,4'], ''],
+      ['BOT: cú pháp lấy kho', 'Lấy từ kho ra xe 250 ly và 4 kg cà phê. Gõ lệnh nào?', '/laykho ly 250 cf 4', ['/kiemxe ly 250 cf 4', '/laykho cf 250 ly 4', '/kho ly 250 cf 4'], ''],
+      ['BOT: quên công', 'Quên check-in, thật ra bạn tới lúc 5:25. Bù trong ngày bằng lệnh nào?', '/quencong vào 5:25', ['/checkin 5:25', '/quencong ra 5:25', '/doica vào 5:25'], 'Chủ duyệt; bù trong ngày thì không tính lỗi.'],
+      ['BOT: cú pháp đơn', '2 cà phê sữa phin + 1 bạc xỉu, khách chuyển khoản. Gõ nhanh thế nào?', 'csp 2 bx ck', ['csp bx 2 ck', 'csp 2 bx', 'csp 2 bx tm'], 'Số đứng ngay sau (csp 2) hoặc ngay trước món (2 csp) là số ly của món đó — csp bx 2 là 1 sữa phin + 2 bạc xỉu. Không ghi ck thì bot tính tiền mặt.'],
+      ['SỰ CỐ: CK chưa thấy', 'Khách nói đã chuyển khoản nhưng loa / app chưa báo tiền. Làm gì?', 'Chưa tính là đã trả: nhờ khách chờ hoặc cho xem giao dịch, rồi báo chủ đối soát', ['Tin khách, bấm đơn ck', 'Bấm tm cho nhanh, cuối ca chỉnh', 'Cho khách đi, cuối ca đối soát'], ''],
+      ['SỰ CỐ: két lệch', 'Chốt ca thấy két lệch so với bot. Làm gì?', 'Ghi đúng số đếm thật trong /chotca, báo chủ để kiểm', ['Tự bù / bớt cho khớp số bot', 'Ghi đúng số bot báo', 'Huỷ bớt đơn cho khớp két'], 'Không tự bù hay bớt.'],
+      ['SỰ CỐ: hết hàng', 'Giữa ca hết nguyên liệu, kho cũng hết. Làm gì?', 'Nhắn chủ ngay, báo khách món tạm hết', ['Mua ngoài rồi ghi /laykho', 'Pha bớt định lượng cho đủ', 'Đổi món khác cùng giá không báo khách'], 'Kho còn thì lấy và ghi /laykho.'],
+      ['SỰ CỐ: máy', 'Máy không chạy / không lên nước. Làm gì?', 'Kiểm phích cắm, công tắc, can nước; không tự tháo máy, báo chủ', ['Tự tháo máy kiểm tra', 'Tắt máy, nghỉ bán hết ca', 'Gọi thợ ngay không cần báo chủ'], 'Cần thì gọi thợ trong danh bạ.'],
+      ['SỰ CỐ: mưa', 'Mưa lớn, không bán được. Ca đó thế nào?', 'Hỏi chủ; chủ huỷ bán thì không tính vắng', ['Tự nghỉ, không cần báo', 'Tính vắng như thường', 'Vẫn ngồi đủ giờ mới được tính'], ''],
+    ],
+  };
+  return qzTron(bank[muc].map(([nhan, hoi, dung, sai, giai]) => ({nhan, hoi:esc(hoi), dung, chon:qzTron([dung].concat(sai3(dung, sai))), giai})));
+}
 function batDauQuiz(muc){
   const ds = DS_QZ(), menu = qzMenu(), ctPool = qzTron(ds.flatMap(m => ['M', 'L'].map(sz => ({m, sz})))), mm = qzTron(menu);
   const ct = n => ctPool.splice(0, n).map(({m, sz}) => qzCauCT(m, sz, muc)), cau = [];
-  if (muc === 'de') cau.push(...ct(3), ...mm.slice(0, 2).map(m => qzCauGia(m, menu)), ...mm.slice(2, 3).map(m => qzCauMa(m, menu, muc)), ...qzCauCS().slice(0, 2), ...qzNQ(muc).slice(0, 2));
-  else if (muc === 'tb') cau.push(...ct(3), ...(menu.length ? [1, 1].map(n => qzCauTien(menu, n, muc)) : []), Math.random() < 0.5 && mm.length ? qzCauMa(mm[0], menu, muc) : qzCauPha(), qzCauSoChe(muc), ...qzNQ(muc).slice(0, 3));
-  else cau.push(...ct(3), ...(menu.length ? [2, 3, 3].map(n => qzCauTien(menu, n, muc)) : []), qzCauLuongCa(), ...qzNQ(muc).slice(0, 3));
+  if (muc === 'de') cau.push(...ct(3), ...mm.slice(0, 1).map(m => qzCauGia(m, menu)), ...mm.slice(2, 3).map(m => qzCauMa(m, menu, muc)), ...qzCauCS().slice(0, 2), ...qzNQ(muc).slice(0, 2), ...qzCL(muc).slice(0, 1));
+  else if (muc === 'tb') cau.push(...ct(3), ...(menu.length ? [1, 1].map(n => qzCauTien(menu, n, muc)) : []), qzTron([mm.length ? qzCauMa(mm[0], menu, muc) : null, qzCauPha(), qzCauSoChe(muc)].filter(Boolean))[0], ...qzNQ(muc).slice(0, 2), ...qzCL(muc).slice(0, 2));
+  else cau.push(...ct(3), ...(menu.length ? [2, 3].map(n => qzCauTien(menu, n, muc)) : []), qzCauLuongCa(), ...qzNQ(muc).slice(0, 2), ...qzCL(muc).slice(0, 2));
   const c = cau.filter(x => x && x.chon.length >= 2);
   while (c.length < 10 && ctPool.length) c.push(...ct(1));   // chưa tải Menu → bù câu công thức
   _qz = {muc, cau:qzTron(c).slice(0, 10), i:0, dung:0, sai:[]}; veQuiz();
