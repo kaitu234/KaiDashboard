@@ -2424,8 +2424,13 @@ function renderSales(){
     { const M = sel().filter(o => o.ml), lyM = M.reduce((x, o) => x + o.sl, 0);   // v1.7.221: mang ly / bình — 1 ly mang theo = −2.000 (gộp N ly vào 1 bình vẫn 1 lần)
       $('tvTom').innerHTML += '<br>' + (lyM ? `🥤 Mang ly / bình: <b>${fmt(lyM)} ly</b> (${pct(A.ly ? lyM / A.ly : 0)} số ly) · <b>${fmt(new Set(M.map(o => o.id)).size)} đơn</b> · đã giảm <b>${fmt(lyM * 2000)} đ</b>.`
         : '🥤 Chưa có đơn mang ly / bình trong kỳ (gõ <b>ly</b> cuối đơn, vd "2 csm ly").'); }
-    const byK = [...groupBy(L, o => o.k)].map(([k, l]) => { const n = l.reduce((x, o) => x + o.sl, 0); return {k, ly:n, don:new Set(l.map(o => o.id)).size, giam:n * 2000, dt:l.reduce((x, o) => x + o.tt, 0)}; });
-    table({id:'tTv', rows:byK, sortDefault:{k:'k', d:-1}, total:byK.length ? {ly, don, giam, dt:L.reduce((x, o) => x + o.tt, 0)} : null, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`}, {k:'ly', l:'Ly thành viên', r:1, f:fmt}, {k:'don', l:'Đơn', r:1, f:fmt}, {k:'dt', l:'Doanh thu (sau giảm)', r:1, f:fmt}, {k:'giam', l:'Tiền đã giảm', r:1, f:fmt}]}); }
+    /* v1.7.256 (chủ 13/11/2026): bảng theo ngày có cả mang ly + tỉ lệ thành viên / mang ly trên tổng ly ngày đó (mọi ngày có bán trong kỳ; dòng Tổng = cùng tỉ lệ dòng tóm tắt trên) */
+    const byK = [...groupBy(sel(), o => o.k)].map(([k, l]) => { const tl = l.filter(o => o.tv), ml = l.filter(o => o.ml), tong = agg(l).ly, n = tl.reduce((x, o) => x + o.sl, 0), m = ml.reduce((x, o) => x + o.sl, 0);
+      return {k, tong, ly:n, ptv:tong ? n / tong : 0, lyM:m, pml:tong ? m / tong : 0, don:new Set(tl.map(o => o.id)).size, dt:tl.reduce((x, o) => x + o.tt, 0), giam:(n + m) * 2000}; });
+    const sT = byK.reduce((x, r) => x + r.tong, 0), sM = byK.reduce((x, r) => x + r.lyM, 0);
+    table({id:'tTv', rows:byK, sortDefault:{k:'k', d:-1}, total:byK.length ? {tong:sT, ly, ptv:sT ? ly / sT : 0, lyM:sM, pml:sT ? sM / sT : 0, don, dt:L.reduce((x, o) => x + o.tt, 0), giam:(ly + sM) * 2000} : null, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`},
+      {k:'tong', l:'Tổng ly', r:1, f:fmt}, {k:'ly', l:'Ly thành viên', r:1, f:fmt}, {k:'ptv', l:'Tỉ lệ thành viên', r:1, f:v => pct(v, 1)}, {k:'lyM', l:'Ly mang ly', r:1, f:fmt}, {k:'pml', l:'Tỉ lệ mang ly', r:1, f:v => pct(v, 1)},
+      {k:'don', l:'Đơn thành viên', r:1, f:fmt}, {k:'dt', l:'Doanh thu thành viên (sau giảm)', r:1, f:fmt}, {k:'giam', l:'Tiền đã giảm (tv + mang ly)', r:1, f:fmt}]}); }
   const L = sel(), A = agg(L);
   const n = rangeDays(S.from, S.to).length;
   const pFrom = addDays(S.from, -n), pTo = addDays(S.from, -1);
@@ -3700,7 +3705,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.255';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.256';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3758,6 +3763,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.256', ngay:'13/11/2026', nd:['Bán hàng — bảng Thẻ thành viên & mang ly theo ngày thêm cột Tổng ly, Ly mang ly, Tỉ lệ thành viên, Tỉ lệ mang ly (trên tổng ly ngày đó); hiện mọi ngày có bán trong kỳ; Tiền đã giảm gồm cả thành viên lẫn mang ly.']},
   {v:'v1.7.255', ngay:'13/11/2026', nd:['Sổ tay — Kiểm tra kiến thức thêm bài thứ 4 "Lên bậc": bắt buộc khi lên L3 🥇 Gold trở lên; 20 câu, mỗi câu 1 phút (đồng hồ đếm ngược, hết giờ tính sai), đạt từ 14/20 (70%). Câu gồm công thức lệch 1 số, tính tiền đơn nhiều món, lương 1 ca, thâm niên, thưởng ly, chuyên cần, lệnh bot & sự cố, cách pha / sơ chế, và 5 câu riêng về trách nhiệm (kho & hao hụt, quên đơn, khách chê, ghi trùng, xét tăng lương). Kết quả lưu cột Bài = "Lên bậc".', 'Nội quy IV + Chính sách thâm niên ghi điều kiện thi Lên bậc; Sổ tay đổi bản 13/11 → nhân viên xác nhận đọc lại.']},
   {v:'v1.7.254', ngay:'13/11/2026', nd:['Kiểm tra kiến thức (Sổ tay) thêm câu Checklist ca & lệnh bot: Dễ 1 câu (/checkin, thêm ck, huỷ đơn nhầm, can nước, /luong, /doica, khoá bánh xe); Trung bình 2 câu (thay nước 60 ly, tồn tối thiểu trên xe, /laykho, /dungnoibo, /chiphi, thứ tự cuối ca, đếm xe, gõ mang ly, rời quầy); Khó 2 câu (cú pháp /chotca, /kiemxe, /laykho, /quencong, gõ nhanh đơn — csp 2 bx = 2 sữa phin + 1 bạc xỉu — và xử lý sự cố: CK chưa thấy tiền, két lệch, hết hàng, máy hỏng, mưa). Mỗi bài vẫn 10 câu']},
   {v:'v1.7.253', ngay:'13/11/2026', nd:['Kiểm tra kiến thức (Sổ tay) thêm câu Nội quy & chính sách lương: Dễ 2 câu (giờ ca, bấm đơn trước khi pha, bàn giao T4 + CN, báo nghỉ trước 2 ngày, phạt lỗi, lương căn bản, ngày trả lương, dậy sớm); Trung bình 3 câu (hạn dậy sớm, vào sớm tối đa 30 phút, ở lại không trả, trễ quá 30 phút, chuyên cần, thưởng ly, thử việc, quên công, thâm niên); Khó 4 câu — luôn có 1 câu tự tính tiền 1 ca theo bậc + giờ check-in (vào sớm, dậy sớm, trễ nặng), cùng thâm niên theo giờ, thưởng ly theo số ly, tình huống chuỗi chuyên cần / quên công lần 4 / 4 lỗi. Số lấy từ cùng hằng chính sách với bot']},
