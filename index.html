@@ -1456,7 +1456,7 @@ html.mcap{background:var(--paper)}
       <div class="st" id="hrCt"></div>
     </div>
     <div class="card" id="sec-st-qz" data-nvok>
-      <div class="ct">Kiểm tra kiến thức <span class="nt">· 3 bài Dễ · Trung bình · Khó, mỗi bài 10 câu ngẫu nhiên: công thức, giá, tính tiền (size L, thành viên, mang ly, T7–CN), mã bot, sơ chế · nhân viên làm xong tự lưu kết quả cho chủ xem</span></div>
+      <div class="ct">Kiểm tra kiến thức <span class="nt">· 3 bài Dễ · Trung bình · Khó, mỗi bài 10 câu ngẫu nhiên: công thức, giá, tính tiền (size L, thành viên, mang ly, T7–CN), mã bot, sơ chế, nội quy, lương · nhân viên làm xong tự lưu kết quả cho chủ xem</span></div>
       <div class="st" id="stQz"></div>
       <div class="st" id="stQzLs"></div>
     </div>
@@ -3700,7 +3700,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.252';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.253';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3758,6 +3758,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.253', ngay:'13/11/2026', nd:['Kiểm tra kiến thức (Sổ tay) thêm câu Nội quy & chính sách lương: Dễ 2 câu (giờ ca, bấm đơn trước khi pha, bàn giao T4 + CN, báo nghỉ trước 2 ngày, phạt lỗi, lương căn bản, ngày trả lương, dậy sớm); Trung bình 3 câu (hạn dậy sớm, vào sớm tối đa 30 phút, ở lại không trả, trễ quá 30 phút, chuyên cần, thưởng ly, thử việc, quên công, thâm niên); Khó 4 câu — luôn có 1 câu tự tính tiền 1 ca theo bậc + giờ check-in (vào sớm, dậy sớm, trễ nặng), cùng thâm niên theo giờ, thưởng ly theo số ly, tình huống chuỗi chuyên cần / quên công lần 4 / 4 lỗi. Số lấy từ cùng hằng chính sách với bot']},
   {v:'v1.7.252', ngay:'13/11/2026', nd:['Sổ tay — Kiểm tra kiến thức thành 3 bài Dễ · Trung bình · Khó (10 câu/bài): Dễ = công thức (đáp án sai khác nhóm), giá menu, mã bot, chính sách; Trung bình = công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món (size L, thành viên, mang ly, T7–CN đồng giá), cách pha, sơ chế; Khó = công thức chỉ lệch đúng 1 con số, tính tiền cả đơn nhiều món gộp điều kiện (phương án sai là lỗi hay gặp: quên đồng giá, tv ngày T7–CN, mang ly tính 1 lần), sơ chế. Trả lời xong hiện cách tính. Tính tiền cùng luật bot. Kết quả ghi thêm tên bài; bảng kết quả có cột Bài']},
   {v:'v1.7.251', ngay:'13/11/2026', nd:['Bỏ hẳn MoMo đối soát (chủ quán 12/11: không còn dùng): Sheet đã xoá tab MoMo - dán data / MoMo - xử lý và các cột MoMo ở tab Doanh thu; dashboard bỏ cột Chênh MoMo ở Doanh thu thuần, câu Phí MoMo 0% ở PNL, việc kỹ thuật MoMo. Mã QR MoMo nhận tiền ở tab Tài liệu giữ nguyên. Không đổi số nào']},
   {v:'v1.7.250', ngay:'12/11/2026', nd:['PNL: thêm dòng Đối chiếu ngay dưới Lãi vận hành khi xem trọn tháng — giải thích phần lệch với lãi tháng ở Tổng quan / Thu chi: lệch két (Tổng quan tính thực thu, PNL tính đơn bot), phí cả tháng phần chưa tới ngày (PNL chia theo ngày, Tổng quan trừ đủ khi ghi sổ), chi cố định PNL tạm tính, khác. Không đổi số nào', 'Tự kiểm số học thêm mục 93 (đối chiếu PNL ↔ Tổng quan)']},
@@ -4950,9 +4951,9 @@ const DS_QZ = () => CONG_THUC_IN.flatMap(([n, ds]) => ds.filter(r => r[1] !== '�
    Kết quả lưu như cũ (api quiz), cột Câu sai ghi kèm "[Dễ]" / "[TB]" / "[Khó]" ở đầu để biết bài nào. */
 const QZ_ML = 2000;
 const QZ_BAI = {
-  de:{t:'Dễ', ma:'Dễ', mo:'Công thức (đáp án sai khác hẳn nhóm), giá menu, mã bot, chính sách cơ bản.'},
-  tb:{t:'Trung bình', ma:'TB', mo:'Công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món: size L, thành viên, mang ly, T7–CN; cách pha, sơ chế.'},
-  kho:{t:'Khó', ma:'Khó', mo:'Công thức chỉ lệch 1 con số, tính tiền cả đơn nhiều món gộp nhiều điều kiện, sơ chế.'},
+  de:{t:'Dễ', ma:'Dễ', mo:'Công thức (đáp án sai khác hẳn nhóm), giá menu, mã bot, chính sách bán hàng, nội quy & lương cơ bản.'},
+  tb:{t:'Trung bình', ma:'TB', mo:'Công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món: size L, thành viên, mang ly, T7–CN; cách pha, sơ chế; nội quy, dậy sớm, trễ, chuyên cần, thưởng ly.'},
+  kho:{t:'Khó', ma:'Khó', mo:'Công thức chỉ lệch 1 con số, tính tiền cả đơn nhiều món gộp nhiều điều kiện, tự tính tiền 1 ca (thâm niên, vào sớm, trễ), tình huống chuyên cần / lỗi.'},
 };
 const qzTron = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
 const qzK = v => (v / 1000).toLocaleString('vi-VN') + 'K';
@@ -5035,12 +5036,83 @@ function qzCauCS(){
   ];
   return qzTron(bank).map(([nhan, hoi, dung, sai, giai]) => ({nhan, hoi:esc(hoi), dung, chon:qzTron([dung].concat(sai)), giai}));
 }
+/* v1.7.253 (chủ nhờ 13/11): câu hỏi Nội quy & chính sách lương — số lấy từ CS_BOT / CHUYEN_CAN / THUONG_LY_NGAY / OT_TOI_DA (cùng bot).
+   Dễ 2 câu · Trung bình 3 câu · Khó 3 câu (lương 1 ca / thâm niên / thưởng ly / tình huống chuyên cần, lỗi). */
+const qzD = v => Math.round(v).toLocaleString('vi-VN') + 'đ';
+function qzNQ(muc){
+  const C = CS_BOT, CC = CHUYEN_CAN, L = C.luong, TN = C.thamNien, M = THUONG_LY_NGAY.moc, K = qzK, sai3 = (d, ds) => qzTron([...new Set(ds)].filter(x => x !== d)).slice(0, 3);
+  const bank = {
+    de:[
+      ['NQ: giờ ca', 'Ca làm việc từ mấy giờ đến mấy giờ?', '05:30 – 10:30', ['05:00 – 10:00', '06:00 – 11:00', '05:30 – 11:00'], ''],
+      ['NQ: bấm đơn', 'Bấm đơn trên bot lúc nào?', 'Sau khi khách order, trước khi pha', ['Sau khi giao nước', 'Cuối ca bấm gộp', 'Khi khách trả tiền xong'], 'Bấm đơn trước khi pha là bước bắt buộc của quy trình.'],
+      ['NQ: bàn giao', 'Bàn giao tiền cho chủ vào ngày nào?', 'Thứ 4 và Chủ nhật', ['Mỗi ngày sau ca', 'Thứ 2 và Thứ 6', 'Chỉ Chủ nhật'], 'Không đúng quy trình bàn giao → không xét chuyên cần tháng đó.'],
+      ['NQ: báo nghỉ', 'Xin nghỉ / đổi ca phải báo trước bao lâu?', 'Trước 2 ngày', ['Trước 1 ngày', 'Trước 12 giờ', 'Trước 1 tuần'], 'Nhờ người làm thay bằng /doica, chủ duyệt mới đổi lịch.'],
+      ['NQ: lỗi quy trình', 'Mỗi lỗi quy trình bị phạt bao nhiêu?', qzD(C.loi) + '/lần', [qzD(C.loi / 2) + '/lần', qzD(C.loi * 2) + '/lần', 'Chỉ nhắc nhở, không phạt'], ''],
+      ['NQ: dọn quầy', 'Mấy giờ bắt đầu dọn quầy và /kiemxe?', '10:00 (10:30 dọn xong)', ['10:30', '09:30', '10:15'], ''],
+      ['NQ: check-in', 'Check-in / check-out phải gửi vị trí trong bán kính bao nhiêu quanh xe?', C.banKinh + ' m', [C.banKinh / 2 + ' m', C.banKinh * 2.5 + ' m', '1 km'], ''],
+      ['LƯƠNG: căn bản', 'Lương căn bản mỗi giờ là bao nhiêu (chưa cộng thâm niên)?', qzD(L), [qzD(L - 5000), qzD(L + 5000), qzD(L + 2000)], ''],
+      ['LƯƠNG: ngày trả', 'Lương trả khi nào?', '1 lần/tháng, ngày ' + String(C.traNgay).padStart(2, '0') + ' tháng sau', ['2 lần/tháng, ngày 15 và 30', '1 lần/tháng, ngày cuối tháng', 'Mỗi tuần vào Chủ nhật'], ''],
+      ['LƯƠNG: dậy sớm', 'Phụ cấp dậy sớm mỗi ca là bao nhiêu?', '+' + qzD(C.som.tien), ['+' + qzD(C.som.tien / 2), '+' + qzD(C.som.tien * 2), '+' + qzD(C.som.tien * 2.5)], 'Chỉ khi check-in đến hết phút ' + C.som.han + '.'],
+    ],
+    tb:[
+      ['LƯƠNG: dậy sớm', 'Check-in lúc mấy giờ thì vẫn được phụ cấp dậy sớm?', 'Đến hết phút ' + C.som.han + ' (trước 05:31)', ['Đến 05:35', 'Trước 05:30 (05:30 là mất)', 'Đến 05:45'], ''],
+      ['LƯƠNG: vào sớm', 'Vào sớm trước giờ ca được trả thế nào?', 'Tối đa ' + OT_TOI_DA + ' phút/ca', ['Trả hết số phút vào sớm', 'Không trả', 'Tối đa 60 phút/ca'], ''],
+      ['LƯƠNG: ở lại', 'Ở lại sau 10:30 (sau giờ ca) có được trả lương không?', 'Không trả', ['Trả theo phút', 'Trả tối đa 30 phút', 'Trả gấp 1,5'], 'Chốt ca trước 10:30 thì bot vẫn ghi giờ ra 10:30.'],
+      ['LƯƠNG: chốt sớm', '/chotca lúc 10:15 thì bot ghi giờ ra là mấy giờ?', '10:30', ['10:15', '10:00', 'Giờ /checkout sau đó'], 'Chốt ca = check-out; trước 10:30 ghi 10:30.'],
+      ['LƯƠNG: trễ nặng', 'Check-in sau 06:00 (trễ quá ' + C.treTru.phut + ' phút) bị gì?', 'Trừ ' + C.treTru.tyLe * 100 + '% lương 1 giờ (căn bản + thâm niên)', ['Trừ ' + qzD(C.loi) + ' như lỗi quy trình', 'Trừ 1 giờ công', 'Không trừ, chỉ mất phụ cấp dậy sớm'], 'Bot tự trừ; còn mất phụ cấp dậy sớm hôm đó.'],
+      ['LƯƠNG: chuyên cần', 'Thưởng chuyên cần tính thế nào?', CC.soCa + ' ca liên tiếp check-in đến hết phút ' + CC.gio + ' → +' + qzD(CC.tien), [(CC.soCa + 3) + ' ca liên tiếp → +' + qzD(CC.tien), CC.soCa + ' ca liên tiếp → +' + qzD(CC.tien / 2), 'Đủ ca cả tháng → +' + qzD(CC.tien * 2)], 'Đủ chuỗi thì đếm lại từ đầu; tháng đủ bao nhiêu chuỗi thưởng bấy nhiêu.'],
+      ['LƯƠNG: thưởng ly', 'Thưởng số ly theo ngày: mốc nào?', M.map(([m, t]) => m + ' ly +' + K(t)).join(' · '), [M.map(([m, t]) => (m - 10) + ' ly +' + K(t)).join(' · '), M.map(([m, t]) => m + ' ly +' + K(t / 2)).join(' · '), M.map(([m, t], i) => m + ' ly +' + K(t + 10000 * i)).join(' · ')], 'Tính ly cả quán (gồm đơn app), mỗi người có chấm công hôm đó nhận đủ.'],
+      ['LƯƠNG: thử việc', 'Lương thử việc?', qzD(C.thuViec) + '/ngày; đạt thì tính lại như chính thức', [qzD(C.thuViec) + '/ngày; đạt cũng giữ nguyên', qzD(L) + '/giờ như chính thức', qzD(C.thuViec * 0.8) + '/ngày'], ''],
+      ['NQ: quên công', 'Quên check-in / out, bù ngay trong ngày bằng /quencong thì sao?', 'Không tính lỗi', ['Phạt ' + qzD(C.loi), 'Trừ 1 giờ công', 'Mất phụ cấp dậy sớm'], 'Sang hôm sau mới bù: ' + C.quenMien + ' lần đầu/tháng chỉ ghi nhận, từ lần ' + (C.quenMien + 1) + ' trừ 1 giờ công.'],
+      ['NQ: mất chuyên cần', 'Trường hợp nào mất thưởng chuyên cần cả tháng?', 'Trên ' + C.loiMax + ' lỗi bị phạt, hoặc bàn giao tiền sai quy trình', ['Trễ 1 lần bất kỳ', 'Nghỉ 1 ca có báo trước', 'Đổi ca bằng /doica'], ''],
+      ['LƯƠNG: thâm niên', 'Thâm niên tính thế nào?', 'Cộng dồn giờ đã làm, không reset; áp dụng từ ca kế tiếp sau khi đạt mốc', ['Theo số tháng làm việc', 'Reset đầu mỗi năm', 'Áp dụng lại từ đầu tháng đạt mốc'], 'Bậc 1 từ ' + TN[0][0] + ' giờ (+' + qzD(TN[0][1]) + '/giờ), cao nhất +' + qzD(TN[TN.length - 1][1]) + '/giờ.'],
+    ],
+    kho:[
+      ['NQ: chuỗi trễ', 'Chuỗi chuyên cần: 6 ca đúng giờ, ca kế trễ 8 phút, ca sau nữa đúng giờ. Kết quả?', 'Đủ chuỗi ở ca đúng giờ đó (ca trễ không đếm, chuỗi vẫn giữ) → +' + qzD(CC.tien), ['Đứt chuỗi, đếm lại từ 0', 'Đủ chuỗi ngay ca trễ → +' + qzD(CC.tien), 'Đủ chuỗi nhưng chỉ +' + qzD(CC.tien / 2)], 'Mỗi chuỗi được trễ 1 lần; trễ lần 2 trong cùng chuỗi hoặc vắng ca đã nhận → đếm lại.'],
+      ['NQ: trễ 2 lần', 'Trong cùng 1 chuỗi chuyên cần, bạn trễ lần thứ 2. Chuỗi thế nào?', 'Đếm lại từ 0', ['Vẫn giữ, ca trễ không đếm', 'Trừ ' + qzD(CC.tien / 2) + ' khi đủ chuỗi', 'Chỉ mất phụ cấp dậy sớm'], ''],
+      ['NQ: quên lần 4', 'Tháng này bạn đã 3 lần quên check-out và bù hôm sau. Lần thứ 4 (bù hôm sau) bị gì?', 'Trừ 1 giờ công', ['Chỉ ghi nhận', 'Phạt ' + qzD(C.loi), 'Mất chuyên cần cả tháng'], ''],
+      ['NQ: không lịch', 'Ngày không có lịch làm của bạn có làm đứt chuỗi chuyên cần không?', 'Không', ['Có, đếm lại từ 0', 'Có, nếu quá 2 ngày liền', 'Tính như 1 lần trễ'], ''],
+      ['NQ: 4 lỗi', 'Tháng có 4 lỗi quy trình bị phạt. Ảnh hưởng?', 'Phạt ' + qzD(C.loi * 4) + ' và mất thưởng chuyên cần tháng đó', ['Phạt ' + qzD(C.loi * 4) + ', vẫn giữ chuyên cần', 'Phạt ' + qzD(C.loi * 3) + ' (tối đa 3 lỗi)', 'Mất chuyên cần, không phạt tiền'], 'Trên ' + C.loiMax + ' lỗi/tháng → mất chuyên cần.'],
+    ],
+  };
+  const cau = bank[muc].map(([nhan, hoi, dung, sai, giai]) => ({nhan, hoi:esc(hoi), dung, chon:qzTron([dung].concat(sai3(dung, sai))), giai}));
+  if (muc === 'kho') cau.push(qzCauThamNien(), qzCauThuongLy());
+  if (muc === 'tb') cau.push(qzCauThuongLy());
+  return qzTron(cau);
+}
+/* lương 1 ca (cùng luật bot): phút từ check-in (vào sớm tối đa OT_TOI_DA trước 05:30) tới 10:30 × (căn bản + thâm niên)/60 + dậy sớm (đến hết phút 05:30) − trễ quá 30p: 50% lương 1 giờ */
+function qzCauLuongCa(){
+  const C = CS_BOT, bac = Math.floor(Math.random() * 4), tn = bac ? C.thamNien[bac - 1][1] : 0, r = C.luong + tn;
+  const vao = qzTron([290, 300, 315, 330, 345, 370, 380])[0], hh = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  const tinh = bo => { bo = bo || {}; const tu = bo.otHet ? vao : Math.max(vao, 330 - (bo.khongOT ? 0 : OT_TOI_DA)); let v = (bo.tnSai ? C.luong : r) * (630 - tu) / 60;
+    if (vao <= 330 && !bo.quenSom) v += C.som.tien; if (vao - 330 > C.treTru.phut && !bo.quenTre) v -= r * C.treTru.tyLe; return Math.round(v); };
+  const dung = tinh(), loi = [tinh({otHet:1}), tinh({khongOT:1}), tinh({quenSom:1}), tinh({quenTre:1}), bac ? tinh({tnSai:1}) : null].filter(v => v != null && v !== dung);
+  const sai = qzDu3(qzD(dung), qzTron(loi).slice(0, 2).map(qzD), qzTron([5000, -5000, 2500, -2500]).map(x => qzD(dung + x)));
+  const tu = Math.max(vao, 330 - OT_TOI_DA), phut = 630 - tu;
+  return {nhan:'lương ca L' + bac + ' vào ' + hh(vao), hoi:'Bậc <b>L' + bac + '</b> (' + (tn ? 'thâm niên +' + qzD(tn) + '/giờ' : 'chưa có thâm niên') + '), check-in <b>' + hh(vao) + '</b>, chốt ca 10:30. Tiền ca hôm đó (chưa tính thưởng ly, chuyên cần)?',
+    dung:qzD(dung), chon:qzTron([qzD(dung)].concat(sai)),
+    giai:'Tính từ ' + hh(tu) + (vao < tu ? ' (vào sớm chỉ trả ' + OT_TOI_DA + ' phút)' : '') + ' tới 10:30 = ' + phut + ' phút × ' + qzD(r) + '/giờ = ' + qzD(r * phut / 60)
+      + (vao <= 330 ? ' + dậy sớm ' + qzD(C.som.tien) : ' · không có dậy sớm') + (vao - 330 > C.treTru.phut ? ' − trễ quá ' + C.treTru.phut + ' phút ' + qzD(r * C.treTru.tyLe) : '') + ' = ' + qzD(dung)};
+}
+function qzCauThamNien(){
+  const TN = CS_BOT.thamNien, i = Math.floor(Math.random() * (TN.length - 1)), gio = TN[i][0] + Math.floor(Math.random() * (TN[i + 1][0] - TN[i][0]));
+  const b = TN.filter(([m]) => gio >= m).length, dung = CS_BOT.luong + TN[b - 1][1];
+  const sai = qzDu3(qzD(dung), qzTron([dung + 1000, dung - 1000, CS_BOT.luong, dung + 2000]).map(qzD));
+  return {nhan:'thâm niên ' + gio + ' giờ', hoi:'Bạn đã làm cộng dồn <b>' + gio + ' giờ</b>. Lương mỗi giờ (căn bản + thâm niên) là?', dung:qzD(dung), chon:qzTron([qzD(dung)].concat(sai)),
+    giai:'Từ ' + TN[b - 1][0] + ' giờ = bậc L' + b + ' +' + qzD(TN[b - 1][1]) + '/giờ; bậc kế từ ' + TN[b][0] + ' giờ.'};
+}
+function qzCauThuongLy(){
+  const M = THUONG_LY_NGAY.moc, ly = 30 + Math.floor(Math.random() * 40), dat = M.filter(([m]) => ly >= m), dung = dat.length ? dat[dat.length - 1][1] : 0;
+  const sai = qzDu3(qzD(dung), [dat.reduce((s, x) => s + x[1], 0)].concat(qzTron(M.map(x => x[1]).concat(0))).map(qzD));
+  return {nhan:'thưởng ' + ly + ' ly', hoi:'Hôm nay cả quán bán <b>' + ly + ' ly</b> (đã gồm đơn app). Mỗi người có chấm công hôm đó được thưởng?', dung:qzD(dung), chon:qzTron([qzD(dung)].concat(sai)),
+    giai:'Mốc ' + M.map(([m, x]) => m + ' ly +' + qzK(x)).join(' · ') + ' — chỉ lấy mốc cao nhất đã đạt, không cộng dồn, không chia.'};
+}
 function batDauQuiz(muc){
   const ds = DS_QZ(), menu = qzMenu(), ctPool = qzTron(ds.flatMap(m => ['M', 'L'].map(sz => ({m, sz})))), mm = qzTron(menu);
   const ct = n => ctPool.splice(0, n).map(({m, sz}) => qzCauCT(m, sz, muc)), cau = [];
-  if (muc === 'de') cau.push(...ct(4), ...mm.slice(0, 2).map(m => qzCauGia(m, menu)), ...mm.slice(2, 3).map(m => qzCauMa(m, menu, muc)), ...qzCauCS().slice(0, 3));
-  else if (muc === 'tb') cau.push(...ct(4), ...(menu.length ? [1, 1, 1].map(n => qzCauTien(menu, n, muc)) : []), ...mm.slice(0, 1).map(m => qzCauMa(m, menu, muc)), qzCauPha(), qzCauSoChe(muc));
-  else cau.push(...ct(5), ...(menu.length ? [2, 2, 3, 3].map(n => qzCauTien(menu, n, muc)) : []), qzCauSoChe(muc));
+  if (muc === 'de') cau.push(...ct(3), ...mm.slice(0, 2).map(m => qzCauGia(m, menu)), ...mm.slice(2, 3).map(m => qzCauMa(m, menu, muc)), ...qzCauCS().slice(0, 2), ...qzNQ(muc).slice(0, 2));
+  else if (muc === 'tb') cau.push(...ct(3), ...(menu.length ? [1, 1].map(n => qzCauTien(menu, n, muc)) : []), Math.random() < 0.5 && mm.length ? qzCauMa(mm[0], menu, muc) : qzCauPha(), qzCauSoChe(muc), ...qzNQ(muc).slice(0, 3));
+  else cau.push(...ct(3), ...(menu.length ? [2, 3, 3].map(n => qzCauTien(menu, n, muc)) : []), qzCauLuongCa(), ...qzNQ(muc).slice(0, 3));
   const c = cau.filter(x => x && x.chon.length >= 2);
   while (c.length < 10 && ctPool.length) c.push(...ct(1));   // chưa tải Menu → bù câu công thức
   _qz = {muc, cau:qzTron(c).slice(0, 10), i:0, dung:0, sai:[]}; veQuiz();
