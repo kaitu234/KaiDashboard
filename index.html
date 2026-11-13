@@ -1456,7 +1456,7 @@ html.mcap{background:var(--paper)}
       <div class="st" id="hrCt"></div>
     </div>
     <div class="card" id="sec-st-qz" data-nvok>
-      <div class="ct">Kiểm tra công thức <span class="nt">· 10 câu ngẫu nhiên từ bảng công thức · nhân viên làm xong tự lưu kết quả cho chủ xem</span></div>
+      <div class="ct">Kiểm tra kiến thức <span class="nt">· 3 bài Dễ · Trung bình · Khó, mỗi bài 10 câu ngẫu nhiên: công thức, giá, tính tiền (size L, thành viên, mang ly, T7–CN), mã bot, sơ chế · nhân viên làm xong tự lưu kết quả cho chủ xem</span></div>
       <div class="st" id="stQz"></div>
       <div class="st" id="stQzLs"></div>
     </div>
@@ -3700,7 +3700,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.251';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.252';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3758,6 +3758,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.252', ngay:'13/11/2026', nd:['Sổ tay — Kiểm tra kiến thức thành 3 bài Dễ · Trung bình · Khó (10 câu/bài): Dễ = công thức (đáp án sai khác nhóm), giá menu, mã bot, chính sách; Trung bình = công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món (size L, thành viên, mang ly, T7–CN đồng giá), cách pha, sơ chế; Khó = công thức chỉ lệch đúng 1 con số, tính tiền cả đơn nhiều món gộp điều kiện (phương án sai là lỗi hay gặp: quên đồng giá, tv ngày T7–CN, mang ly tính 1 lần), sơ chế. Trả lời xong hiện cách tính. Tính tiền cùng luật bot. Kết quả ghi thêm tên bài; bảng kết quả có cột Bài']},
   {v:'v1.7.251', ngay:'13/11/2026', nd:['Bỏ hẳn MoMo đối soát (chủ quán 12/11: không còn dùng): Sheet đã xoá tab MoMo - dán data / MoMo - xử lý và các cột MoMo ở tab Doanh thu; dashboard bỏ cột Chênh MoMo ở Doanh thu thuần, câu Phí MoMo 0% ở PNL, việc kỹ thuật MoMo. Mã QR MoMo nhận tiền ở tab Tài liệu giữ nguyên. Không đổi số nào']},
   {v:'v1.7.250', ngay:'12/11/2026', nd:['PNL: thêm dòng Đối chiếu ngay dưới Lãi vận hành khi xem trọn tháng — giải thích phần lệch với lãi tháng ở Tổng quan / Thu chi: lệch két (Tổng quan tính thực thu, PNL tính đơn bot), phí cả tháng phần chưa tới ngày (PNL chia theo ngày, Tổng quan trừ đủ khi ghi sổ), chi cố định PNL tạm tính, khác. Không đổi số nào', 'Tự kiểm số học thêm mục 93 (đối chiếu PNL ↔ Tổng quan)']},
   {v:'v1.7.249', ngay:'12/11/2026', nd:['Tồn xe trừ cả dùng nội bộ (/dungnoibo: test, đổ bỏ, mời khách) ghi sau lần đếm xe gần nhất — mục xe tự trừ theo món (vd kem muối, sữa đặc) hết bị cao hơn thật; mục đếm hằng ngày thì số dự kiến khi kiểm xe đã trừ phần này. Cùng bot tonnb-v1 và Sheet Bảng kho.']},
@@ -4940,47 +4941,146 @@ const SU_CO = [
   ['Rời quầy', 'Luôn có 1 người ở quầy; phải đi thì nhờ bảo vệ trông, gạt ON khoá bánh xe.'],
 ];
 let QZ = [], _qz = null;
-const DS_QZ = () => CONG_THUC_IN.flatMap(([n, ds]) => ds.filter(r => r[1] !== 'đang cập nhật').map(r => ({nhom:n, ten:r[0], M:r[1], L:r[2]})));
-function batDauQuiz(){
-  const pool = DS_QZ(), tron = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
-  const cau = tron(pool.flatMap(m => ['M', 'L'].map(sz => ({m, sz})))).slice(0, 10).map(({m, sz}) => {
-    const sai = tron([...new Set(tron(pool.filter(x => x.ten !== m.ten && x.nhom === m.nhom)).concat(tron(pool.filter(x => x.nhom !== m.nhom))).map(x => x[sz]).filter(v => v !== m[sz]))]).slice(0, 3);
-    return {ten:m.ten, sz, dung:m[sz], chon:tron([m[sz]].concat(sai))};
+const DS_QZ = () => CONG_THUC_IN.flatMap(([n, ds]) => ds.filter(r => r[1] !== 'đang cập nhật').map(r => ({nhom:n, ten:r[0], M:r[1], L:r[2], gc:r[3] || ''})));
+/* v1.7.252 (chủ nhờ 13/11): 3 bài trắc nghiệm theo độ khó, mỗi bài 10 câu.
+   Dễ: công thức (phương án sai lấy từ nhóm món khác) · giá menu · mã bot · chính sách cơ bản.
+   Trung bình: công thức (cùng nhóm + size kia + đổi 1 số) · tính tiền 1 món (size L / tv / mang ly / T7–CN) · mã bot cùng nhóm · cách pha · sơ chế.
+   Khó: công thức chỉ lệch đúng 1 con số hoặc đảo 2 số · tính tiền đơn nhiều món gộp điều kiện (phương án sai = lỗi hay gặp) · sơ chế lệch số.
+   Tính tiền CÙNG luật bot luuDon_: T7/CN đồng giá DONG_GIA_TUAN.gia · size L +CS_BOT.sizeL · tv −CS_BOT.thanhVien/ly chỉ ngày giá menu · mang ly −QZ_ML/ly mọi ngày (bot MANG_LY).
+   Kết quả lưu như cũ (api quiz), cột Câu sai ghi kèm "[Dễ]" / "[TB]" / "[Khó]" ở đầu để biết bài nào. */
+const QZ_ML = 2000;
+const QZ_BAI = {
+  de:{t:'Dễ', ma:'Dễ', mo:'Công thức (đáp án sai khác hẳn nhóm), giá menu, mã bot, chính sách cơ bản.'},
+  tb:{t:'Trung bình', ma:'TB', mo:'Công thức dễ nhầm (cùng nhóm, size kia), tính tiền 1 món: size L, thành viên, mang ly, T7–CN; cách pha, sơ chế.'},
+  kho:{t:'Khó', ma:'Khó', mo:'Công thức chỉ lệch 1 con số, tính tiền cả đơn nhiều món gộp nhiều điều kiện, sơ chế.'},
+};
+const qzTron = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
+const qzK = v => (v / 1000).toLocaleString('vi-VN') + 'K';
+const QZ_SO = /\d+(?:,\d+)?/g;
+/* phương án "gần đúng": đổi đúng 1 con số sang số gần nó (lấy từ chính bảng công thức), hoặc đảo chỗ 2 số khác nhau */
+function qzGanSai(s){
+  const so = [...s.matchAll(QZ_SO)], num = x => +x.replace(',', '.'), out = new Set();
+  const pool = [...new Set(DS_QZ().flatMap(m => [m.M, m.L]).concat(SO_CHE_IN.map(x => x[1])).join(' ').match(QZ_SO).map(num))];
+  so.forEach(m => {
+    const v = num(m[0]), gan = pool.filter(x => x !== v && x > 0 && (Number.isInteger(v) === Number.isInteger(x))).sort((a, b) => Math.abs(a - v) - Math.abs(b - v)).slice(0, 3);
+    gan.forEach(x => out.add(s.slice(0, m.index) + String(x).replace('.', ',') + s.slice(m.index + m[0].length)));
   });
-  _qz = {cau, i:0, dung:0, sai:[]}; veQuiz();
+  for (let i = 0; i < so.length; i++) for (let j = i + 1; j < so.length; j++) { const a = so[i], b = so[j];
+    if (a[0] !== b[0]) out.add(s.slice(0, a.index) + b[0] + s.slice(a.index + a[0].length, b.index) + a[0] + s.slice(b.index + b[0].length)); }
+  out.delete(s);
+  return qzTron([...out]);
+}
+const qzDu3 = (dung, ...ds) => { const r = []; ds.flat().forEach(v => { if (v != null && v !== dung && !r.includes(v) && r.length < 3) r.push(v); }); return r; };
+function qzCauCT(m, sz, muc){
+  const dung = m[sz], ks = sz === 'M' ? 'L' : 'M', pool = DS_QZ();
+  const khac = qzTron(pool.filter(x => x.nhom !== m.nhom).map(x => x[sz])), cung = qzTron(pool.filter(x => x.ten !== m.ten && x.nhom === m.nhom).map(x => x[sz])), gan = qzGanSai(dung);
+  const sai = muc === 'de' ? qzDu3(dung, khac, cung) : muc === 'tb' ? qzDu3(dung, [m[ks]], qzTron(cung.slice(0, 2).concat(gan.slice(0, 2))), gan, khac) : qzDu3(dung, gan, [m[ks]], cung);
+  return {nhan:m.ten + ' ' + sz, anh:m.ten, hoi:'<b>' + esc(m.ten) + '</b> — size <b>' + sz + '</b> (' + (sz === 'M' ? '360' : '500') + ' ml): công thức nào đúng?' + (muc === 'kho' ? ' <span class="muted">(các phương án chỉ lệch nhau 1 con số)</span>' : ''),
+    dung, chon:qzTron([dung].concat(sai)), giai:m.gc ? 'Cách pha: ' + m.gc : ''};
+}
+const qzMenu = () => Object.entries((D && D.menu) || {}).filter(([, m]) => m.ban && m.gia > 0 && m.ma).map(([ten, m]) => ({ten, ma:m.ma, gia:m.gia, nhom:m.nhom || ''}));
+/* đơn giá 1 ly — cùng thứ tự bot: giá (đồng giá nếu T7/CN) + size L → − thành viên (chỉ ngày giá menu) → − mang ly */
+function qzDonGia(m, o, bo){
+  bo = bo || {};
+  let g = (o.ct && !bo.quenDG ? DONG_GIA_TUAN.gia : m.gia) + (o.L && !bo.quenL ? CS_BOT.sizeL : 0);
+  if (o.tv && (!o.ct || bo.tvCT) && !bo.quenTv) g -= CS_BOT.thanhVien;
+  if (o.ly && !bo.quenLy && !bo.lyMotLan) g -= QZ_ML;
+  return Math.max(0, g);
+}
+function qzCauTien(menu, soDong, muc){
+  const ct = Math.random() < 0.4, thu = ct ? qzTron(['Thứ 7', 'Chủ nhật'])[0] : qzTron(['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'])[0];
+  const tv = Math.random() < (ct ? 0.6 : 0.5), ly = Math.random() < 0.45;
+  const dong = qzTron(menu).slice(0, soDong).map(m => ({m, n:soDong > 1 && Math.random() < 0.5 ? 2 : 1, L:Math.random() < 0.5}));
+  if (muc === 'tb' && !tv && !ly && !ct && !dong[0].L) dong[0].L = true;
+  const tong = bo => dong.reduce((s, d) => s + d.n * qzDonGia(d.m, {ct, tv, ly, L:d.L}, bo), 0) - (bo && bo.lyMotLan && ly ? QZ_ML : 0);
+  const dung = tong(), soLy = dong.reduce((s, d) => s + d.n, 0);
+  const loi = [ct && tong({quenDG:1}), ct && tv && tong({tvCT:1}), !ct && tv && tong({quenTv:1}), dong.some(d => d.L) && tong({quenL:1}), ly && soLy > 1 && tong({lyMotLan:1}), ly && tong({quenLy:1})].filter(v => v !== false);
+  const sai = qzDu3(qzK(dung), qzTron(loi).slice(0, 2).map(qzK), qzTron([1000, -1000, 2000, -2000, -3000, 3000]).map(x => qzK(dung + x)));
+  const dk = [tv ? 'khách <b>thành viên</b>' : '', ly ? 'khách <b>mang ly / bình riêng</b> cho mỗi ly' : ''].filter(Boolean).join(' · ');
+  const giai = dong.map(d => d.n + ' × ' + d.m.ten + (d.L ? ' L' : '') + ': ' + qzK(ct ? DONG_GIA_TUAN.gia : d.m.gia) + (ct ? ' (đồng giá)' : '') + (d.L ? ' + ' + qzK(CS_BOT.sizeL) + ' (L)' : '')
+    + (tv && !ct ? ' − ' + qzK(CS_BOT.thanhVien) + ' (tv)' : '') + (ly ? ' − ' + qzK(QZ_ML) + ' (mang ly)' : '') + ' = ' + qzK(qzDonGia(d.m, {ct, tv, ly, L:d.L})) + (d.n > 1 ? ' → ' + qzK(d.n * qzDonGia(d.m, {ct, tv, ly, L:d.L})) : '')).join(' · ')
+    + (tv && ct ? ' · T7, CN đồng giá nên thẻ thành viên không giảm' : '') + ' · Tổng ' + qzK(dung);
+  return {nhan:'tính tiền ' + dong.map(d => (d.n > 1 ? d.n + ' ' : '') + d.m.ma + (d.L ? ' L' : '')).join('+') + ' ' + thu + (tv ? ' tv' : '') + (ly ? ' ly' : ''),
+    hoi:'<b>' + thu + '</b>' + (dk ? ' · ' + dk : '') + ' — ' + dong.map(d => (d.n > 1 ? '<b>' + d.n + '</b> ' : '1 ') + esc(d.m.ten) + ' size <b>' + (d.L ? 'L' : 'M') + '</b>').join(' + ') + '. Khách trả <b>tổng bao nhiêu</b>?',
+    dung:qzK(dung), chon:qzTron([qzK(dung)].concat(sai)), giai};
+}
+function qzCauGia(m, menu){
+  const g = [...new Set(menu.map(x => x.gia))].filter(x => x !== m.gia);
+  return {nhan:'giá ' + m.ten, hoi:'Giá menu <b>' + esc(m.ten) + '</b> size M (ngày thường T2–T6)?', dung:qzK(m.gia),
+    chon:qzTron([qzK(m.gia)].concat(qzDu3(qzK(m.gia), qzTron(g).map(qzK), [1000, -1000, 2000, -2000].map(x => qzK(m.gia + x))))), giai:''};
+}
+function qzCauMa(m, menu, muc){
+  const cung = qzTron(menu.filter(x => x.ma !== m.ma && x.nhom === m.nhom).map(x => x.ma)), khac = qzTron(menu.filter(x => x.ma !== m.ma).map(x => x.ma));
+  return {nhan:'mã ' + m.ten, hoi:'Gõ mã nào trên bot để bán <b>' + esc(m.ten) + '</b>?', dung:m.ma, chon:qzTron([m.ma].concat(qzDu3(m.ma, muc === 'de' ? khac : cung, khac))), giai:''};
+}
+function qzCauPha(){
+  const ds = DS_QZ().filter(x => x.gc && x.gc !== 'lắc 10 lần'), m = qzTron(ds)[0];
+  return m && {nhan:'cách pha ' + m.ten, anh:m.ten, hoi:'Cách pha đúng của <b>' + esc(m.ten) + '</b>?', dung:m.gc, chon:qzTron([m.gc].concat(qzDu3(m.gc, qzTron(ds.map(x => x.gc)), ['lắc 10 lần']))), giai:''};
+}
+function qzCauSoChe(muc){
+  const [t, n] = qzTron(SO_CHE_IN)[0];
+  return {nhan:'sơ chế ' + t, hoi:'Sơ chế <b>' + esc(t) + '</b> đúng là?', dung:n, chon:qzTron([n].concat(qzDu3(n, muc === 'kho' ? qzGanSai(n) : qzTron(SO_CHE_IN.map(x => x[1])), qzGanSai(n)))), giai:''};
+}
+function qzCauCS(){
+  const L = CS_BOT.sizeL, tv = CS_BOT.thanhVien, dg = DONG_GIA_TUAN.gia, K = qzK;
+  const bank = [
+    ['CS: size L', 'Size L cộng thêm bao nhiêu mỗi ly (bán tại quầy)?', '+' + K(L), ['+' + K(L - 2000), '+' + K(L + 2000), '+' + K(L * 2)], 'Size L tại quầy +' + K(L) + '; giá app có mức riêng, bot tự tính.'],
+    ['CS: thành viên', 'Thẻ thành viên giảm thế nào?', '−' + K(tv) + ' mỗi ly, chỉ T2–T6', ['−' + K(tv) + ' mỗi ly, mọi ngày', '−' + K(tv) + ' cả đơn, chỉ T2–T6', '−' + K(tv + 3000) + ' mỗi ly, chỉ T2–T6'], 'T7, CN đồng giá nên thẻ không giảm thêm.'],
+    ['CS: mang ly', 'Khách mang ly / bình riêng thì sao?', '−' + K(QZ_ML) + ' mỗi ly, mọi ngày (cả T7, CN)', ['−' + K(QZ_ML) + ' mỗi ly, chỉ T2–T6', '−' + K(QZ_ML) + ' cả đơn, mọi ngày', 'Không giảm, chỉ thành viên mới giảm'], 'Gõ "ly" cuối đơn; dùng chung được với tv.'],
+    ['CS: T7 CN', 'T7, Chủ nhật bán giá thế nào?', 'Đồng giá ' + K(dg) + ' mọi món, size L +' + K(L), ['Đồng giá ' + K(dg) + ' mọi món, size L cũng ' + K(dg), 'Giá menu, thành viên −' + K(tv), 'Đồng giá ' + K(dg) + ' chỉ món cà phê'], 'Bot tự tính giá ngày đồng giá.'],
+    ['CS: mua 5', 'Khách mua 5 ly trong cùng 1 đơn được gì?', 'Tặng 1 món tự chọn', ['Giảm 10% cả đơn', 'Tặng 1 ly cà phê đen', 'Không có ưu đãi'], ''],
+    ['CS: tiền app', 'Đơn app (be, Xanh SM) có tính vào két khi /chotca không?', 'Không — tiền app không vào két', ['Có, cộng vào tiền mặt', 'Có, cộng vào chuyển khoản', 'Chỉ đơn be mới tính'], 'Ghi đúng loại app khi bấm đơn.'],
+    ['CS: dung tích', 'Ly size M và size L bao nhiêu ml?', 'M 360 ml · L 500 ml', ['M 350 ml · L 500 ml', 'M 400 ml · L 500 ml', 'M 360 ml · L 450 ml'], ''],
+    ['CS: nước đường', '1 nhấn bình nước đường bằng bao nhiêu?', '10 ml', ['5 ml', '15 ml', '20 ml'], ''],
+  ];
+  return qzTron(bank).map(([nhan, hoi, dung, sai, giai]) => ({nhan, hoi:esc(hoi), dung, chon:qzTron([dung].concat(sai)), giai}));
+}
+function batDauQuiz(muc){
+  const ds = DS_QZ(), menu = qzMenu(), ctPool = qzTron(ds.flatMap(m => ['M', 'L'].map(sz => ({m, sz})))), mm = qzTron(menu);
+  const ct = n => ctPool.splice(0, n).map(({m, sz}) => qzCauCT(m, sz, muc)), cau = [];
+  if (muc === 'de') cau.push(...ct(4), ...mm.slice(0, 2).map(m => qzCauGia(m, menu)), ...mm.slice(2, 3).map(m => qzCauMa(m, menu, muc)), ...qzCauCS().slice(0, 3));
+  else if (muc === 'tb') cau.push(...ct(4), ...(menu.length ? [1, 1, 1].map(n => qzCauTien(menu, n, muc)) : []), ...mm.slice(0, 1).map(m => qzCauMa(m, menu, muc)), qzCauPha(), qzCauSoChe(muc));
+  else cau.push(...ct(5), ...(menu.length ? [2, 2, 3, 3].map(n => qzCauTien(menu, n, muc)) : []), qzCauSoChe(muc));
+  const c = cau.filter(x => x && x.chon.length >= 2);
+  while (c.length < 10 && ctPool.length) c.push(...ct(1));   // chưa tải Menu → bù câu công thức
+  _qz = {muc, cau:qzTron(c).slice(0, 10), i:0, dung:0, sai:[]}; veQuiz();
 }
 function veQuiz(){
   const el = $('stQz'), q = _qz;
-  if (!q){ el.innerHTML = '<div class="cmt">10 câu: cho tên món + size, chọn đúng công thức. Làm xong thấy ngay câu sai để xem lại.</div><button type="button" class="ddb" id="qzGo">Bắt đầu kiểm tra</button>'; $('qzGo').onclick = batDauQuiz; return; }
+  if (!q){
+    el.innerHTML = '<div class="cmt">Chọn bài — mỗi bài 10 câu, làm xong thấy ngay câu sai và cách tính. Đạt từ 8/10.</div><div class="qzo">'
+      + Object.entries(QZ_BAI).map(([k, b]) => '<button type="button" data-bai="' + k + '"><b>' + b.t + '</b> <span class="muted" style="font-size:12px">· ' + esc(b.mo) + '</span></button>').join('') + '</div>';
+    el.querySelectorAll('[data-bai]').forEach(b => b.onclick = () => batDauQuiz(b.dataset.bai)); return; }
+  const B = QZ_BAI[q.muc];
   if (q.i >= q.cau.length){
     const n = q.cau.length;
-    el.innerHTML = '<div class="qzq">Kết quả: <b>' + q.dung + '/' + n + '</b> ' + (q.dung === n ? '🎉 Đúng hết!' : q.dung >= 8 ? '👍 Tốt' : '📖 Xem lại bảng công thức nhé') + '</div>'
-      + (q.sai.length ? '<ul>' + q.sai.map(x => '<li><b>' + esc(x.ten) + ' size ' + x.sz + ':</b> ' + esc(x.dung) + '</li>').join('') + '</ul>' : '')
-      + '<span class="muted" id="qzLuu" style="font-size:12px">' + (VAI === 'nhanvien' ? 'Đang lưu kết quả…' : 'Tài khoản chủ / xem như nhân viên: không lưu kết quả.') + '</span><button type="button" class="ddb" id="qzGo">Làm lại</button>';
-    $('qzGo').onclick = batDauQuiz;
+    el.innerHTML = '<div class="qzq">Bài <b>' + B.t + '</b> — kết quả: <b>' + q.dung + '/' + n + '</b> ' + (q.dung === n ? '🎉 Đúng hết!' + (q.muc !== 'kho' ? ' Thử bài khó hơn nhé.' : '') : q.dung >= 8 ? '👍 Đạt' : '📖 Chưa đạt — xem lại Công thức + Chính sách rồi làm lại') + '</div>'
+      + (q.sai.length ? '<ul>' + q.sai.map(x => '<li>' + x.hoi + '<br>→ <b>' + esc(x.dung) + '</b>' + (x.giai ? ' <span class="muted">· ' + esc(x.giai) + '</span>' : '') + '</li>').join('') + '</ul>' : '')
+      + '<span class="muted" id="qzLuu" style="font-size:12px">' + (VAI === 'nhanvien' ? 'Đang lưu kết quả…' : 'Tài khoản chủ / xem như nhân viên: không lưu kết quả.') + '</span><button type="button" class="ddb" id="qzGo">Làm lại bài ' + B.t + '</button><button type="button" class="ddb" id="qzVe" style="margin-left:6px">Chọn bài khác</button>';
+    $('qzGo').onclick = () => batDauQuiz(q.muc); $('qzVe').onclick = () => { _qz = null; veQuiz(); };
     if (VAI === 'nhanvien' && !q.luu){ q.luu = 1;
-      apiGet({api:'quiz', k:KEY, u:USER, d:q.dung, n, s:q.sai.map(x => x.ten + ' ' + x.sz).join(', ')}).then(r => { if (!r || r.err) throw new Error((r && r.err) || 'Lỗi'); QZ = r.qz || QZ; renderQuizLs(); const l = $('qzLuu'); if (l) l.textContent = '✓ Đã lưu kết quả.'; })
+      apiGet({api:'quiz', k:KEY, u:USER, d:q.dung, n, s:'[' + B.ma + '] ' + q.sai.map(x => x.nhan).join(', ')}).then(r => { if (!r || r.err) throw new Error((r && r.err) || 'Lỗi'); QZ = r.qz || QZ; renderQuizLs(); const l = $('qzLuu'); if (l) l.textContent = '✓ Đã lưu kết quả.'; })
         .catch(e => { const l = $('qzLuu'); if (l) l.textContent = '⚠ Chưa lưu được: ' + e.message; }); }
     return;
   }
   const c = q.cau[q.i];
-  el.innerHTML = '<div class="muted" style="font-size:12px">Câu ' + (q.i + 1) + '/' + q.cau.length + ' · đúng ' + q.dung + '</div>'
-    + '<div class="qzq">' + (ANH_CT[c.ten] ? '<img src="tai-lieu/mon/' + ANH_CT[c.ten] + '.jpg?v=' + ANH_V + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;float:left;margin-right:10px">' : '') + '<b>' + esc(c.ten) + '</b> — size <b>' + c.sz + '</b> (' + (c.sz === 'M' ? '360' : '500') + ' ml): công thức nào đúng?</div>'
+  el.innerHTML = '<div class="muted" style="font-size:12px">Bài ' + B.t + ' · câu ' + (q.i + 1) + '/' + q.cau.length + ' · đúng ' + q.dung + '</div>'
+    + '<div class="qzq">' + (c.anh && ANH_CT[c.anh] ? '<img src="tai-lieu/mon/' + ANH_CT[c.anh] + '.jpg?v=' + ANH_V + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;float:left;margin-right:10px">' : '') + c.hoi + '</div>'
     + '<div class="qzo" style="clear:both">' + c.chon.map((o, k) => '<button type="button" data-k="' + k + '">' + esc(o) + '</button>').join('') + '</div><div id="qzSau"></div>';
   el.querySelectorAll('.qzo button').forEach(b => b.onclick = () => {
     const o = c.chon[+b.dataset.k], ok = o === c.dung;
     el.querySelectorAll('.qzo button').forEach(x => { x.disabled = true; if (c.chon[+x.dataset.k] === c.dung) x.classList.add('dung'); });
     if (!ok){ b.classList.add('sai'); q.sai.push(c); } else q.dung++;
-    $('qzSau').innerHTML = '<button type="button" class="ddb" id="qzTiep">' + (q.i + 1 < q.cau.length ? 'Câu tiếp →' : 'Xem kết quả') + '</button>';
+    $('qzSau').innerHTML = (c.giai ? '<div class="muted" style="font-size:12.5px;margin:4px 0">' + (ok ? '✓ ' : '✗ ') + esc(c.giai) + '</div>' : '') + '<button type="button" class="ddb" id="qzTiep">' + (q.i + 1 < q.cau.length ? 'Câu tiếp →' : 'Xem kết quả') + '</button>';
     $('qzTiep').onclick = () => { q.i++; veQuiz(); };
   });
 }
 function renderQuizLs(){
   if (!$('stQz').innerHTML) veQuiz();
-  const ds = QZ.slice().reverse(), el = $('stQzLs');
+  const ds = QZ.slice().reverse(), el = $('stQzLs'), bai = s => { const m = /^\[([^\]]+)\]\s*/.exec(s || ''); return m ? [m[1], s.slice(m[0].length)] : ['Cũ', s || '']; };
   if (!ds.length){ el.innerHTML = VAI === 'chu' ? '<div class="muted" style="font-size:12px">Chưa có nhân viên nào làm bài (kết quả lưu ở tab Sheet QuizCongThuc).</div>' : ''; return; }
-  el.innerHTML = '<h4>' + (VAI === 'chu' ? 'Kết quả của nhân viên' : 'Các lần bạn đã làm') + '</h4><div class="tblwrap" style="max-height:320px"><table><thead><tr><th>Lúc</th>' + (VAI === 'chu' ? '<th>Nhân viên</th>' : '') + '<th class="r">Đúng</th><th>Câu sai</th></tr></thead><tbody>'
-    + ds.slice(0, 40).map(r => '<tr><td>' + ddLuc(r) + '</td>' + (VAI === 'chu' ? '<td>' + esc(r[2] || r[1]) + '</td>' : '') + '<td class="r"><b>' + r[3] + '/' + r[4] + '</b></td><td>' + esc(r[5] || '—') + '</td></tr>').join('') + '</tbody></table></div>';
+  el.innerHTML = '<h4>' + (VAI === 'chu' ? 'Kết quả của nhân viên' : 'Các lần bạn đã làm') + '</h4><div class="tblwrap" style="max-height:320px"><table><thead><tr><th>Lúc</th>' + (VAI === 'chu' ? '<th>Nhân viên</th>' : '') + '<th>Bài</th><th class="r">Đúng</th><th>Câu sai</th></tr></thead><tbody>'
+    + ds.slice(0, 40).map(r => { const [b, s] = bai(r[5]); return '<tr><td>' + ddLuc(r) + '</td>' + (VAI === 'chu' ? '<td>' + esc(r[2] || r[1]) + '</td>' : '') + '<td>' + esc(b) + '</td><td class="r"><b>' + r[3] + '/' + r[4] + '</b></td><td>' + esc(s || '—') + '</td></tr>'; }).join('') + '</tbody></table></div>';
 }
 function renderDanhBa(){
   const db = (D && D.danhBa) || [], tel = v => String(v).replace(/[^\d+]/g, '');
