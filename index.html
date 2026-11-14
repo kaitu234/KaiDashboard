@@ -387,6 +387,13 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .side #verChip{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin:5px 0 6px;padding:3px 11px;border-radius:99px;background:var(--brand);color:var(--brand-ink);font-weight:700;letter-spacing:.04em;text-decoration:none!important;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:filter .15s}   /* v1.7.108: chip phiên bản nổi bật */
 .tlh{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;margin:14px 0 8px;color:var(--brand)}   /* v1.7.110: tab Tài liệu */
 #v-st>.card>.ct{font-size:22px;font-weight:800;letter-spacing:.03em;color:var(--ink);padding:2px 0 9px 12px;border-bottom:3px solid var(--brand);border-left:6px solid var(--caramel);margin-bottom:4px}   /* v1.7.266: tên thẻ Sổ tay (Nội quy, Chính sách, Công thức, Danh bạ…) to và đậm hơn mục con */
+#v-st>.card>.ct .cbtn.col,#v-st>.card>.ct .cbtn.foc{width:34px;height:34px;border-radius:50%;border:2px solid var(--brand);font-size:0;display:inline-grid;place-items:center;transition:transform .2s}   /* v1.7.267: nút thẻ Sổ tay tròn, viền, hình mũi tên như nút mục con */
+#v-st>.card>.ct .cbtn.col{background:var(--brand);color:var(--brand-ink)}
+#v-st>.card>.ct .cbtn.col::before{content:'▼';font-size:15px}
+#v-st>.card>.ct .cbtn.foc{background:var(--surface);color:var(--brand)}
+#v-st>.card>.ct .cbtn.foc::before{content:'⤢';font-size:17px;font-weight:700}
+#v-st>.card.focused>.ct .cbtn.foc::before{content:'✕'}
+#v-st>.card>.ct .cbtn.col:hover,#v-st>.card>.ct .cbtn.foc:hover{border-color:var(--caramel)}
 #v-st>.card>.ct .nt{flex-basis:100%;font-size:12px;color:var(--muted);font-weight:400;letter-spacing:0}
 .st{display:grid;gap:2px}   /* v1.7.187: sổ tay nhân viên (tab Nhân sự) */
 .st details{padding:4px 0}
@@ -3763,7 +3770,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.266';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.267';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3821,6 +3828,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.267', ngay:'14/11/2026', nd:['Sổ tay: nút thu gọn / mở ở góc phải mỗi thẻ lớn làm tròn, có viền, hình mũi tên ▼ to (thu gọn thì xoay ngang), cùng kiểu nút mục con; nút phóng to thẻ cũng tròn có viền.']},
   {v:'v1.7.266', ngay:'14/11/2026', nd:['Sổ tay: tên các thẻ lớn (Xác nhận đã đọc, Nội quy làm việc, Chính sách, Công thức pha chế, Kiểm tra kiến thức, Checklist, Danh bạ) chữ to và đậm hơn, có viền nâu bên trái và gạch dưới — dễ phân biệt với các mục con bên trong.']},
   {v:'v1.7.265', ngay:'14/11/2026', nd:['Sổ tay: mọi mục đóng sẵn khi mở app — bấm vào tiêu đề để xem, bấm lần nữa để thu gọn.', 'Tiêu đề mục to, có nền và viền màu cho dễ thấy; nút mũi tên to hơn kèm chữ “Bấm để xem” (mở ra đổi thành “Thu gọn”).', 'Chip theo mục: ⚠ Quan trọng (đỏ) · ⭐ Hay dùng (xanh) · 📖 Nên đọc (vàng).']},
   {v:'v1.7.264', ngay:'14/11/2026', nd:['Cà phê phin pha 135 g bột cho 300 ml cốt (trước 150 g) từ 15/11: ly phin M 18 g (trước 21 g), Phindi 6,75 g (trước 7,5 g) — ngang lượng bột ly cà phê máy. Ly bán tới hết 14/11 vẫn tính định lượng cũ.', 'Lịch định lượng cũ có thêm cột Chỉ món (Sheet Giá vốn ly cột M, bot, dashboard): một nguyên liệu có thể có lượng cũ khác nhau theo món.', 'Sổ tay — cách pha phin mới: 135 g bột (≈ 400 ml đong ly), chế 200 ml nước sôi ủ 5 phút, rót thêm 330–350 ml → 300 ml cốt.']},
