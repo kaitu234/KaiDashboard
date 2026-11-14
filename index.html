@@ -5692,7 +5692,7 @@ function renderHr(){
       sap.forEach(n => gy.push(`${esc(n.ten)} còn ${f1(n.conLen)} giờ lên level — lương/giờ sẽ tăng`));
       if (tv.length) gy.push(`Thử việc: ${tv.map(n => esc(n.ten)).join(', ')} — hẹn ngày đánh giá chốt`);
       const ds = a => a.length ? '<ul>' + a.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '';
-      return `<div class="kpi tgt${mau}"><span class="lb">📊 % Lương / doanh thu · ${ky}</span><span class="v">${pct == null ? '—' : f0(pct) + '%'}</span><span class="s">tiền công ${fmt(luongK)} ÷ doanh thu ${fmt(dtK)} · tốt ≤ 25%</span></div>
+      return `<div class="kpi tgt${mau}"><span class="lb">📊 % Lương / doanh thu · ${ky}</span><span class="v">${pct == null ? '—' : f0(pct) + '%'}</span><span class="s">thực nhận ${fmt(luongK)} ÷ doanh thu ${fmt(dtK)} · tốt ≤ 25%</span></div>
     <div class="kpi tgt canh${cb.length ? '' : ' ok'}"><span class="lb">⚠️ Cảnh báo</span><span class="v">${cb.length || 'Ổn'}</span><span class="s">${cb.length ? ds(cb) : 'không có gì cần xử lý trong kỳ'}</span></div>
     <div class="kpi tgt goi"><span class="lb">💡 Gợi ý</span><span class="v">${gy.length}</span><span class="s">${gy.length ? ds(gy) : 'chưa có gợi ý'}</span></div>`; })() : ''}`; }
   /* v1.7.227 (chủ 12/11): biểu đồ Hiệu suất theo giờ lương (chỉ chủ) — mỗi ngày: doanh thu (đường, trục trái) và ly (cột, trục phải) của đơn nằm TRONG ca nhân viên
