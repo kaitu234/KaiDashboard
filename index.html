@@ -3226,7 +3226,7 @@ function renderFin(){
     const thang = [...new Set([...D.months, ...Object.keys(revByMonth)])].sort().map(m => { const c = D.chi.filter(r => r.m === m), rev = revByMonth[m] || 0;
       const gv = giaVonTheoNgayBan(D.orders.filter(o => mkey(o.k) === m)) || 0;
       const ns = c.filter(r => blockOf(r) === 'Nhân sự' && !r.tamLuong).reduce((a, r) => a + r.amt, 0) + congTam.filter(x => mkey(x.k) === m).reduce((a, x) => a + (x.tien || 0) + (x.cc || 0) + (x.tl || 0), 0) + (D.thuongPhat || []).filter(x => mkey(x.k) === m && !daChotLuong(x.id, x.k)).reduce((a, x) => a + x.tien, 0);
-      const ck = (m < THANG_KHO_KEM ? c.filter(r => laChoKem(r) && !laBoQua(r)).reduce((a, r) => a + r.amt, 0) : choKemKhoKy(m + '-01', m + '-' + p2(ngayTrongThang(m))).tien) + c.filter(laBaoBiPhu).reduce((a, r) => a + r.amt, 0);   // v1.7.282: cùng cách PNL / Thu chi
+      const ck = choKemThang(m, c);   // v1.7.282: cùng cách PNL / Thu chi · v1.7.283: tách hàm, gửi về Sheet (tab ChoKemDash)
       const vh = c.filter(r => !['Đầu tư', 'Giá vốn', 'Nhân sự', '?'].includes(blockOf(r)) && !laBoQua(r) && !laChoKem(r)).reduce((a, r) => a + r.amt, 0) + ck;
       const dt = c.filter(r => blockOf(r) === 'Đầu tư').reduce((a, r) => a + r.amt, 0), gop = D.capital.filter(x => mkey(x.k) === m && /góp/i.test(x.type)).reduce((a, x) => a + x.amt, 0), khac = D.capital.filter(x => mkey(x.k) === m && !/góp/i.test(x.type)).reduce((a, x) => a + x.amt, 0);
       const cn = chiVaNoCore(c, D.traTruoc.filter(r => r.m === m)), flow = gop + khac + rev - appThang(m) - cn.tra, lai = rev - gv - ns - vh, dau = quy; quy += flow; luy += lai; dtLuy += dt;
@@ -3320,6 +3320,20 @@ function choKemKhoCore(src, m){
     muc.push({ma:k.ma, ten:k.ten, dv:k.dv, tu:dk(a.luc), den:dk(b.luc), dauKy:ta, cuoiKy:tb, dung, tien:dung * k.quyDoi * gia});
   });
   return {muc, thieu};
+}
+/** v1.7.283 — hàng cho kèm + bao bì phụ cả tháng m (cột vận hành Tổng hợp theo tháng). c = dòng sổ chi tháng m */
+function choKemThang(m, c){
+  c = c || D.chi.filter(r => r.m === m);
+  return (m < THANG_KHO_KEM ? c.filter(r => laChoKem(r) && !laBoQua(r)).reduce((a, r) => a + r.amt, 0) : choKemKhoKy(m + '-01', m + '-' + p2(ngayTrongThang(m))).tien) + c.filter(laBaoBiPhu).reduce((a, r) => a + r.amt, 0);
+}
+/** v1.7.283 (chokem-v1, Dashboard.gs) — CHỦ mở dashboard (không lọc loại ngày, không xem như nhân viên) → gửi số cho kèm + bao bì phụ từng tháng về tab ChoKemDash; Sheet ô O13 các tab Chi tháng đọc tab này → lãi Sheet = lãi dashboard. Chỉ gửi khi số đổi. */
+function guiChoKemSheet(){
+  if (VAI !== 'chu' || XEM_NV || S.day || !KEY || !D) return;
+  let d;
+  try { d = [...new Set(D.months)].filter(m => m >= '2026-10' && m <= mkey(today())).sort().map(m => m + ':' + Math.round(choKemThang(m))).join(','); } catch (e){ return; }
+  let cu = ''; try { cu = localStorage.getItem('kai_ck_gui') || ''; } catch (e){}
+  if (!d || d === cu) return;
+  apiGet({api:'chokem', k:KEY, u:USER, d}).then(r => { if (r && r.ok){ try { localStorage.setItem('kai_ck_gui', d); } catch (e){} } }).catch(() => {});
 }
 /** Hàng cho kèm theo kho của các tháng ≥ THANG_KHO_KEM trong [from, to], chia cho ngày trong kỳ (lọc loại ngày) theo số ly bán trong (ngày đếm a, ngày đếm b] */
 function choKemKhoKy(from, to){
@@ -3823,7 +3837,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.282';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.283';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3881,6 +3895,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.283', ngay:'14/11/2026', nd:['Sheet Tổng hợp cùng lãi dashboard: khi chủ mở dashboard, số hàng cho kèm (T11+ theo kho thực) + bao bì phụ từng tháng được gửi về tab ChoKemDash của Sheet; ô giá vốn (O13) các tab Chi tháng đọc tab này, nên lãi tháng trên Sheet = lãi dashboard.']},
   {v:'v1.7.282', ngay:'14/11/2026', nd:['Thu chi · Tổng hợp theo tháng: cột vận hành tính hàng cho kèm (T11+ theo kho thực) và bao bì phụ cùng cách PNL / Thu chi — cộng lãi các tháng lại khớp lãi Thu chi.']},
   {v:'v1.7.281', ngay:'14/11/2026', nd:['Hàng cho kèm theo kho thực: số kho đếm cùng ngày với lần đếm xe (kể cả đếm sau vài phút) được ghép đúng; tồn cuối cao hơn đầu kỳ + mua (đếm sai) thì báo cần đếm lại, không đưa vào PNL. Thu chi tính hàng cho kèm & bao bì phụ cùng cách PNL.']},
   {v:'v1.7.280', ngay:'14/11/2026', nd:['PNL: dòng "Hàng cho kèm & bao bì phụ" — từ T11 ly trà / trà sâm dứa / bịch trà tính theo KHO THỰC (tồn xe + kho lần đếm xe đầu tháng + mua − tồn lần đếm mới nhất, chia theo ly bán), báo rõ mục nào còn thiếu số đếm; bao bì phụ không có trong công thức (giấy chống tràn, hũ xốt, túi đựng ly) tính theo tiền mua.', 'Còn treo: đóng các mục chủ đã chốt 14/11 — giá siro / cà phê phin theo giá thực mua, quy đổi ly hồng 50 cái/cây (bao 500), bọc đá 500 cái/kg, sữa đặc 1.000 ml/hộp, ly 900 đ gồm nắp, kem muối 33.000 đ/hộp, P-24 giữ cách hiện tại.']},
@@ -3930,7 +3945,7 @@ const BACKLOG = [
   {nhom:'Việc kỹ thuật', viec:'Lỗi nhỏ mức Thấp: P-25 chuỗi số kiểu Anh "9.75" bị đọc thành 975 · P-27 ô "Lương theo ly" đếm cả ngày chấm công không bán · P-28 "Độ mới" ra phút âm khi giờ máy sớm hơn giờ đọc sheet', can:'Dashboard'},
   {nhom:'Việc kỹ thuật', viec:'Thử bố cục trên điện thoại thật (đã đo bằng khung 375 px và 4 độ rộng khác, chưa thử máy thật)', can:'Chủ quán mở app trên điện thoại, báo chỗ lỗi'},
   {nhom:'Việc kỹ thuật', viec:'Vòng kiểm 2 của Fable 5: lỗi mới do bản v1.3 sinh ra + các mục mức Thấp (chờ giới hạn làm mới; gói file đã lưu ở thư mục xuat-fable5)', can:'Chủ quán đưa lại gói cho Fable 5'},
-  {nhom:'Ngoài dashboard', viec:'Sheet "Tổng hợp" còn tính cũ: giá vốn/ly 6.300 (ô E5), lãi hoạt động gồm chi vận hành hệ thống T10, chưa khấu hao → khác số trên dashboard', can:'Sửa sheet theo quy tắc dashboard hoặc chấp nhận hai số khác nhau'},
+  {nhom:'Ngoài dashboard', viec:'Sheet "Tổng hợp" còn tính cũ: giá vốn/ly 6.300 (ô E5), lãi hoạt động gồm chi vận hành hệ thống T10, chưa khấu hao → khác số trên dashboard', can:'Đã khớp (v1.7.283): E5 chỉ để xem, lãi không trừ khấu hao, hàng cho kèm + bao bì phụ Sheet đọc từ tab ChoKemDash do dashboard gửi', xong:() => true},
   {nhom:'Ngoài dashboard', viec:'Bot: tin dự báo 21:00 dùng hằng 20 ly/người/30 phút (dashboard đo từ chấm công)', can:'Sửa bot nếu muốn hai nơi cùng số (cần triển khai lại Apps Script)'},
 ];
 let DATA_AT = null;   // giờ server đọc sheet (res.at) – để kiểm độ mới
@@ -7019,6 +7034,7 @@ function onData(res, manual, offlineAt, xemTruoc){   // xemTruoc (v1.7.102): v�
   const luc = toDate(res.at ? "D:" + res.at : null) || LOADED_AT;   // giờ server đọc sheet (có thể là bản cache tối đa 10 phút)
   setUpd('live', `Số liệu lúc ${p2(luc.getHours())}:${p2(luc.getMinutes())} ${dShort(dk(luc))}`);
   tickAgo(); setBusy(false);
+  setTimeout(guiChoKemSheet, 2500);   // v1.7.283: số cho kèm + bao bì phụ về Sheet
   if (manual && !first){
     const tk = today(), n = new Set(D.orders.filter(o => o.k === tk).map(o => o.id)).size, diff = D.orders.length - before;
     toast(`✅ Đã tải lại lúc ${p2(LOADED_AT.getHours())}:${p2(LOADED_AT.getMinutes())} · hôm nay ${n} đơn${diff > 0 ? ` · <b>+${diff} dòng mới</b>` : ' · không có đơn mới'}`);
