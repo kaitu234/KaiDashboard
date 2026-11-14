@@ -3771,7 +3771,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.269';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.270';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3829,6 +3829,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.270', ngay:'14/11/2026', nd:['Sổ tay · Xin nghỉ / đổi ca: thêm cách ĐỔI CHÉO ca trên bot — /doica 14/11 @tên 24/11 (người kia làm 14/11 của bạn, bạn làm 24/11 của họ); 1 lần người kia đồng ý + 1 lần chủ duyệt là đổi cả 2 ca, 1 ca không đổi được thì không đổi ca nào. Chỉ nhờ làm thay (không đổi lại) vẫn là /doica 14/11 @tên.']},
   {v:'v1.7.269', ngay:'14/11/2026', nd:['Chủ bấm ⟳ Tải lại dữ liệu (hoặc phím R): đọc lại cả Google Sheet ngay, bỏ qua bản lưu tạm 10–60 phút — sửa tay trên Sheet thấy số mới liền (chờ khoảng 10 giây, lúc Sheet bận có thể tới 1 phút). Nhân viên và lượt tự tải mỗi phút vẫn lấy bản lưu tạm cho nhanh; chủ đọc lại xong thì bản lưu tạm cũng là số mới.']},
   {v:'v1.7.268', ngay:'14/11/2026', nd:['Sổ tay: nút mũi tên / phóng to của thẻ lớn nằm ngang hàng tên thẻ (góc phải), dòng ghi chú xuống dưới.']},
   {v:'v1.7.267', ngay:'14/11/2026', nd:['Sổ tay: nút thu gọn / mở ở góc phải mỗi thẻ lớn làm tròn, có viền, hình mũi tên ▼ to (thu gọn thì xoay ngang), cùng kiểu nút mục con; nút phóng to thẻ cũng tròn có viền.']},
@@ -5387,7 +5388,7 @@ function renderSoTay(){
       '<b>/checkin</b> khi tới xe, <b>/checkout</b> khi xong hết việc cuối ca — gửi vị trí trong ' + CS_BOT.banKinh + ' m quanh xe.',
       'Lương tính theo <b>từng phút</b> từ lúc check-in. Vào sớm được trả tối đa ' + OT_TOI_DA + ' phút/ca; <b>ở lại sau giờ ca không trả</b> (từ 01/11). /chotca trước 10:30 thì bot ghi giờ ra 10:30.',
       'Đi trễ: quá ' + CS_BOT.tre + ' phút bot ghi nhận. <b>Trễ quá ' + CS_BOT.treTru.phut + ' phút</b> (check-in sau 06:00): báo chủ và <b>trừ ' + CS_BOT.treTru.tyLe * 100 + '% lương 1 giờ</b> (căn bản + thâm niên), từ ' + dShort(CS_BOT.treTru.tu) + '. Check-in sau ' + CS_BOT.som.han + ' còn mất phụ cấp dậy sớm hôm đó và ảnh hưởng chuỗi chuyên cần.' + QT,
-      'Xin nghỉ / đổi ca: <b>báo trước 2 ngày</b>. Nhờ người làm thay bằng <code>/doica T4 @tên</code> — người nhận đồng ý và chủ duyệt thì lịch mới đổi; trước đó ca vẫn là của bạn.',
+      'Xin nghỉ / đổi ca: <b>báo trước 2 ngày</b>. Nhờ người làm thay bằng <code>/doica T4 @tên</code>; đổi chéo (người kia làm T4 của bạn, bạn làm T6 của họ) bằng <code>/doica T4 @tên T6</code> — người kia đồng ý và chủ duyệt thì lịch mới đổi; trước đó ca vẫn là của bạn.',
       'Đăng ký ca mà không đến: ghi nhận vắng. Chủ huỷ bán (lễ, mưa bão…) thì không tính vắng.',
     ]) + '</ol>', true) +
     muc('II. Quy trình bắt buộc mỗi ca', '<h4>A · Đầu ca</h4><ol>' + li([
