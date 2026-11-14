@@ -3771,7 +3771,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.270';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.271';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3829,6 +3829,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.271', ngay:'14/11/2026', nd:['Sổ tay · Hướng dẫn: mục 5 đổi tên “Đăng ký & đổi ca”, thêm hướng dẫn đổi ca — nhờ làm thay (/doica 24/11 @tên, hoặc nhờ cả quán) và đổi chéo (/doica 14/11 @tên 24/11), các bước người kia bấm nhận → chủ duyệt, mẹo gõ ngày và rút yêu cầu.']},
   {v:'v1.7.270', ngay:'14/11/2026', nd:['Sổ tay · Xin nghỉ / đổi ca: thêm cách ĐỔI CHÉO ca trên bot — /doica 14/11 @tên 24/11 (người kia làm 14/11 của bạn, bạn làm 24/11 của họ); 1 lần người kia đồng ý + 1 lần chủ duyệt là đổi cả 2 ca, 1 ca không đổi được thì không đổi ca nào. Chỉ nhờ làm thay (không đổi lại) vẫn là /doica 14/11 @tên.']},
   {v:'v1.7.269', ngay:'14/11/2026', nd:['Chủ bấm ⟳ Tải lại dữ liệu (hoặc phím R): đọc lại cả Google Sheet ngay, bỏ qua bản lưu tạm 10–60 phút — sửa tay trên Sheet thấy số mới liền (chờ khoảng 10 giây, lúc Sheet bận có thể tới 1 phút). Nhân viên và lượt tự tải mỗi phút vẫn lấy bản lưu tạm cho nhanh; chủ đọc lại xong thì bản lưu tạm cũng là số mới.']},
   {v:'v1.7.268', ngay:'14/11/2026', nd:['Sổ tay: nút mũi tên / phóng to của thẻ lớn nằm ngang hàng tên thẻ (góc phải), dòng ghi chú xuống dưới.']},
@@ -5372,7 +5373,7 @@ function renderDaDoc(){
 const MUC_CHIP_TEN = {qt:'⚠ Quan trọng', hd:'⭐ Hay dùng', nd:'📖 Nên đọc'};
 const MUC_CHIP = {
   'I. Thời gian làm việc':'qt', 'II. Quy trình bắt buộc mỗi ca':'qt nd', 'III. Vi phạm & bảo quản tài sản':'qt', 'IV. Tăng lương & thâm niên':'nd', 'V. Cam kết':'nd',
-  '1. Lương giờ':'nd', '2. Thâm niên (cộng dồn giờ đã làm, không reset)':'nd', '3. Thưởng chuyên cần':'qt', '4. Trả lương · thưởng · phạt':'nd', '5. Đăng ký ca':'hd', '6. Bán hàng tại quầy':'qt hd',
+  '1. Lương giờ':'nd', '2. Thâm niên (cộng dồn giờ đã làm, không reset)':'nd', '3. Thưởng chuyên cần':'qt', '4. Trả lương · thưởng · phạt':'nd', '5. Đăng ký & đổi ca':'hd', '6. Bán hàng tại quầy':'qt hd',
   'Sơ chế':'hd', 'Tồn tối thiểu trên xe (đếm đầu ca)':'hd', 'Đầu ca':'qt hd', 'Trong ca':'hd', 'Cuối ca (10:00 bắt đầu dọn · 10:30 xong)':'qt hd', 'Cuối tuần':'nd', 'Lệnh bot hay dùng':'hd'
 };
 let _soTay = false;
@@ -5460,9 +5461,14 @@ function renderSoTay(){
       'Không có phụ cấp ngày lễ, thưởng sinh nhật. Thưởng khác chủ xét theo tinh thần, thái độ, trách nhiệm; trả cùng kỳ lương.',
       'Xem phiếu lương: <code>/luong</code> (kỳ này) · <code>/luongtruoc</code> (kỳ trước).',
     ]) + '</ul>') +
-    muc('5. Đăng ký ca', '<ul>' + li([
+    muc('5. Đăng ký & đổi ca', '<ul>' + li([
       'Đăng ký trước bằng <code>/dangkyca</code> (bấm nút, hoặc gõ <code>/dangkyca T2 T4 T6</code>), tối đa ' + CS_BOT.tuanToi + ' tuần tới. Ca trống: nhận ngay; ca đã có người: chủ quyết.',
       'Ca hôm nay đã khoá — cần đổi thì báo chủ. Lịch đã xếp xem ở thẻ Lịch làm theo đợt phía trên hoặc <code>/lichca</code>.',
+      '<b>Đổi ca: báo trước 2 ngày.</b> Có 2 kiểu, đều gõ trên bot:',
+      '<b>Nhờ làm thay</b> (người kia không phải đổi lại): <code>/doica 24/11 @tên</code> — vd <code>/doica 24/11 @Duy</code> = Duy làm ca 24/11 của bạn, bạn không làm bù. Chưa tìm được ai: <code>/doica 24/11</code> nhờ cả quán, ai bấm nhận trước người đó làm.',
+      '<b>Đổi chéo</b> (2 người đổi ca cho nhau): <code>/doica 14/11 @tên 24/11</code> — vd <code>/doica 14/11 @Duy 24/11</code> = Duy làm ca 14/11 của bạn, bạn làm ca 24/11 của Duy. Ngày đầu là ca <b>của bạn</b>, ngày sau tên là ca <b>của người kia</b>. Hai ca đổi cùng lúc; 1 ca không đổi được thì giữ nguyên cả 2.',
+      '<b>Các bước:</b> người kia bấm ✅ trong tin bot gửi → chủ duyệt → lịch tự đổi, bot báo cả hai. <b>Chưa duyệt thì ca vẫn là của bạn</b> — không đến vẫn tính vắng.',
+      'Mẹo: ghi lý do ở cuối (<code>/doica 14/11 @Duy 24/11 bận thi</code>). Gõ ngày cụ thể (14/11) cho chắc — gõ T2…CN là thứ đó <b>gần nhất</b> tính từ hôm nay. Đã check-in ca hôm nay thì không đổi được, báo chủ. Đổi ý: gõ <code>/doica</code> rồi bấm ↩️ Rút.',
     ]) + '</ul>') +
     muc('6. Bán hàng tại quầy', '<ul>' + li([
       '<b>Size L</b> (500 ml): +' + d(CS_BOT.sizeL) + '/ly — gõ <code>L</code> sau món, vd <code>csp L</code>.',
