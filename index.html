@@ -2127,7 +2127,7 @@ function tinhKhoCore(src){
   const trongCua = k => theoTh ? coNgay.has(k) : k >= tu7 && k <= tk, nd7 = theoTh ? ngayTh.length : tu7 <= tk ? nDays(tu7, tk) : 0;
   const layTong = (ma, tu, den, ds = lay) => ds.reduce((s, x) => x.ma === ma && (!tu || x.luc > tu) && (!den || x.luc <= den) ? s + x.sl : s, 0);
   return src.khoAll.filter(k => k.quyDoi > 0 || k.theoDoi).map(k => {
-    const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k); return k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0; };
+    const dungCua = o => { const ct = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k, o.ma); return k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0; };
     const muaRows = src.chi.filter(r => khopNL(k, r) && !laHdCu(r)), tongMua = muaRows.reduce((s, r) => s + r.qty, 0), tongDung = src.orders.reduce((s, o) => s + dungCua(o), 0);
     const muaSau = kk => muaRows.filter(r => r.k > kk).reduce((s, r) => s + r.qty, 0), dungSau = tu => src.orders.filter(o => o.t ? o.t > tu : o.k > dk(tu)).reduce((s, o) => s + dungCua(o), 0);
     const ks = src.kiemKho.filter(x => x.ma === k.ma && x.luc).sort((a, b) => a.luc - b.luc), cuoi = noi => ks.filter(x => (x.noi || 'cu') === noi).pop() || null;
@@ -3747,7 +3747,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.263';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.264';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3805,6 +3805,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.264', ngay:'14/11/2026', nd:['Cà phê phin pha 135 g bột cho 300 ml cốt (trước 150 g) từ 15/11: ly phin M 18 g (trước 21 g), Phindi 6,75 g (trước 7,5 g) — ngang lượng bột ly cà phê máy. Ly bán tới hết 14/11 vẫn tính định lượng cũ.', 'Lịch định lượng cũ có thêm cột Chỉ món (Sheet Giá vốn ly cột M, bot, dashboard): một nguyên liệu có thể có lượng cũ khác nhau theo món.', 'Sổ tay — cách pha phin mới: 135 g bột (≈ 400 ml đong ly), chế 200 ml nước sôi ủ 5 phút, rót thêm 330–350 ml → 300 ml cốt.']},
   {v:'v1.7.263', ngay:'14/11/2026', nd:['Hao hụt tính CỘNG DỒN từ đầu cho mọi nguyên liệu: dùng thật = tổng mua − tồn (xe + kho theo lần đếm mới nhất) − dùng nội bộ, so với công thức × ly bán — vì đếm xe dễ lệch, cộng từng kỳ xe sẽ dồn sai.', 'Kiểm chứng (cột Hao hụt thật) và tab Kho (chú thích dưới bảng kiểm) lấy số cộng dồn thay cho tổng các kỳ xe; cảnh báo bỏ báo theo 1 kỳ xe lẻ, chỉ báo khi cộng dồn hụt > 10% và ≥ 20.000 đ hoặc kỳ kho lệch.', 'Tab Hao hụt: ô Hụt ở xe từng kỳ thành số tham khảo; bot /haohut cùng cách đọc (mục 1 là số chính).']},
   {v:'v1.7.262', ngay:'14/11/2026', nd:['Chương trình đơn (bot km-v1): mua 5 tặng 1 (gõ tang + món, ly tặng 0đ) và mua 3 free upsize (gõ up + món, công thức L giá M) — mỗi đơn 1 chương trình, T7/CN đồng giá không áp.', 'Bán hàng — dòng tóm tắt số ly tặng / free upsize trong kỳ; đơn có chip 🎁 tặng, chip L free / L tặng; ly tặng không bị báo lệch giá menu.', 'Sổ tay mục 6 + câu thi Lên bậc thêm 2 chương trình.']},
   {v:'v1.7.261', ngay:'14/11/2026', nd:['Tỉ lệ thành viên (bảng theo ngày ở Bán hàng và Hôm nay, dòng tóm tắt) tính như thẻ Tỉ lệ khách quay lại: chỉ đơn tại quầy ngày T2–T6, từ ngày có đơn thành viên đầu tiên. Ngày T7/CN và trước ngày phát thẻ hiện "—".']},
@@ -4039,6 +4040,8 @@ function tuKiem(){
     const dtT = doanhThuThuCore(odT, ctT, [], '2026-10-03'), dtL = doanhThuThuCore([], [], [{k:'2026-10-01', tt:70}], '2026-10-03');
     ok('Doanh thu thực thu: đơn 300 + chênh két (−20 + 5) = 285 · tháng 285 · 1/2 ngày đã chốt, 02/10 chưa chốt tính theo đơn bot · không đơn bot thì lấy tab Doanh thu cũ (70)', dtT.tong === 285 && dtT.bot === 300 && dtT.chenh === -15 && dtT.thang['2026-10'] === 285 && dtT.ngayChot === 1 && dtT.ngayBan === 2 && dtT.chuaChot.join() === '2026-10-02' && dtL.tong === 70, `${dtT.tong} · ${dtT.bot} · ${dtT.chenh} · ${dtT.ngayChot}/${dtT.ngayBan} · chưa chốt ${dtT.chuaChot.join()} · cũ ${dtL.tong}`);
     // 22. Lịch sử định lượng: cacao 10 g tới hết 12/10, 7 g từ 13/10; món không có cacao và công thức gốc không bị đổi
+    { const hP = [{den:'2031-01-05', nl:'cfb', luong:21, mon:['csp']}, {den:'2031-01-05', nl:'cfb', luong:7.5, mon:['pdh']}], a = ctTheoNgay({cfb:18}, hP, '2031-01-05', 'csp'), b = ctTheoNgay({cfb:6.75}, hP, '2031-01-05', 'PDH'), c = ctTheoNgay({cfb:18}, hP, '2031-01-06', 'csp'), e = ctTheoNgay({cfb:6.75, st:60}, hP, '2031-01-05', 'pdc');
+      ok('Lịch định lượng theo món (v1.7.264): cà phê bột phin 21 g / Phindi 7,5 g tới hết ngày đổi, sau đó theo CongThuc; món không nằm trong danh sách giữ nguyên', a.cfb === 21 && b.cfb === 7.5 && c.cfb === 18 && e.cfb === 6.75, `${a.cfb} · ${b.cfb} · ${c.cfb} · ${e.cfb}`); }
     const ctC = {cc:7, ly:1}, ctK = {cf:18}, hs = [{den:'2026-10-12', nl:'cc', luong:10}], c12 = ctTheoNgay(ctC, hs, '2026-10-12'), c13 = ctTheoNgay(ctC, hs, '2026-10-13');
     ok('Lịch sử định lượng: cacao 10 g tới hết 12/10 và 7 g từ 13/10 · món không có cacao giữ nguyên · công thức gốc không bị sửa', c12.cc === 10 && c12.ly === 1 && c13.cc === 7 && ctTheoNgay(ctK, hs, '2026-10-12') === ctK && ctC.cc === 7, `${c12.cc} · ${c13.cc}`);
     // 23. Tổng quan: "Xem →" dẫn đúng tab (kho / xe / kiểm → Kho, két thiếu → Nhân sự, còn lại → Thu chi) và dự kiến ngày mai là 1 số duy nhất dùng chung với Hiệu suất
@@ -4425,7 +4428,7 @@ function haoHutKyCore(src){
   const trong = (o, a, b) => o.t ? (ms(o.t) > ms(a) && ms(o.t) <= ms(b)) : (o.k > dk(a) && o.k <= dk(b));
   const layGiua = (ma, a, b) => lay.reduce((s, x) => x.ma === ma && (a == null || ms(x.luc) > ms(a)) && (b == null || ms(x.luc) <= ms(b)) ? s + x.sl : s, 0);
   const ai = (a, b) => { const c = [...new Set(cong.filter(x => ms(x.vao) < ms(b) && ms(x.ra || x.vao) > ms(a)).map(x => x.nv))]; return c.length ? c : [...new Set(src.orders.filter(o => trong(o, a, b)).map(o => o.nv))]; };
-  const tong = [], xe = [], kho = [], ctO = new Map(), ctCua = o => { let c = ctO.get(o); if (c === undefined) ctO.set(o, c = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k) || null); return c; };   // v1.7.247: nhớ công thức theo ngày của từng đơn
+  const tong = [], xe = [], kho = [], ctO = new Map(), ctCua = o => { let c = ctO.get(o); if (c === undefined) ctO.set(o, c = ctTheoNgay(src.congThuc[String(o.ma).toLowerCase()], src.dinhLuongCu || [], o.k, o.ma) || null); return c; };   // v1.7.247: nhớ công thức theo ngày của từng đơn
   src.khoAll.filter(k => k.quyDoi > 0 && k.theoDoi).forEach(k => {   // chỉ mục đang theo dõi (tab Kho cột K)
     const dO = new Map(), dungCua = o => { let v = dO.get(o); if (v === undefined){ const ct = ctCua(o); dO.set(o, v = ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0); } return v; };
     const coCT = Object.values(src.congThuc).some(ct => ct[k.ma]), gia = src.gia && src.gia[k.ma] > 0 ? src.gia[k.ma] : null, tien = h => gia == null ? null : h * gia;
@@ -4940,7 +4943,7 @@ const CONG_THUC_IN = [   // [tên, size M, size L, cách pha, mã món (chỉ m�
 const SO_CHE_IN = [
   ['Kem muối', '100 g kem Rich + 1,5 g muối hồng, đánh bông · để ngăn mát, dùng trong ngày'],
   ['Nước đường', '1 kg đường + 500 ml nước sôi, khuấy tan (không nấu bếp) · 1 nhấn bình = 10 ml'],
-  ['Cà phê phin', '150 g cà phê bột → 300 ml cà phê phin (pha sẵn đầu ca)'],
+  ['Cà phê phin', '135 g cà phê bột (≈ 400 ml đong ly) → chế 200 ml nước sôi, ủ 5 phút → rót thêm 330–350 ml nước sôi → được 300 ml cốt (ly M 40 ml ≈ 18 g bột, ngang cà phê máy)'],
   ['Cà phê máy', '1 shot ≈ 40–45 ml (gồm crema) · L 60 ml ≈ 1,5 shot'],
   ['Matcha', '3 g bột + 30 ml nước nóng, đánh bằng máy cho tan'],
   ['Cacao', '7 g bột + 40 ml nước sôi, đánh tan'],
@@ -6048,12 +6051,14 @@ function giaNL(){
 /** v1.3 — Hệ số hao hụt theo đơn vị tính: bắt đầu bằng "ly" (không phân biệt hoa thường: ly, ly muối…) → 1 (chủ quán chia từ số ly thực tế, đã gồm hao hụt); còn lại → 1 + 5% */
 const heSoHaoHut = dvTinh => /^ly/i.test(String(dvTinh || '').trim()) ? 1 : 1 + HAO_HUT;
 /** v1.7.2 — Lịch sử định lượng (chủ quán chốt 13/10/2026): tab CongThuc luôn là số HIỆN HÀNH; ly bán tới hết ngày `den` dùng lượng cũ `luong` cho nguyên liệu `nl` ở mọi món có nguyên liệu đó.
- *  Cacao: 10 g/ly tới hết 12/10/2026, từ 13/10/2026 là 7 g. Thêm dòng mới ở đây khi định lượng đổi tiếp. */
-const DINH_LUONG_CU = [{den:'2026-11-10', nl:'ongt', luong:0}, {den:'2026-10-15', nl:'cc', luong:7}, {den:'2026-10-12', nl:'cc', luong:10}];   // v1.7.47: cacao 7 g từ 13/10 tới nay (CongThuc; 17/10 chủ chốt bỏ mức 4,9 g đã định cho 16/10 → mốc 15/10 = 7 g trùng CongThuc, giữ cũng không sai); tới 12/10 = 10 g. Cùng lịch với Sheet 'Giá vốn ly' mục 5 (I54:K60) — thêm mốc ở đây thì báo phiên Thu/Chi / thêm 1 dòng ở đó. Mốc mới đứng trước vì mốc sau ghi đè
+ *  Cacao: 10 g/ly tới hết 12/10/2026, từ 13/10/2026 là 7 g. Thêm dòng mới ở đây khi định lượng đổi tiếp.
+ *  v1.7.264: `mon` (tuỳ chọn) = chỉ áp cho các món này (cùng Sheet 'Giá vốn ly' cột M "Chỉ món"; trống = mọi món). Cà phê phin 150 g → 135 g / 300 ml từ 15/11 (chủ chốt 14/11): phin 21 → 18 g, Phindi 7,5 → 6,75 g. */
+const DINH_LUONG_CU = [{den:'2026-11-14', nl:'cfb', luong:21, mon:['cdp', 'csp']}, {den:'2026-11-14', nl:'cfb', luong:7.5, mon:['pdh', 'pdc', 'pdp', 'pdch']}, {den:'2026-11-10', nl:'ongt', luong:0}, {den:'2026-10-15', nl:'cc', luong:7}, {den:'2026-10-12', nl:'cc', luong:10}];   // v1.7.47: cacao 7 g từ 13/10 tới nay (CongThuc; 17/10 chủ chốt bỏ mức 4,9 g đã định cho 16/10 → mốc 15/10 = 7 g trùng CongThuc, giữ cũng không sai); tới 12/10 = 10 g. Cùng lịch với Sheet 'Giá vốn ly' mục 5 (I54:K60) — thêm mốc ở đây thì báo phiên Thu/Chi / thêm 1 dòng ở đó. Mốc mới đứng trước vì mốc sau ghi đè
 /** Công thức của 1 món (ct = {nl: lượng/ly}) tại ngày k theo lịch sử hist; không đổi ct gốc */
-function ctTheoNgay(ct, hist, k){
+function ctTheoNgay(ct, hist, k, mon){
   if (!ct || !k) return ct;
-  let o = ct; hist.forEach(h => { if (k <= h.den && ct[h.nl] > 0){ if (o === ct) o = Object.assign({}, ct); o[h.nl] = h.luong; } });
+  const m = String(mon || '').toLowerCase();
+  let o = ct; hist.forEach(h => { if (k <= h.den && ct[h.nl] > 0 && (!h.mon || h.mon.includes(m))){ if (o === ct) o = Object.assign({}, ct); o[h.nl] = h.luong; } });
   return o;
 }
 /** Khoá cache: ngày k đang ở "thời kỳ" định lượng nào (dãy chỉ số các mốc lịch sử còn áp dụng) */
@@ -6068,7 +6073,7 @@ const heSoNL = (hs, dvTinh, ma, mon, k) => { if (!hs || hs === 1 || /^cái$/i.te
   const r = Math.abs(hs - 1.3) < 1e-6 && SIZE_L_CF.nl.has(String(ma || "").toLowerCase()) && SIZE_L_CF.mon[String(mon || "").toLowerCase()];
   return r && (!k || k >= SIZE_L_CF.tu) ? r : hs; };
 function giaVonMon(ma, G, k, hs = 1){
-  const ct = ctTheoNgay(D.congThuc[String(ma).toLowerCase()], DINH_LUONG_CU, k);
+  const ct = ctTheoNgay(D.congThuc[String(ma).toLowerCase()], DINH_LUONG_CU, k, ma);
   if (!ct || !Object.keys(ct).length) return {gv:null, thieu:[], coCT:false, nl:{}};
   let gv = 0; const thieu = [], tung = {};   // tung: tiền từng nguyên liệu cho 1 ly (tab PNL)
   // nguyên liệu có đơn vị tính bắt đầu bằng "ly" (kem muối, đường, đá: Kai chia từ số ly đã bán thực tế; cacao tính theo g) đã gồm hao hụt → không cộng thêm 5% (v1.3: "ly muối" cũng được miễn)
@@ -6232,7 +6237,7 @@ function renderPerf(){
     const ngayBan = [...new Set(D.orders.map(o => o.k))].filter(k => k < tk && loaiNgay(k) !== 'km10').sort(),   // bỏ ngày 10K (đông gấp đôi) khỏi so xu hướng
       n14 = ngayBan.slice(-14), p14 = ngayBan.slice(-28, -14), s14 = new Set(n14), sp = new Set(p14), m30 = addDays(tk, -30);
     const O14 = D.orders.filter(o => s14.has(o.k)), Op = D.orders.filter(o => sp.has(o.k)), O30 = D.orders.filter(o => o.k > m30 && o.k <= tk), khoM = Object.fromEntries(D.khoAll.map(k => [k.ma, k]));
-    const dungCT = (k, list) => list.reduce((s, o) => { const ct = ctTheoNgay(D.congThuc[String(o.ma).toLowerCase()], DINH_LUONG_CU, o.k); return s + (k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0); }, 0);
+    const dungCT = (k, list) => list.reduce((s, o) => { const ct = ctTheoNgay(D.congThuc[String(o.ma).toLowerCase()], DINH_LUONG_CU, o.k, o.ma); return s + (k.quyDoi > 0 && ct && ct[k.ma] ? ct[k.ma] * heSoNL(o.hs, k.dvTinh, k.ma, o.ma, o.k) * o.sl / k.quyDoi : 0); }, 0);
     const nl = tinhKho().filter(x => x.nhip > 0 && khoM[x.ma] && (x.dungCT || khoM[x.ma].kemLy > 0) && !NL_MUA_NGAY.has(String(x.ma).toLowerCase())).map(x => { const k = khoM[x.ma];
       const u = list => x.dungCT ? dungCT(k, list) : k.kemLy * list.reduce((s, o) => s + o.sl, 0);
       const d14 = n14.length ? u(O14) / n14.length : null, dp = p14.length >= 7 ? u(Op) / p14.length : null, xh = d14 != null && dp > 0 ? d14 / dp - 1 : null;
