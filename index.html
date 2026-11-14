@@ -1219,7 +1219,7 @@ html.mcap{background:var(--paper)}
     </div>
     <div class="g2">
       <div class="card" id="sec-hh-nv">
-        <div class="ct">Theo người đứng ca <span class="nt">· tiền hụt / dư mỗi kỳ xe chia đều cho người có mặt · chỉ để khoanh vùng</span></div>
+        <div class="ct">Theo người đứng ca (tham khảo) <span class="nt">· tiền hụt / dư mỗi kỳ đếm xe chia đều cho người có mặt · đếm xe ước bằng mắt nên dễ lệch: không dùng để kết luận ai làm mất</span></div>
         <div class="tblwrap" style="max-height:380px"><table id="tHhNv"></table></div>
       </div>
       <div class="card" id="sec-hh-kho">
@@ -2205,7 +2205,10 @@ function haoHutCanhBao(src){
     `${esc(r.ten)}: kho ${r.hut > 0 ? 'thiếu' : 'thừa'} ${so(Math.abs(r.hut), r.dv)} so với dự kiến${tien(r.tien)}`,
     `Kỳ kiểm kho ${gio(r.tu)} → ${gio(r.den)}: đầu kỳ ${so(r.dauKy, '')}+ mua ${so(r.mua, '')}− lấy ra xe ${so(r.lay, '')}= ${so(r.duKien, r.dv)}, đếm được ${so(r.dem, r.dv)}. ${r.hut > 0 ? 'Xem có hàng trả / hủy, lấy ra xe mà chưa báo /laykho, hay đếm sót.' : 'Xem có hàng mua chưa ghi sổ chi, hay đếm nhầm.'}`, '→ xem tab Hao hụt']));
   // v1.7.263: bỏ cảnh báo theo TỪNG kỳ kiểm xe (đếm xe ước bằng mắt, 1 lần đếm lệch làm 2 kỳ liền kề lệch ngược nhau) — chỉ báo theo đối chiếu tổng cộng dồn bên dưới
-  H.tong.filter(r => r.muc === 'bad' && r.den && r.den.getTime() >= cat).forEach(r => A.push(['warn', 'Hao hụt', `${esc(r.ten)}: dùng thật hơn công thức ${pct(r.ty, 0)}${tien(r.tien)}`,
+  { const cu = H.tong.filter(r => hhDoTin(r).muc === 'cu');   // v1.7.284: hụt quá 5% nhưng mốc đếm xe đã cũ → nhắc đếm lại, không báo hụt
+    if (cu.length) A.push(['warn', 'Hao hụt', `Cần đếm lại xe để kết luận hao hụt: ${cu.map(r => `${esc(r.ten)} (mốc ${dShort(dk(r.den))})`).join(', ')}`,
+      `Các mục này đang dùng thật hơn công thức quá 5% nhưng lần đếm xe làm mốc đã quá ${HH_MOC_CU} ngày, tồn xe có thể đã khác nhiều. Chủ nhật nhân viên /kiemxe đếm đủ mọi mục, số tự cập nhật.`, '→ xem tab Hao hụt']); }
+  H.tong.filter(r => hhDoTin(r).muc === 'bad' && r.den && r.den.getTime() >= cat).forEach(r => A.push(['warn', 'Hao hụt', `${esc(r.ten)}: dùng thật hơn công thức ${pct(r.ty, 0)}${tien(r.tien)}`,
     `Cộng dồn từ đầu tới ${gio(r.den)}: tổng mua ${so(r.tongMua, r.dv)} − tồn (xe + kho theo lần đếm mới nhất) = dùng thật ${so(r.dungThat, r.dv)}, công thức × ly bán ${so(r.dung, r.dv)}. Nếu lệch đều mọi kỳ thì có thể định lượng CongThuc / quy đổi tab Kho chưa đúng.`, '→ xem tab Hao hụt']));
   return A;
 }
@@ -3837,7 +3840,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.283';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.284';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3895,6 +3898,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.284', ngay:'14/11/2026', nd:['Tab Hao hụt: mục dùng theo công thức chưa tới 1 đơn vị mua (siro, matcha, thạch…) ghi "Ít mẫu"; mục hụt quá 5% mà lần đếm xe làm mốc đã quá 7 ngày ghi "Cần đếm lại" — không báo Đáng lo nữa, Tổng quan chỉ nhắc đếm lại xe.', 'Cà phê phin (mẻ pha sẵn dư, chủ đã chấp nhận) ghi "Đã biết lý do", không đẩy cảnh báo Tổng quan mỗi ngày.', 'Ô KPI chính chỉ tính tiền hụt VƯỢT mức hao hụt đã cộng vào giá vốn (5%; đơn vị theo ly 0%), thêm cột "Vượt mức giá vốn"; phần hụt trong mức ghi riêng.', 'Bảng "Theo người đứng ca" ghi rõ tham khảo (đếm xe ước bằng mắt) và gập sẵn. Số cộng dồn không đổi, bot /haohut giữ nguyên.']},
   {v:'v1.7.283', ngay:'14/11/2026', nd:['Sheet Tổng hợp cùng lãi dashboard: khi chủ mở dashboard, số hàng cho kèm (T11+ theo kho thực) + bao bì phụ từng tháng được gửi về tab ChoKemDash của Sheet; ô giá vốn (O13) các tab Chi tháng đọc tab này, nên lãi tháng trên Sheet = lãi dashboard.']},
   {v:'v1.7.282', ngay:'14/11/2026', nd:['Thu chi · Tổng hợp theo tháng: cột vận hành tính hàng cho kèm (T11+ theo kho thực) và bao bì phụ cùng cách PNL / Thu chi — cộng lãi các tháng lại khớp lãi Thu chi.']},
   {v:'v1.7.281', ngay:'14/11/2026', nd:['Hàng cho kèm theo kho thực: số kho đếm cùng ngày với lần đếm xe (kể cả đếm sau vài phút) được ghép đúng; tồn cuối cao hơn đầu kỳ + mua (đếm sai) thì báo cần đếm lại, không đưa vào PNL. Thu chi tính hàng cho kèm & bao bì phụ cùng cách PNL.']},
@@ -4365,6 +4369,13 @@ function tuKiem(){
       const W = haoHutCanhBao(Hs);
       ok('Cảnh báo hao hụt: cacao kho thiếu 3 hũ (480.000 đ) → Đáng lo; sữa đặc khớp không báo; kem muối kỳ 30 ngày trước không báo; cà phê 1 kỳ xe hụt 40% → KHÔNG báo; cacao cộng dồn hụt 25% → báo; nhãn Hao hụt dẫn tab Hao hụt',
         W.length === 2 && W[0][0] === 'bad' && /Cacao: kho thiếu 3 hũ/.test(W[0][2]) && /Cacao: dùng thật hơn công thức 25%/.test(W[1][2]) && !W.some(a => /Cà phê/.test(a[2])) && W.every(a => a[1] === 'Hao hụt' && tabCuaCanhBao(a[1]) === 'hh'), W.map(a => a[2]).join(' · ')); }
+    // 96. v1.7.284 — độ tin dòng hao hụt cộng dồn: ít mẫu (dùng CT < 1 đv mua) · mốc đếm xe > 7 ngày · đã biết lý do (cfb) → không báo Đáng lo; tiền vượt = phần hụt quá 5% (đv "ly…" 0%)
+    { const n = Date.now(), r0 = {ma:'st', ty:0.28, dung:11, hut:3.1, dungThat:14.1, gia:30000, muc:'bad', den:new Date(n - 864e5)};
+      const a = hhDoTin(r0, n), b = hhDoTin(Object.assign({}, r0, {den:new Date(n - 8 * 864e5)}), n), c = hhDoTin(Object.assign({}, r0, {ma:'shp', dung:0.63}), n), d = hhDoTin(Object.assign({}, r0, {ma:'cfb'}), n), e = hhDoTin(Object.assign({}, r0, {muc:'good', ty:0.03, den:new Date(n - 8 * 864e5)}), n);
+      const W = haoHutCanhBao({kho:[], xe:[], tong:[Object.assign({ten:'B', dv:'hộp', tongMua:30, tien:93000}, r0, {den:new Date(n - 8 * 864e5)}), Object.assign({ten:'P', dv:'kg', tongMua:6, tien:93000}, r0, {ma:'cfb'})]});
+      ok('Hao hụt độ tin: hụt 28% mốc 1 ngày → Đáng lo; mốc 8 ngày → Cần đếm lại (Tổng quan nhắc đếm lại, không báo hụt); dùng CT 0,63 < 1 → Ít mẫu; cfb → Đã biết lý do, không cảnh báo; Bình thường mốc cũ giữ Bình thường; vượt: (3,1 − 5% × 11) × 30.000 = 76.500 đ, đơn vị "ly" 0% → 93.000 đ',
+        a.muc === 'bad' && b.muc === 'cu' && c.muc === 'it' && d.muc === 'biet' && e.muc === 'good' && Math.round(hhVuot(r0, 'ml')) === 76500 && Math.round(hhVuot(r0, 'ly muối')) === 93000 && W.length === 1 && /đếm lại/i.test(W[0][2]) && !/P \(/.test(W[0][2]),
+        [a.muc, b.muc, c.muc, d.muc, e.muc, Math.round(hhVuot(r0, 'ml')), W.map(x => x[2]).join(' · ')].join(' / ')); }
     // 46. xetruct (chủ chốt 18/10/2026, bot xetruct-v1): mục không kiểm xe hằng ngày có công thức → xe = số đếm + lấy − món đã bán × công thức (không âm); cùng ca biết trước bất biến 20
     { const rT = tinhKhoCore({khoAll:[Object.assign({}, kx2, {kiemNgay:false})], chi:chiK, orders:odK.concat([{k:'2026-10-05', t:new Date(2026, 9, 5, 8), ma:'m1', sl:30}]), congThuc:{m1:{x:2}}, kiemKho:kK, layKho:lK, today:'2026-10-06', first:'2026-10-02', now:new Date(2026, 9, 6, 12).getTime()})[0];
       ok('Xe tự trừ theo món (không kiểm hằng ngày): 1,5 + lấy 3 − 35 ly × 2 g ÷ 10 = −2,5 → 0, cờ xeTheoCT', rT.xeTheoCT && rT.xe === 0 && gan(rT.xeUoc, -2.5, 1e-9) && cx.xeTheoCT === false, `xe ${rT.xe} · định lượng ${rT.xeUoc}`);
@@ -4525,6 +4536,17 @@ function haoHutThat(){   // v1.7.263 (chủ quán 14/11: "kiểm xe có lệch" 
 /** v1.7.40 — Ngưỡng tab Hao hụt: hụt ≤ 5% (bằng hao hụt đang cộng vào giá vốn) coi là bình thường; > 5% cần xem; > 10% và ≥ 20.000 đ là đáng lo. Dư < −10% = dùng ÍT hơn công thức (định lượng công thức có thể cao hơn thực tế). */
 const NGUONG_HH = {xem:0.05, lo:0.10, tien:20000, du:-0.10};
 const mucHH = (ty, tien) => ty == null ? '' : ty > NGUONG_HH.lo && tien >= NGUONG_HH.tien ? 'bad' : ty > NGUONG_HH.xem ? 'warn' : ty < NGUONG_HH.du ? 'du' : 'good';
+/** v1.7.284 (chủ quán 14/11: "cải thiện thêm tab hao hụt") — độ tin của 1 dòng đối chiếu tổng: chỉ đổi NHÃN + cảnh báo, không đổi số (bot /haohut giữ nguyên số).
+ *  Ít mẫu: dùng theo công thức < 1 đơn vị mua (chai, hũ, bịch…) — đếm ước lệch 1/10 chai là % nhảy rất xa. Mốc cũ: lần đếm xe làm mốc đã quá HH_MOC_CU ngày (mục đếm theo tuần chưa đếm lại Chủ nhật)
+ *  → hụt quá 5% không báo Đáng lo / Cần xem mà báo "Cần đếm lại". Đã biết: chủ đã biết lý do (HH_DA_BIET) → không đẩy cảnh báo Tổng quan, vẫn hiện trong bảng. */
+const HH_MOC_CU = 7, HH_DA_BIET = {cfb:'Mẻ phin pha sẵn dư so với số ly phin bán (đổ bỏ / bán cho đơn máy) — chủ đã biết, chấp nhận 03/11 và 14/11'};
+function hhDoTin(r, nay){
+  if (!r || r.ty == null) return {muc: r ? r.muc : '', cu:false, it:false, biet:'', tuoi:null};
+  const tuoi = r.den ? ((nay == null ? Date.now() : nay) - +r.den) / 864e5 : null, cu = tuoi != null && tuoi > HH_MOC_CU, it = !(r.dung >= 1), biet = HH_DA_BIET[r.ma] || '', lo = r.muc === 'bad' || r.muc === 'warn';
+  return {muc: it ? 'it' : biet && lo ? 'biet' : cu && lo ? 'cu' : r.muc, cu, it, biet, tuoi};
+}
+/** v1.7.284 — tiền hụt VƯỢT mức hao hụt đã cộng vào giá vốn: 5% với nguyên liệu tính theo g / ml / cái, 0% với đơn vị tính "ly…" (heSoHaoHut). Hụt trong mức đã nằm trong giá vốn, không phải mất thêm. */
+const hhVuot = (r, dvTinh) => r && r.ty != null && r.gia > 0 && r.dungThat >= 0 ? Math.max(0, r.hut - (heSoHaoHut(dvTinh) - 1) * r.dung) * r.gia : 0;
 /** v1.7.40 — HAO HỤT THỰC đối chiếu kho (tab Hao hụt). Hàm thuần — tuKiem() thử với ca biết trước đáp án.
  *  Kho KHÔNG tiêu hao (chỉ nhận hàng mua và xuất ra xe) → mọi phần dùng nhiều hơn công thức nằm ở XE (khâu pha chế của nhân viên) hoặc ở khâu lấy kho mà không báo.
  *  1) Đối chiếu tổng tới lần kiểm xe gần nhất: dùng thật = tổng mua (sổ chi) − (xe + kho) theo số đếm (cùng luật tinhKhoCore); dùng theo công thức = Σ ly bán × định lượng (theo ngày bán) ÷ quy đổi, tính tới lúc kiểm xe gần nhất. Cần có cả số xe và số kho.
@@ -4676,16 +4698,20 @@ function renderHh(){
   const G = giaNL(), H = haoHutNay();
   const so = (v, dv) => v == null ? '—' : `${(+v).toLocaleString('vi-VN', {maximumFractionDigits:3})}${dv ? ' ' + esc(dv) : ''}`, soD = (v, dv) => { if (v == null) return '—'; const r = Math.round(v * 100) / 100 || 0; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${so(Math.abs(r), dv)}`; };   // v1.7.125: hết "−0 chai"
   const luc = t => t ? `${dShort(dk(t))} ${p2(t.getHours())}:${p2(t.getMinutes())}` : '—';
-  const MUC = {bad:['bad', 'Đáng lo'], warn:['warn', 'Cần xem'], good:['good', 'Bình thường'], du:['neu', 'Dùng ít hơn CT']}, pill = m => MUC[m] ? `<span class="pill ${MUC[m][0]}">${MUC[m][1]}</span>` : '<span class="muted">—</span>';
+  const MUC = {bad:['bad', 'Đáng lo'], warn:['warn', 'Cần xem'], good:['good', 'Bình thường'], du:['neu', 'Dùng ít hơn CT'], it:['neu', 'Ít mẫu'], cu:['warn', 'Cần đếm lại'], biet:['neu', 'Đã biết lý do']}, pill = (m, t) => MUC[m] ? `<span class="pill ${MUC[m][0]}"${t ? ` title="${esc(t)}"` : ''}>${MUC[m][1]}</span>` : '<span class="muted">—</span>';
   const tienF = v => v == null ? '<span class="muted">chưa có giá</span>' : v === 0 ? '0' : `<span class="${v > 0 ? 'dn' : 'up'}">${v > 0 ? '−' : '+'}${fmt(Math.abs(v))}</span>`;
   /* 1 · đối chiếu tổng */
-  const coSo = H.tong.filter(r => r.ty != null), hutTong = coSo.filter(r => r.tien > 0).reduce((s, r) => s + r.tien, 0), canXem = coSo.filter(r => r.muc === 'bad' || r.muc === 'warn');
-  table({id:'tHhTong', rows:H.tong.map(r => Object.assign({}, r, {s: r.ty == null ? -9 : r.ty})), sortDefault:{k:'s', d:-1}, cols:[{k:'ten', l:'Nguyên liệu'},
+  const dvT = ma => (D.khoAll.find(k => k.ma === ma) || {}).dvTinh, TR = H.tong.map(r => Object.assign({}, r, {s: r.ty == null ? -9 : r.ty, dt:hhDoTin(r), vuot:hhVuot(r, dvT(r.ma))}));   // v1.7.284: độ tin + phần vượt mức giá vốn
+  const coSo = TR.filter(r => r.ty != null), canXem = coSo.filter(r => r.dt.muc === 'bad' || r.dt.muc === 'warn'), chuaTin = r => ['it', 'cu', 'biet'].includes(r.dt.muc);
+  const vuotTin = coSo.filter(r => !chuaTin(r)).reduce((s, r) => s + r.vuot, 0), vuotKhac = coSo.filter(chuaTin).reduce((s, r) => s + r.vuot, 0), trongMuc = coSo.filter(r => r.tien > 0 && r.dungThat >= 0).reduce((s, r) => s + r.tien - r.vuot, 0);
+  const tinT = r => r.dt.muc === 'it' ? `Dùng theo công thức mới ${so(r.dung, r.dv)} (dưới 1 ${r.dv}) — đếm ước lệch một chút là % nhảy xa, chờ dùng nhiều hơn rồi mới kết luận` : r.dt.muc === 'cu' ? `Mốc đếm xe ${luc(r.den)} đã ${Math.floor(r.dt.tuoi)} ngày — đếm lại xe (Chủ nhật đếm đủ mọi mục) rồi mới kết luận` : r.dt.muc === 'biet' ? r.dt.biet : '';
+  table({id:'tHhTong', rows:TR, sortDefault:{k:'s', d:-1}, cols:[{k:'ten', l:'Nguyên liệu'},
     {k:'tongMua', l:'Tổng mua', r:1, f:(v, r) => so(v, r.dv)}, {k:'xe', l:'Tồn xe + kho (đếm)', r:1, f:(v, r) => r.thieu ? `<span class="muted">${esc(r.thieu)}</span>` : `${so(r.xe + r.kho, r.dv)} <span class="muted">(xe ${so(r.xe)} · kho ${so(r.kho)})</span>`},
     {k:'dungThat', l:'Dùng thật (đã trừ dùng nội bộ)', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv) + (r.nb ? ` <span class="muted" title="/dungnoibo: thử nghiệm, đổ bỏ, mời khách">(nội bộ ${so(r.nb)})</span>` : '')}, {k:'dung', l:'Theo công thức', r:1, f:(v, r) => r.thieu ? '—' : so(v, r.dv)},
     {k:'hut', l:'Hụt (+) / dư (−)', r:1, f:(v, r) => soD(v, r.dv), cls:v => v > 0 ? 'dn' : ''}, {k:'s', l:'% so với CT', r:1, f:(v, r) => r.ty == null ? '—' : pctS(r.ty, 1)},
-    {k:'tien', l:'Tiền (đ)', r:1, f:(v, r) => r.thieu || r.dungThat < 0 ? '—' : tienF(v)}, {k:'muc', l:'Mức', f:(m, r) => r.dungThat < 0 ? '<span class="pill warn" title="Tồn đếm được (xe + kho) nhiều hơn tổng đã mua: thiếu dòng mua trong sổ chi (hoặc hàng bàn giao chưa ghi), hoặc đếm / quy đổi sai">Đếm &gt; mua</span>' : pill(m)}, {k:'den', l:'Tính tới', f:(v, r) => r.thieu ? '—' : luc(v)}]});
-  $('hhTongNote').innerHTML = `Kho không tiêu hao, chỉ nhận hàng mua và xuất ra xe, nên phần dùng nhiều hơn công thức nằm ở xe (pha chế, đổ bỏ, làm lại) hoặc ở hàng lấy kho mà không báo. Mục "chưa đếm xe / kho" sẽ có số khi đếm đủ (Chủ nhật nhân viên đếm đủ mọi mục ở xe). Hàng cho kèm (ly trà, bịch đựng đá, trà sâm dứa) không có định lượng trong CongThuc nên không đối chiếu ở đây. Dư nhiều (dùng ít hơn công thức) thường là định lượng trong CongThuc cao hơn thực tế, nên sửa CongThuc chứ không phải thất thoát.`;
+    {k:'tien', l:'Tiền (đ)', r:1, f:(v, r) => r.thieu || r.dungThat < 0 ? '—' : tienF(v)}, {k:'vuot', l:'Vượt mức giá vốn (đ)', r:1, f:(v, r) => r.thieu || r.dungThat < 0 ? '—' : !(r.gia > 0) ? '<span class="muted">chưa có giá</span>' : v ? `<span class="dn" title="Phần hụt quá ${heSoHaoHut(dvT(r.ma)) > 1 ? pct(HAO_HUT, 0) : '0% (đơn vị tính theo ly)'} đã cộng vào giá vốn">−${fmt(v)}</span>` : '0'},
+    {k:'muc', l:'Mức', f:(m, r) => r.dungThat < 0 ? '<span class="pill warn" title="Tồn đếm được (xe + kho) nhiều hơn tổng đã mua: thiếu dòng mua trong sổ chi (hoặc hàng bàn giao chưa ghi), hoặc đếm / quy đổi sai">Đếm &gt; mua</span>' : pill(r.dt.muc, tinT(r))}, {k:'den', l:'Tính tới', f:(v, r) => r.thieu ? '—' : luc(v) + (r.dt.cu ? ` <span class="pill warn" title="Mốc đếm xe đã quá ${HH_MOC_CU} ngày">${Math.floor(r.dt.tuoi)} ngày</span>` : '')}]});
+  $('hhTongNote').innerHTML = `Kho không tiêu hao, chỉ nhận hàng mua và xuất ra xe, nên phần dùng nhiều hơn công thức nằm ở xe (pha chế, đổ bỏ, làm lại) hoặc ở hàng lấy kho mà không báo. Mục "chưa đếm xe / kho" sẽ có số khi đếm đủ (Chủ nhật nhân viên đếm đủ mọi mục ở xe). Hàng cho kèm (ly trà, bịch đựng đá, trà sâm dứa) không có định lượng trong CongThuc nên không đối chiếu ở đây. Dư nhiều (dùng ít hơn công thức) thường là định lượng trong CongThuc cao hơn thực tế, nên sửa CongThuc chứ không phải thất thoát. <b>Ít mẫu</b> = dùng theo công thức chưa tới 1 đơn vị mua (đếm ước lệch chút là % nhảy xa) · <b>Cần đếm lại</b> = hụt quá 5% nhưng lần đếm xe làm mốc đã quá ${HH_MOC_CU} ngày · <b>Đã biết lý do</b> = chủ đã biết (rê chuột xem), không đẩy cảnh báo. Cột <b>Vượt mức giá vốn</b> = phần hụt quá 5% (đơn vị tính theo ly: 0%) — phần trong mức đã nằm sẵn trong giá vốn.`;
   /* 2 · kỳ kiểm xe */
   const xeRows = H.xe.map(r => Object.assign({}, r, {t:r.den.getTime()})), hutXe = H.xe.filter(r => r.tien > 0).reduce((s, r) => s + r.tien, 0), duXe = H.xe.filter(r => r.tien < 0).reduce((s, r) => s - r.tien, 0);
   table({id:'tHhXe', rows:xeRows, sortDefault:{k:'t', d:-1}, cols:[{k:'t', l:'Kỳ', f:(v, r) => `${luc(r.tu)} → ${luc(r.den)}`}, {k:'ten', l:'Nguyên liệu'},
@@ -4721,11 +4747,11 @@ function renderHh(){
   /* KPI + ghi chú */
   const hn = gvRows.length ? gvRows[gvRows.length - 1] : null;
   $('hhKpis').innerHTML = `
-    <div class="kpi main"><span class="lb">Hụt so với công thức (cộng dồn từ đầu)</span><span class="v ${hutTong ? 'dn' : ''}">${hutTong ? '−' + fmt(hutTong) : '0'}</span><span class="s">${coSo.length} mục đã đối chiếu được · ${canXem.length ? `${canXem.length} mục quá 5%: ${esc(canXem.map(r => r.ten).join(", "))}` : "không mục nào quá 5%"}</span></div>
+    <div class="kpi main"><span class="lb">Hụt vượt mức giá vốn (cộng dồn từ đầu)</span><span class="v ${vuotTin ? 'dn' : ''}">${vuotTin ? '−' + fmt(vuotTin) : '0'}</span><span class="s">${coSo.length} mục đối chiếu được · ${canXem.length ? `cần xem: ${esc(canXem.map(r => r.ten).join(", "))}` : "không mục đáng tin nào quá 5%"}${vuotKhac ? ` · thêm ${fmt(vuotKhac)} đ ở mục ít mẫu / cần đếm lại / đã biết lý do` : ''} · ${fmt(trongMuc)} đ hụt trong mức đã tính vào giá vốn</span></div>
     <div class="kpi"><span class="lb">Hụt ở xe từng kỳ (tham khảo)</span><span class="v ${hutXe ? 'dn' : ''}">${hutXe ? '−' + fmt(hutXe) : '0'}</span><span class="s">${H.xe.length} kỳ · dư ${fmt(duXe)} đ · đếm xe dễ lệch, số chính là ô cộng dồn</span></div>
     <div class="kpi main"><span class="lb">Hụt ở kho (các kỳ kiểm)</span><span class="v ${hutKho ? 'dn' : ''}">${hutKho ? '−' + fmt(hutKho) : '0'}</span><span class="s">${H.kho.length} kỳ kiểm kho đối chiếu</span></div>
     <div class="kpi tgt"><span class="lb">Giá vốn / ly ${hn ? dShort(hn.k) : ''}</span><span class="v">${hn ? fmt(hn.gvLy) : '—'}</span><span class="s">theo món đã bán · cả kỳ ${fmt(cogsTB)} đ/ly</span></div>`;
-  $('hhNote').innerHTML = `<b>Cách đọc:</b> hụt (+) = dùng thật nhiều hơn công thức × ly bán (nghi thất thoát, đổ bỏ, làm lại, hoặc lấy kho chưa báo); dư (−) = dùng ít hơn công thức. Trong ±5% là bình thường (bằng hao hụt đang cộng vào giá vốn); trên 10% và từ ${fmt(NGUONG_HH.tien)} đ trở lên là đáng lo. Số chính là <b>đối chiếu cộng dồn từ đầu</b> (tổng mua − tồn xe + kho theo lần đếm mới nhất): một lần đếm xe ước sai chỉ ảnh hưởng tới lần đếm sau, không dồn lại. Bảng từng kỳ xe chỉ để khoanh vùng: một kỳ lệch lẻ tẻ thường do đếm sai (kỳ kế tiếp sẽ lệch ngược lại), lặp lại nhiều kỳ cùng người mới đáng hỏi.`;
+  $('hhNote').innerHTML = `<b>Cách đọc:</b> hụt (+) = dùng thật nhiều hơn công thức × ly bán (nghi thất thoát, đổ bỏ, làm lại, hoặc lấy kho chưa báo); dư (−) = dùng ít hơn công thức. Trong ±5% là bình thường (bằng hao hụt đang cộng vào giá vốn — ô KPI chỉ tính tiền phần VƯỢT mức này); trên 10% và từ ${fmt(NGUONG_HH.tien)} đ trở lên là đáng lo. Mục ít mẫu, mốc đếm xe quá ${HH_MOC_CU} ngày hoặc chủ đã biết lý do không báo Đáng lo. Số chính là <b>đối chiếu cộng dồn từ đầu</b> (tổng mua − tồn xe + kho theo lần đếm mới nhất): một lần đếm xe ước sai chỉ ảnh hưởng tới lần đếm sau, không dồn lại. Bảng từng kỳ xe chỉ để khoanh vùng: một kỳ lệch lẻ tẻ thường do đếm sai (kỳ kế tiếp sẽ lệch ngược lại), lặp lại nhiều kỳ cùng người mới đáng hỏi.`;
 }
 /** Tab Kho — các lần kiểm xe / kiểm kho (số đếm so với số ước tính) và hao hụt thật đo từ kiểm xe */
 function renderHaoHut(){
@@ -6476,7 +6502,7 @@ function renderKho(){
 /* ============ thẻ: mục lục · thu gọn ▾ · phóng to ⤢ (− + Vừa khung, Esc để đóng) ============ */
 let GOP = new Set(); try { GOP = new Set(JSON.parse(localStorage.getItem('kai_gop') || '[]')); } catch(e){}
 /* v1.7.245 — thẻ gập sẵn lần đầu (ít xem hằng ngày). Mỗi id chỉ áp 1 lần/trình duyệt (kai_gop_md), mở ra rồi thì giữ mở. */
-const GOP_MD = ['sec-kho-chart', 'sec-kho-hh'];
+const GOP_MD = ['sec-kho-chart', 'sec-kho-hh', 'sec-hh-nv'];   // v1.7.284: bảng hao hụt theo người (kỳ xe, tham khảo) gập sẵn
 try { const da = new Set(JSON.parse(localStorage.getItem('kai_gop_md') || '[]')), moi = GOP_MD.filter(id => !da.has(id));
   if (moi.length){ moi.forEach(id => { GOP.add(id); da.add(id); }); localStorage.setItem('kai_gop', JSON.stringify([...GOP])); localStorage.setItem('kai_gop_md', JSON.stringify([...da])); } } catch(e){ GOP_MD.forEach(id => GOP.add(id)); }
 const tieuDe = c => { const ct = c.querySelector(':scope > .ct'); return ct ? [...ct.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : ''; };
