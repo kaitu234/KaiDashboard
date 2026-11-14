@@ -2893,7 +2893,7 @@ function renderTdKy(){
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${dShort(o.k)}<br>${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.dg}${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}${o.tang ? ' <span class="pill good" title="Mua 5 tặng 1 — ly tặng">🎁 tặng</span>' : ''}${o.ml ? ' <span class="pill good" title="Khách mang ly / bình cá nhân (−2.000 đ/ly)">🥤 mang ly</span>' : ''}</span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} ${o.pt === 'BE' || o.pt === 'XANH' ? `<span class="pill neu">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : LOGO_APP.XANH}</span>` : ''}${o.dg}${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}${o.tang ? ' <span class="pill good" title="Mua 5 tặng 1 — ly tặng">🎁 tặng</span>' : ''}${o.ml ? ' <span class="pill good" title="Khách mang ly / bình cá nhân (−2.000 đ/ly)">🥤 mang ly</span>' : ''}</span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -3019,7 +3019,7 @@ function renderToday(){
   $('tdFeedNote').innerHTML = `· ${nFeed < ord.length ? `hiện ${nFeed}/${ord.length}` : ord.length} đơn · mới nhất trên cùng${ord.length > 40 ? ` <button class="lnk" id="feedAll" style="padding:2px 8px">${S.feedAll ? 'Thu gọn' : 'Xem tất cả'}</button>` : ''}`;
   if ($('feedAll')) $('feedAll').onclick = () => { S.feedAll = !S.feedAll; renderToday(); };
   $('tdFeed').innerHTML = ord.slice(0, nFeed).map(o => `<div class="o"><span class="tm">${o.t ? p2(o.t.getHours()) + ':' + p2(o.t.getMinutes()) : '—'}</span>
-    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} <span class="pill ${o.pt === 'CK' || o.pt === 'BE' || o.pt === 'XANH' ? 'neu' : 'warn'}">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : o.pt === 'XANH' ? LOGO_APP.XANH : o.pt === 'CK' ? '🏦 CK' : '💵 TM'}</span>${o.dg}${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}${o.tang ? ' <span class="pill good" title="Mua 5 tặng 1 — ly tặng">🎁 tặng</span>' : ''}${o.ml ? ' <span class="pill good" title="Khách mang ly / bình cá nhân (−2.000 đ/ly)">🥤 mang ly</span>' : ''}</span></div>`).join('')
+    <span class="it"><span class="amons">${anhMonHtml(o.anh)}</span>${o.it}<small>${esc(o.nv)} · ${o.ly} ly</small></span><span class="am">${fmt(o.tt)} ${o.pt === 'BE' || o.pt === 'XANH' ? `<span class="pill neu">${o.pt === 'BE' ? LOGO_APP.BE + 'be' : LOGO_APP.XANH}</span>` : ''}${o.dg}${o.tv ? ' <span class="pill good" title="Đơn thẻ thành viên (−2.000 đ/ly)">⭐ member</span>' : ''}${o.tang ? ' <span class="pill good" title="Mua 5 tặng 1 — ly tặng">🎁 tặng</span>' : ''}${o.ml ? ' <span class="pill good" title="Khách mang ly / bình cá nhân (−2.000 đ/ly)">🥤 mang ly</span>' : ''}</span></div>`).join('')
     || '<div class="empty-note">Chưa có đơn.</div>';
 
   /* ca & két */
@@ -3777,7 +3777,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.277';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.278';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3835,6 +3835,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.278', ngay:'14/11/2026', nd:['Hôm nay · Đơn trong kỳ / Đơn mới nhất: bỏ chip 💵 TM / 🏦 CK (TM, CK chỉ chốt cuối ca nên chip theo đơn dễ sai); vẫn giữ chip đơn app be / Xanh SM.']},
   {v:'v1.7.277', ngay:'14/11/2026', nd:['Hôm nay · Đơn trong kỳ / Đơn mới nhất: thêm chip ☕ Kai 10K, 🍲 Lẩu 15K (đơn giá riêng bot kai / lau) và 🆙 free upsize (mua 3).']},
   {v:'v1.7.276', ngay:'14/11/2026', nd:['Hôm nay · Đơn trong kỳ / Đơn mới nhất: đơn ngày đồng giá (T7/CN 15K, khai trương 10K) có chip 🏷 đồng giá; đơn app và đơn giá Kai / lẩu không gắn.', 'Sửa: chip 🎁 tặng (mua 5 tặng 1) trước giờ không hiện ở hai danh sách này.']},
   {v:'v1.7.275', ngay:'14/11/2026', nd:['T7–CN 24–25/10 tính là ngày đồng giá 15K (như 31/10–01/11): bộ lọc loại ngày, chip 15K, kiểm lệch giá.', 'Kiểm chứng · lệch giá menu: bỏ đơn giá riêng Nhân viên Kai (10K) / Nhà hàng lẩu (15K) mà bot ghi chú “Giá …”.']},
