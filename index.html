@@ -1755,7 +1755,7 @@ const ngayDaQua = (open, tk, coDonHomNay) => { const den = coDonHomNay ? tk : ad
 const isPromo = k => k >= PROMO.from && k <= PROMO.to;
 /** v1.7.89 (bot dongia-tuan-v1, chủ chốt 02/11/2026): từ 07/11/2026 T7 + CN tự đồng giá 15K mọi món, T2–T6 giá menu — CÙNG luật DONG_GIA_TUAN của bot. KM_TAY = ngày chủ bật tay /dongia 15 trước đó (31/10–01/11). Dùng cho nhịp dùng kho và kiểm 'đơn lệch giá' */
 const DONG_GIA_TUAN = {tu:'2026-11-07', gia:15000, thu:[6, 0], bo:['2026-11-07']},   // v1.7.144 (bot @217, chủ chốt 08/11): chỉ T7 07/11 KHÔNG đồng giá; CN 08/11 giữ 15K (khách đã trả)
-      KM_TAY = ['2026-10-31', '2026-11-01'];
+      KM_TAY = ['2026-10-24', '2026-10-25', '2026-10-31', '2026-11-01'];   /* v1.7.275 (chủ 14/11): T7–CN 24–25/10 cũng đồng giá 15K bật tay */
 const laCuoiTuanKM = k => k >= DONG_GIA_TUAN.tu && !(DONG_GIA_TUAN.bo || []).includes(k) && DONG_GIA_TUAN.thu.includes(new Date(k + 'T12:00:00Z').getUTCDay());
 const laNgayKM = k => isPromo(k) || laCuoiTuanKM(k);   // nhịp dùng kho: cùng bot nhip7 (không gồm KM_TAY)
 /** v1.7.104 — loại ngày cho phân tích bán: khai trương 10K · đồng giá 15K (T7/CN từ 07/11 + 2 ngày chủ bật tay) · giá thường */
@@ -1780,7 +1780,7 @@ function parseWorkbook(wb){
     const t = toDate(r[1]);
     if (txt(r[10]).toUpperCase() !== 'OK'){ if (txt(r[10]).toUpperCase() === 'HUY') D.cancel.push({id:txt(r[0]), k, tt:num(r[8]), sl:num(r[6]), nv:txt(r[3])}); return; }
     D.orders.push({id:txt(r[0]), k, t, min: t ? t.getHours() * 60 + t.getMinutes() : null, h: t ? t.getHours() : null, nv:txt(r[3]) || '—', ma:txt(r[4]), mon:txt(r[5]) || txt(r[4]), sl:num(r[6]), gia:num(r[7]), tt:num(r[8]), pt: (p => p === 'CK' || p === 'BE' || p === 'XANH' ? p : 'TM')(txt(r[9]).toUpperCase()),   // v1.7.134 (bot apptv-v1 @205): J = BE / XANH là đơn app — đơn giá đã là thực nhận; tiền app để riêng, không vào TM/CK/chốt ca/quỹ
-      hs: num(r[12]) > 0 ? num(r[12]) : 1, tv: /th[aà]nh\s*vi[eê]n/i.test(txt(r[11])), ml: /mang\s*ly/i.test(txt(r[11])), tang: /t[ặa]ng \(mua 5/i.test(txt(r[11])), up: /free\s*upsize/i.test(txt(r[11]))});   // v1.7.262: bot km-v1 ghi "Tặng (mua 5 tặng 1)" (ly tặng 0đ, L thì +5K) / "Free upsize (mua 3)" (công thức L, giá M)   // v1.7.221: đơn khách mang ly / bình (bot mangly-v1 ghi "Mang ly −2.000/ly", 1 ly mang = −2.000)   // v1.7.110: đơn thẻ thành viên (bot ghi chú "Thành viên −2.000/ly")   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
+      hs: num(r[12]) > 0 ? num(r[12]) : 1, tv: /th[aà]nh\s*vi[eê]n/i.test(txt(r[11])), ml: /mang\s*ly/i.test(txt(r[11])), tang: /t[ặa]ng \(mua 5/i.test(txt(r[11])), dtg: /gi[aá] (nh[aâ]n vi[eê]n kai|nh[aà] h[aà]ng l[aẩ]u)/i.test(txt(r[11])),   /* v1.7.275: đơn giá riêng bot GIA_DOI_TUONG (kai 10K, lau 15K) */ up: /free\s*upsize/i.test(txt(r[11]))});   // v1.7.262: bot km-v1 ghi "Tặng (mua 5 tặng 1)" (ly tặng 0đ, L thì +5K) / "Free upsize (mua 3)" (công thức L, giá M)   // v1.7.221: đơn khách mang ly / bình (bot mangly-v1 ghi "Mang ly −2.000/ly", 1 ly mang = −2.000)   // v1.7.110: đơn thẻ thành viên (bot ghi chú "Thành viên −2.000/ly")   // v1.7.66: cột M = hệ số công thức (size lớn 1,3; trống = 1)
   });
   rowsOf(wb, 'Menu').slice(1).forEach(r => { if (txt(r[0])) D.menu[txt(r[1])] = {ma:txt(r[0]), gia:num(r[2]), nhom:txt(r[3]), ban: r[4] !== false && String(r[4]).toUpperCase() !== 'FALSE', tat:tatMon(r[5])}; });
   // ChiPhi: Ngày · Thời gian · Người ghi · Số tiền · Nội dung · Nguồn · Trạng thái · Sổ chi (H = "202610:47" nếu /chiphi đã tự ghi vào dòng 47 sổ Chi T10-2026; trống = chưa vào sổ)
@@ -3771,7 +3771,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.274';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.275';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3829,6 +3829,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.275', ngay:'14/11/2026', nd:['T7–CN 24–25/10 tính là ngày đồng giá 15K (như 31/10–01/11): bộ lọc loại ngày, chip 15K, kiểm lệch giá.', 'Kiểm chứng · lệch giá menu: bỏ đơn giá riêng Nhân viên Kai (10K) / Nhà hàng lẩu (15K) mà bot ghi chú “Giá …”.']},
   {v:'v1.7.274', ngay:'14/11/2026', nd:['Kiểm chứng · Data sẵn sàng: đơn thành viên / mang ly (−2K/ly) không còn bị đếm là “lệch giá menu”; ví dụ ghi kèm ngày.', 'Rà soát logic 14/11: dashboard khớp Sheet (doanh thu, giá vốn, nhân sự, vận hành, lãi, dòng tiền T10 + T11). Sheet ô giá vốn tháng (12 tab Chi, ô O13) đã sửa: lịch định lượng cũ áp đúng cột “Chỉ món” (trước đó mốc phin 21 g / Phindi 7,5 g áp cho mọi món có cà phê bột → giá vốn T11 trên Sheet dư 88.480 đ, T10 dư 32.458 đ).']},
   {v:'v1.7.273', ngay:'14/11/2026', nd:['Nhân sự · bảng lương: Thực nhận gồm đủ tiền công (dậy sớm, ca 1 người) + thưởng − phạt + chuyên cần + thưởng ly theo ngày — khớp cột Thực nhận bảng lương bot. Lương/giờ = thực nhận ÷ giờ trong ca, cả ô đầu tab, dòng Tổng, bảng từng ca và tài khoản nhân viên. Thêm cột Thưởng ly; ô Tiền công đổi thành Thực nhận; % lương / doanh thu dùng thực nhận.']},
   {v:'v1.7.272', ngay:'14/11/2026', nd:['Sổ tay: lệnh đổi ca gõ tên không cần @ — /doica 24/11 duy (nhờ làm thay), /doica 14/11 duy 24/11 (đổi chéo); bot vẫn hiểu khi có @.']},
@@ -3916,7 +3917,7 @@ function kiemData(){
   add('Đơn gần nhất', !dn ? 2 : (Date.now() - dn.getTime()) / 36e5 > 30 ? 1 : 0, dn ? `Lúc ${p2(dn.getHours())}:${p2(dn.getMinutes())} ${dShort(dk(dn))}` : 'Chưa có đơn', 'Quán nghỉ thì bỏ qua');
   const lạ = [...new Set(D.orders.filter(o => !D.menu[o.mon]).map(o => o.mon))];
   add('Món bán nhưng không có trong tab Menu', lạ.length ? 2 : 0, lạ.length ? lạ.join(', ') : 'Khớp hết', 'Thêm món vào tab Menu');
-  const lech = D.orders.filter(o => !laNgayKM(o.k) && !KM_TAY.includes(o.k) && !o.tang && (o.hs || 1) === 1 /* v1.7.93: size lớn (+5k) và ly gộp (giá × N) không phải lệch giá */ && D.menu[o.mon] && D.menu[o.mon].gia && o.gia !== giaMenuDon(o));   /* v1.7.274: đơn thành viên / mang ly đã giảm 2K/ly theo luật bot — giá đúng = menu − giảm, không phải lệch */
+  const lech = D.orders.filter(o => !laNgayKM(o.k) && !KM_TAY.includes(o.k) && !o.tang && !o.dtg && (o.hs || 1) === 1 /* v1.7.93: size lớn (+5k) và ly gộp (giá × N) không phải lệch giá */ && D.menu[o.mon] && D.menu[o.mon].gia && o.gia !== giaMenuDon(o));   /* v1.7.274: đơn thành viên / mang ly đã giảm 2K/ly theo luật bot — giá đúng = menu − giảm, không phải lệch */
   add('Đơn lệch giá menu ngoài đợt khuyến mãi', lech.length ? 1 : 0, lech.length ? `${lech.length} dòng (vd ${dShort(lech[0].k)} ${lech[0].mon} ${fmt(lech[0].gia)} ≠ ${fmt(giaMenuDon(lech[0]))})` : 'Không có', 'Kiểm tra giá nhập hoặc cập nhật Menu');
   const xau = D.orders.filter(o => !(o.sl > 0) || !(o.gia >= 0) || Math.abs(o.sl * o.gia - o.tt) > 1);
   add('Dòng đơn sai số học (SL ≤ 0 hoặc SL × giá ≠ thành tiền)', xau.length ? 2 : 0, xau.length ? `${xau.length} dòng, ví dụ mã ${xau[0].id}` : 'Không có', 'Sửa trong tab DonHang');
