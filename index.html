@@ -3123,7 +3123,8 @@ function renderFin(){
   const soTam = D.chi.filter(r => blockOf(r) === 'Nhân sự' && r.tamLuong).reduce((s, r) => s + r.amt, 0), coSoTam = D.chi.some(r => blockOf(r) === 'Nhân sự' && r.tamLuong);   // v1.7.55: dòng lương tạm bot ghi vào sổ (chỉ để đối chiếu)
   const tamNguoi = {}; congTam.forEach(c => tamNguoi[c.nv] = (tamNguoi[c.nv] || 0) + (c.tien || 0) + (c.cc || 0) + (c.tl || 0)); (D.thuongPhat || []).filter(x => !daChotLuong(x.id, x.k)).forEach(x => tamNguoi[x.nv] = (tamNguoi[x.nv] || 0) + x.tien);
   // Hàng cho kèm (ly trà đá, ly pha trà/bọc đá, trà sâm dứa): tính riêng theo tiền chi thực tế, không hao hụt, không nằm trong giá vốn/ly
-  const choKem = D.chi.filter(r => laChoKem(r) && !laBoQua(r)).reduce((s, r) => s + r.amt, 0), boQuaFin = D.chi.filter(laBoQua).reduce((s, r) => s + r.amt, 0);
+  const choKem = D.chi.filter(r => laChoKem(r) && !laBoQua(r) && r.m < THANG_KHO_KEM).reduce((s, r) => s + r.amt, 0) + D.chi.filter(laBaoBiPhu).reduce((s, r) => s + r.amt, 0)
+    + choKemKhoKy([D.first, ...D.chi.map(r => r.k)].filter(Boolean).sort()[0] || today(), today()).tien, boQuaFin = D.chi.filter(laBoQua).reduce((s, r) => s + r.amt, 0);   // v1.7.281: cùng cách PNL — T11+ cho kèm theo kho thực, bao bì phụ theo tiền mua
   const lai = gvBan == null || cogs == null || (!lyBan && !luongBot && !chiKhac && !choKem) ? null : totalRev - gvBan - chiKhac - luongBot - choKem, laiSo = totalRev - opex;   // v1.7.42 (Fable 5 T-20): chưa có đơn, lương, chi → chưa có số thật
   // Khấu hao khoản đầu tư nhượng quyền: chia đều theo ngày, từ ngày bắt đầu tới hôm nay (cùng cách tính tab PNL)
   // v1.7.58 (chủ quán 18/10): lãi không trừ khấu hao. Thu hồi vốn đầu tư = lãi cộng dồn ÷ tổng đầu tư (sổ chi khối Đầu tư); dự kiến theo lãi TB / ngày 14 ngày gần nhất
@@ -3305,14 +3306,16 @@ function choKemKhoCore(src, m){
   src.khoAll.filter(k => k.quyDoi > 0 && src.chi.some(r => khopNL(k, r) && laChoKem(r))).forEach(k => {
     const ks = src.kiemKho.filter(x => x.ma === k.ma && x.luc).sort((a, b) => ms(a.luc) - ms(b.luc)), xs = ks.filter(x => x.noi === 'xe'), hs = ks.filter(x => x.noi === 'kho');
     const mua = src.chi.filter(r => khopNL(k, r) && !laHdCu(r)), lay = (a, b) => (src.layKho || []).reduce((t, x) => x.ma === k.ma && ms(x.luc) > ms(a) && ms(x.luc) <= ms(b) ? t + x.sl : t, 0);
-    const ton = t => { const x = xs.filter(c => ms(c.luc) <= ms(t)).pop(), h = hs.filter(c => ms(c.luc) <= ms(t)).pop(); if (!x || !h) return null;
-      return x.dem + lay(x.luc, t) + h.dem + mua.filter(r => r.k > dk(h.luc) && r.k <= dk(t)).reduce((t2, r) => t2 + r.qty, 0) - lay(h.luc, t); };
+    const ton = t => { const x = xs.filter(c => ms(c.luc) <= ms(t)).pop(), h = hs.filter(c => dk(c.luc) <= dk(t)).pop(); if (!x || !h) return null;   // v1.7.281: kho đếm cùng ngày (sau xe vài phút) vẫn dùng
+      const kho = ms(h.luc) <= ms(t) ? h.dem + mua.filter(r => r.k > dk(h.luc) && r.k <= dk(t)).reduce((t2, r) => t2 + r.qty, 0) - lay(h.luc, t) : h.dem + lay(t, h.luc);   // kho đếm sau t: cộng lại phần đã lấy ra xe giữa t và lúc đếm kho
+      return x.dem + lay(x.luc, t) + kho; };
     const trongThang = xs.filter(x => dk(x.luc) >= dau && dk(x.luc) <= cuoi), a = trongThang[0], b = trongThang[trongThang.length - 1];
     if (!a || !b || dk(b.luc) === dk(a.luc)) { thieu.push(`${k.ten}: cần ≥ 2 lần đếm ở xe khác ngày trong tháng (đang có ${trongThang.length})`); return; }
     const ta = ton(a.luc), tb = ton(b.luc);
     if (ta == null || tb == null) { thieu.push(`${k.ten}: chưa đếm kho trước ${ngDM(dk(a.luc))}`); return; }
     const dung = ta + mua.filter(r => r.k > dk(a.luc) && r.k <= dk(b.luc)).reduce((t, r) => t + r.qty, 0) - tb, gia = src.gia[k.ma];
     if (!(gia > 0)) { thieu.push(`${k.ten}: chưa có giá mua`); return; }
+    if (dung < -1e-9) { thieu.push(`${k.ten}: tồn ${ngDM(dk(b.luc))} (${soLe(tb)}) cao hơn tồn ${ngDM(dk(a.luc))} (${soLe(ta)}) + mua — có lần đếm sai, cần đếm lại`); return; }
     muc.push({ma:k.ma, ten:k.ten, dv:k.dv, tu:dk(a.luc), den:dk(b.luc), dauKy:ta, cuoiKy:tb, dung, tien:dung * k.quyDoi * gia});
   });
   return {muc, thieu};
@@ -3819,7 +3822,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.280';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.281';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3877,6 +3880,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.281', ngay:'14/11/2026', nd:['Hàng cho kèm theo kho thực: số kho đếm cùng ngày với lần đếm xe (kể cả đếm sau vài phút) được ghép đúng; tồn cuối cao hơn đầu kỳ + mua (đếm sai) thì báo cần đếm lại, không đưa vào PNL. Thu chi tính hàng cho kèm & bao bì phụ cùng cách PNL.']},
   {v:'v1.7.280', ngay:'14/11/2026', nd:['PNL: dòng "Hàng cho kèm & bao bì phụ" — từ T11 ly trà / trà sâm dứa / bịch trà tính theo KHO THỰC (tồn xe + kho lần đếm xe đầu tháng + mua − tồn lần đếm mới nhất, chia theo ly bán), báo rõ mục nào còn thiếu số đếm; bao bì phụ không có trong công thức (giấy chống tràn, hũ xốt, túi đựng ly) tính theo tiền mua.', 'Còn treo: đóng các mục chủ đã chốt 14/11 — giá siro / cà phê phin theo giá thực mua, quy đổi ly hồng 50 cái/cây (bao 500), bọc đá 500 cái/kg, sữa đặc 1.000 ml/hộp, ly 900 đ gồm nắp, kem muối 33.000 đ/hộp, P-24 giữ cách hiện tại.']},
   {v:'v1.7.279', ngay:'14/11/2026', nd:['Đồng bộ bot @264 (botm-v1): giỏ hàng chỉ còn 1 nút ✅ Chốt đơn, tin xác nhận / tin group không ghi TM / CK (TM, CK chốt cuối ca); chữ hướng dẫn ở Hôm nay sửa theo.']},
   {v:'v1.7.278', ngay:'14/11/2026', nd:['Hôm nay · Đơn trong kỳ / Đơn mới nhất: bỏ chip 💵 TM / 🏦 CK (TM, CK chỉ chốt cuối ca nên chip theo đơn dễ sai); vẫn giữ chip đơn app be / Xanh SM.']},
