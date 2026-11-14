@@ -387,9 +387,23 @@ th{font-size:12.5px;font-weight:600;letter-spacing:.05em}
 .side #verChip{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin:5px 0 6px;padding:3px 11px;border-radius:99px;background:var(--brand);color:var(--brand-ink);font-weight:700;letter-spacing:.04em;text-decoration:none!important;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:filter .15s}   /* v1.7.108: chip phiên bản nổi bật */
 .tlh{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;margin:14px 0 8px;color:var(--brand)}   /* v1.7.110: tab Tài liệu */
 .st{display:grid;gap:2px}   /* v1.7.187: sổ tay nhân viên (tab Nhân sự) */
-.st details{border-top:1px solid var(--line);padding:7px 0 3px}
+.st details{padding:4px 0}
 .st details:first-child{border-top:0;padding-top:0}
-.st summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:14.5px;color:var(--ink);padding:2px 0}
+.st summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:0 -2px;border-radius:10px;background:var(--surface-2);border-left:4px solid var(--brand)}   /* v1.7.265: tiêu đề mục nổi bật, nút mũi tên to + chip */
+.st summary::-webkit-details-marker{display:none}
+.st summary::marker{content:''}
+.st summary:hover{background:var(--beige)}
+.st summary .mt{font-family:var(--f-display);font-weight:800;font-size:17px;letter-spacing:.01em;color:var(--ink);line-height:1.25}
+.st summary .mc{display:inline-flex;gap:5px;flex-wrap:wrap}
+.st .mchip{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:99px;white-space:nowrap;border:1px solid transparent}
+.st .mchip.qt{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.st .mchip.hd{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+.st .mchip.nd{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+.st summary .mx{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--brand)}
+.st summary .mx b{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--brand);color:var(--brand-ink);font-size:15px;transition:transform .2s}
+.st details[open]>summary .mx b{transform:rotate(180deg)}
+.st details[open]>summary .mx .x1, .st details:not([open])>summary .mx .x2{display:none}
+.st details[open]>summary{border-radius:10px 10px 0 0}
 .st ol,.st ul{margin:6px 0;padding-left:22px;display:grid;gap:5px;font-size:13.5px;line-height:1.5;max-width:110ch}
 .st h4{margin:10px 0 0;font-family:var(--f-display);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--brand)}
 .st .qt{display:inline-block;font-size:10px;font-weight:700;padding:0 6px;border-radius:99px;background:var(--brand);color:var(--surface);margin-left:4px;vertical-align:1px;white-space:nowrap}
@@ -3747,7 +3761,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.264';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.265';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3805,6 +3819,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.265', ngay:'14/11/2026', nd:['Sổ tay: mọi mục đóng sẵn khi mở app — bấm vào tiêu đề để xem, bấm lần nữa để thu gọn.', 'Tiêu đề mục to, có nền và viền màu cho dễ thấy; nút mũi tên to hơn kèm chữ “Bấm để xem” (mở ra đổi thành “Thu gọn”).', 'Chip theo mục: ⚠ Quan trọng (đỏ) · ⭐ Hay dùng (xanh) · 📖 Nên đọc (vàng).']},
   {v:'v1.7.264', ngay:'14/11/2026', nd:['Cà phê phin pha 135 g bột cho 300 ml cốt (trước 150 g) từ 15/11: ly phin M 18 g (trước 21 g), Phindi 6,75 g (trước 7,5 g) — ngang lượng bột ly cà phê máy. Ly bán tới hết 14/11 vẫn tính định lượng cũ.', 'Lịch định lượng cũ có thêm cột Chỉ món (Sheet Giá vốn ly cột M, bot, dashboard): một nguyên liệu có thể có lượng cũ khác nhau theo món.', 'Sổ tay — cách pha phin mới: 135 g bột (≈ 400 ml đong ly), chế 200 ml nước sôi ủ 5 phút, rót thêm 330–350 ml → 300 ml cốt.']},
   {v:'v1.7.263', ngay:'14/11/2026', nd:['Hao hụt tính CỘNG DỒN từ đầu cho mọi nguyên liệu: dùng thật = tổng mua − tồn (xe + kho theo lần đếm mới nhất) − dùng nội bộ, so với công thức × ly bán — vì đếm xe dễ lệch, cộng từng kỳ xe sẽ dồn sai.', 'Kiểm chứng (cột Hao hụt thật) và tab Kho (chú thích dưới bảng kiểm) lấy số cộng dồn thay cho tổng các kỳ xe; cảnh báo bỏ báo theo 1 kỳ xe lẻ, chỉ báo khi cộng dồn hụt > 10% và ≥ 20.000 đ hoặc kỳ kho lệch.', 'Tab Hao hụt: ô Hụt ở xe từng kỳ thành số tham khảo; bot /haohut cùng cách đọc (mục 1 là số chính).']},
   {v:'v1.7.262', ngay:'14/11/2026', nd:['Chương trình đơn (bot km-v1): mua 5 tặng 1 (gõ tang + món, ly tặng 0đ) và mua 3 free upsize (gõ up + món, công thức L giá M) — mỗi đơn 1 chương trình, T7/CN đồng giá không áp.', 'Bán hàng — dòng tóm tắt số ly tặng / free upsize trong kỳ; đơn có chip 🎁 tặng, chip L free / L tặng; ly tặng không bị báo lệch giá menu.', 'Sổ tay mục 6 + câu thi Lên bậc thêm 2 chương trình.']},
@@ -5338,12 +5353,19 @@ function renderDaDoc(){
       + dong.map(x => '<tr><td>' + esc(x.ten) + '</td><td>' + (x.moi ? '<span class="pill ok">✓ ' + ddLuc(x.moi) + '</span>' : '<span class="pill warn">chưa xác nhận</span>') + '</td><td>'
         + (x.cu && !x.moi ? 'bản ' + esc(x.cu[3]) + ' · ' + ddLuc(x.cu) : '—') + '</td></tr>').join('') + '</tbody></table></div>' : '');
 }
+/* v1.7.265 (chủ 14/11): chip cho từng mục Sổ tay — qt Quan trọng · hd Hay dùng · nd Nên đọc (khoá = tiêu đề mục y như trong muc()) */
+const MUC_CHIP_TEN = {qt:'⚠ Quan trọng', hd:'⭐ Hay dùng', nd:'📖 Nên đọc'};
+const MUC_CHIP = {
+  'I. Thời gian làm việc':'qt', 'II. Quy trình bắt buộc mỗi ca':'qt nd', 'III. Vi phạm & bảo quản tài sản':'qt', 'IV. Tăng lương & thâm niên':'nd', 'V. Cam kết':'nd',
+  '1. Lương giờ':'nd', '2. Thâm niên (cộng dồn giờ đã làm, không reset)':'nd', '3. Thưởng chuyên cần':'qt', '4. Trả lương · thưởng · phạt':'nd', '5. Đăng ký ca':'hd', '6. Bán hàng tại quầy':'qt hd',
+  'Sơ chế':'hd', 'Tồn tối thiểu trên xe (đếm đầu ca)':'hd', 'Đầu ca':'qt hd', 'Trong ca':'hd', 'Cuối ca (10:00 bắt đầu dọn · 10:30 xong)':'qt hd', 'Cuối tuần':'nd', 'Lệnh bot hay dùng':'hd'
+};
 let _soTay = false;
 function renderSoTay(){
   if (_soTay) return; _soTay = true;
   renderLs();
   const d = n => n.toLocaleString('vi-VN') + 'đ', QT = '<span class="qt">quan trọng</span>';
-  const li = a => a.map(x => '<li>' + x + '</li>').join(''), muc = (t, body, mo) => '<details' + (mo ? ' open' : '') + '><summary>' + t + '</summary>' + body + '</details>';
+  const li = a => a.map(x => '<li>' + x + '</li>').join(''), muc = (t, body) => '<details><summary><span class="mt">' + t + '</span><span class="mc">' + (MUC_CHIP[t] || '').split(' ').filter(Boolean).map(c => '<span class="mchip ' + c + '">' + MUC_CHIP_TEN[c] + '</span>').join('') + '</span><span class="mx"><span class="x1">Bấm để xem</span><span class="x2">Thu gọn</span><b aria-hidden="true">▼</b></span></summary>' + body + '</details>';   // v1.7.265: mọi mục đóng sẵn khi mở app
   const CC = CHUYEN_CAN, thuDG = DONG_GIA_TUAN.thu.map(t => t === 0 ? 'CN' : 'T' + (t + 1)).join(', ');
   $('hrNq').innerHTML =
     muc('I. Thời gian làm việc', '<ol>' + li([
