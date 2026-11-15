@@ -3841,7 +3841,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.288';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.289';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3899,6 +3899,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.289', ngay:'16/11/2026', nd:['Sổ tay · lệnh /xe (bot @273–274): nhóm 📦 Nguyên liệu khác thêm ống hút Phindi, bịch đá, túi đựng trà, thạch cà phê, siro, khăn giấy + dòng kho hết thì báo chủ mua ngay; /xe gõ được cả trong group.']},
   {v:'v1.7.288', ngay:'16/11/2026', nd:['Sổ tay: lệnh /xe mới (bot @272 xequan-v2) — chia ⭐ Hàng quan trọng theo tối thiểu Checklist xe (cà phê hạt 2 kg, cà phê bột 1 hộp ước theo số bán, ly 100, sữa tươi 2, sữa đặc 2) và 📦 Nguyên liệu khác (ống hút, túi quai T, ly trà) nhắc chung; món khác tạm ẩn, xem /kho.']},
   {v:'v1.7.287', ngay:'15/11/2026', nd:['Sổ tay: thêm lệnh /xe (bot @270 xelay-v1) — hàng trên xe + gợi ý cần lấy / không cần lấy kho; nhắc ca 21:00 kèm gợi ý này và nhắc fill nước.']},
   {v:'v1.7.286', ngay:'15/11/2026', nd:['Dừng đồng giá 15K cuối tuần (cùng bot @268): CN 15/11 là ngày cuối, từ T7 21/11 T7/CN bán giá menu — nhịp kho, chip 🏷, giá đang bán, kế hoạch đều theo.', 'Thẻ thành viên / tặng / upsize áp cả T7, CN: tỉ lệ thành viên đổi mẫu số sang "ngày giá menu" (gồm T7/CN mới); Sổ tay mục bán hàng + Lịch sử chính sách cập nhật (SO_TAY_BAN 15/11 → nhân viên xác nhận lại); quiz tính tiền không ra câu đồng giá nữa.']},
@@ -5604,7 +5605,7 @@ function renderSoTay(){
       'Mua đá/sữa bằng tiền két: <code>/chiphi 85 đá sữa</code>.',
       'Hết ca: <code>/chotca tm … ck …</code> rồi <code>/checkout</code>.',
       'Quên chấm công: <code>/quencong vào 5:25</code> · <code>/quencong ra 10:35</code> — chủ duyệt.',
-      'Xe: <code>/xe</code> xem hàng trên xe, chia 2 nhóm — ⭐ <b>Hàng quan trọng</b> giữ đủ tối thiểu theo Checklist xe: 🫘 cà phê hạt 2 kg · ☕ cà phê bột 1 hộp (0,5 kg, không đếm: bot ước theo số bán, thiếu thì lấy 1 hộp) · 🥤 ly 100 cái · 🥛 sữa tươi 2 hộp · 🍼 sữa đặc 2 hộp; bot ghi rõ 🔴 cần lấy bao nhiêu / 🟢 đủ rồi khỏi mang thêm. 📦 <b>Nguyên liệu khác</b> (🧃 ống hút · 🛍️ túi quai T · 🧋 ly trà): nhìn nhanh ở xe, sắp hết thì lấy. Món khác tạm ẩn, xem ở <code>/kho</code>. 21:00 hôm trước bot cũng nhắc kèm lịch ca, nhớ fill đầy nước · Kho: <code>/kho</code> xem tồn · <code>/laykho ly 250 cf 4</code> lấy kho ra xe · <code>/kiemxe</code> đếm xe.',
+      'Xe: <code>/xe</code> xem hàng trên xe, chia 2 nhóm — ⭐ <b>Hàng quan trọng</b> giữ đủ tối thiểu theo Checklist xe: 🫘 cà phê hạt 2 kg · ☕ cà phê bột 1 hộp (0,5 kg, không đếm: bot ước theo số bán, thiếu thì lấy 1 hộp) · 🥤 ly 100 cái · 🥛 sữa tươi 2 hộp · 🍼 sữa đặc 2 hộp; bot ghi rõ 🔴 cần lấy bao nhiêu / 🟢 đủ rồi khỏi mang thêm. 📦 <b>Nguyên liệu khác</b> (🧃 ống hút · 🥢 ống hút Phindi · 🛍️ túi quai T · 🧋 ly trà · 🧊 bịch đá · 🍵 túi đựng trà · 🟫 thạch cà phê · 🍯 siro · 🧻 khăn giấy): nhìn nhanh ở xe, sắp hết thì lấy; 🚨 <b>kho cũng hết thì báo chủ mua ngay</b> (nhắn chủ hoặc <code>/note hết …</code>). Gõ <code>/xe</code> được cả trong group. Món khác tạm ẩn, xem ở <code>/kho</code>. 21:00 hôm trước bot cũng nhắc kèm lịch ca, nhớ fill đầy nước · Kho: <code>/kho</code> xem tồn · <code>/laykho ly 250 cf 4</code> lấy kho ra xe · <code>/kiemxe</code> đếm xe.',
       'Của bạn: <code>/canhan</code> · <code>/luong</code> · <code>/vipham</code> · <code>/homnay</code> · <code>/chinhsach</code>.',
       'Ca: <code>/dangkyca</code> · <code>/doica</code> · <code>/lichca</code>. Đủ lệnh: <code>/help</code>.',
     ]) + '</ul>');
