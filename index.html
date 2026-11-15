@@ -980,7 +980,7 @@ html.mcap{background:var(--paper)}
       </div>
     </div>
     <div class="card" id="sec-sales-tv">   <!-- v1.7.110 -->
-      <div class="ct">Thẻ thành viên &amp; mang ly <span class="nt">· thành viên giảm 2.000đ mỗi ly từ T2 đến T6 (T7, CN đồng giá không giảm), gõ tv · khách mang ly / bình giảm 2.000đ mỗi ly mọi ngày, gõ ly cuối đơn · dùng chung được · theo bộ lọc kỳ</span></div>
+      <div class="ct">Thẻ thành viên &amp; mang ly <span class="nt">· thành viên giảm 2.000đ mỗi ly mọi ngày giá menu (ngày đồng giá không giảm), gõ tv · khách mang ly / bình giảm 2.000đ mỗi ly mọi ngày, gõ ly cuối đơn · dùng chung được · theo bộ lọc kỳ</span></div>
       <div id="tvTom" class="cmt"></div>
       <div class="tblwrap" style="max-height:300px"><table id="tTv"></table></div>
     </div>
@@ -1754,9 +1754,10 @@ const dongTieuDeQT = r => /^NGÀY$/i.test(txt(r[0]).trim()) && r.some(c => /ĐÃ
 const ngayDaQua = (open, tk, coDonHomNay) => { const den = coDonHomNay ? tk : addDays(tk, -1); return den < open ? 0 : nDays(open, den); };
 const isPromo = k => k >= PROMO.from && k <= PROMO.to;
 /** v1.7.89 (bot dongia-tuan-v1, chủ chốt 02/11/2026): từ 07/11/2026 T7 + CN tự đồng giá 15K mọi món, T2–T6 giá menu — CÙNG luật DONG_GIA_TUAN của bot. KM_TAY = ngày chủ bật tay /dongia 15 trước đó (31/10–01/11). Dùng cho nhịp dùng kho và kiểm 'đơn lệch giá' */
-const DONG_GIA_TUAN = {tu:'2026-11-07', gia:15000, thu:[6, 0], bo:['2026-11-07']},   // v1.7.144 (bot @217, chủ chốt 08/11): chỉ T7 07/11 KHÔNG đồng giá; CN 08/11 giữ 15K (khách đã trả)
+const DONG_GIA_TUAN = {tu:'2026-11-07', den:'2026-11-15', gia:15000, thu:[6, 0], bo:['2026-11-07']},   /* v1.7.286 (bot dgtuan-tat-v1 @268, chủ chốt 15/11): dừng đồng giá cuối tuần vô thời hạn, CN 15/11 là ngày cuối; mở lại thì đổi den ở bot + đây */   // v1.7.144 (bot @217, chủ chốt 08/11): chỉ T7 07/11 KHÔNG đồng giá; CN 08/11 giữ 15K (khách đã trả)
       KM_TAY = ['2026-10-24', '2026-10-25', '2026-10-31', '2026-11-01'];   /* v1.7.275 (chủ 14/11): T7–CN 24–25/10 cũng đồng giá 15K bật tay */
-const laCuoiTuanKM = k => k >= DONG_GIA_TUAN.tu && !(DONG_GIA_TUAN.bo || []).includes(k) && DONG_GIA_TUAN.thu.includes(new Date(k + 'T12:00:00Z').getUTCDay());
+const laCuoiTuanKM = k => k >= DONG_GIA_TUAN.tu && (!DONG_GIA_TUAN.den || k <= DONG_GIA_TUAN.den) && !(DONG_GIA_TUAN.bo || []).includes(k) && DONG_GIA_TUAN.thu.includes(new Date(k + 'T12:00:00Z').getUTCDay());
+const dgTuanCon = () => !DONG_GIA_TUAN.den || today() <= DONG_GIA_TUAN.den;   // luật đồng giá cuối tuần còn chạy hôm nay?
 const laNgayKM = k => isPromo(k) || laCuoiTuanKM(k);   // nhịp dùng kho: cùng bot nhip7 (không gồm KM_TAY)
 /** v1.7.104 — loại ngày cho phân tích bán: khai trương 10K · đồng giá 15K (T7/CN từ 07/11 + 2 ngày chủ bật tay) · giá thường */
 const laDongGia15 = k => laCuoiTuanKM(k) || KM_TAY.includes(k);
@@ -2020,7 +2021,7 @@ function hepCotDau(){
 /* v1.7.261 (chủ 14/11/2026): mọi "tỉ lệ thành viên" (thẻ KPI, bảng theo ngày, dòng tóm tắt) cùng mẫu số: đơn tại quầy ngày T2–T6, từ ngày có đơn tv đầu tiên.
    Ngày T7/CN hoặc trước ngày phát thẻ → tỉ lệ "—". */
 const tvNgay0 = () => D.orders.reduce((m, o) => o.tv && (!m || o.k < m) ? o.k : m, '');
-const ngayApTv = (k, t0) => !!t0 && k >= t0 && (d => d >= 1 && d <= 5)(fromKey(k).getDay());
+const ngayApTv = (k, t0) => !!t0 && k >= t0 && !laDongGia15(k) && !isPromo(k);   // v1.7.286: cùng bot tvCo — thẻ áp mọi ngày giá menu (T7/CN từ 21/11 hết đồng giá)
 const donApTv = (o, t0) => !laApp(o) && ngayApTv(o.k, t0);
 /* tỉ lệ ly thành viên ÷ ly tại quầy các ngày áp thẻ — null nếu kỳ không có ngày áp */
 const tlTvLy = list => { const t0 = tvNgay0(), l = list.filter(o => donApTv(o, t0)), m = agg(l).ly; return m ? l.filter(o => o.tv).reduce((x, o) => x + o.sl, 0) / m : null; };
@@ -2031,7 +2032,7 @@ function quayLai(list){
 }
 function quayLaiKpi(list, nhan, truoc, nhanTruoc){
   const q = quayLai(list), qt = truoc ? quayLai(truoc) : null;
-  return `<div class="kpi tgt"><span class="lb">🔁 Tỉ lệ khách quay lại · ${esc(nhan)}</span><span class="v">${q.p == null ? '—' : pct(q.p, 1)}</span><span class="s">${q.tong ? `<b>${fmt(q.tv)}</b> đơn thẻ thành viên ÷ ${fmt(q.tong)} đơn tại quầy T2–T6${qt && qt.p != null ? ` · ${dlt(q.p, qt.p)} vs ${esc(nhanTruoc)}` : ''}` : q.tv0 ? 'chưa có đơn T2–T6 trong kỳ (thẻ không áp T7, CN)' : 'chưa có đơn thẻ thành viên (gõ <b>tv</b> trên bot)'}</span></div>`;
+  return `<div class="kpi tgt"><span class="lb">🔁 Tỉ lệ khách quay lại · ${esc(nhan)}</span><span class="v">${q.p == null ? '—' : pct(q.p, 1)}</span><span class="s">${q.tong ? `<b>${fmt(q.tv)}</b> đơn thẻ thành viên ÷ ${fmt(q.tong)} đơn tại quầy ngày giá menu${qt && qt.p != null ? ` · ${dlt(q.p, qt.p)} vs ${esc(nhanTruoc)}` : ''}` : q.tv0 ? 'chưa có đơn ngày giá menu trong kỳ (thẻ không áp ngày đồng giá)' : 'chưa có đơn thẻ thành viên (gõ <b>tv</b> trên bot)'}</span></div>`;
 }
 /* v1.7.229 (chủ 12/11): thẻ Ca & két (Hôm nay) bỏ bảng Chi từ két (quán không chi từ két) → bảng Bán theo người ghi đơn: đơn · ly · doanh thu (đơn bot, gồm app) · giờ tính lương trong ca (cùng gioLuong của biểu đồ Hiệu suất theo giờ lương) · ly / giờ. Theo người nhập đơn (o.nv), không chia đơn khi hai người chung ca. */
 function banTheoNguoi(list, cong){
@@ -2459,7 +2460,7 @@ const dlt = (cur, prev, goodUp = true) => { if (prev == null || !prev || cur == 
 function renderSales(){
   { // v1.7.110: thẻ thành viên — số ly, đơn, tiền đã giảm (2.000đ/ly) trong kỳ
     const L = sel().filter(o => o.tv), A = agg(sel()), ly = L.reduce((x, o) => x + o.sl, 0), don = new Set(L.map(o => o.id)).size, giam = ly * 2000;
-    $('tvTom').innerHTML = ly ? `Kỳ đang xem: <b>${fmt(ly)} ly</b> thành viên (${(p => p == null ? 'kỳ chỉ có T7/CN' : pct(p, 1) + ' số ly tại quầy T2–T6')(tlTvLy(sel()))}) · <b>${fmt(don)} đơn</b> · đã giảm <b>${fmt(giam)} đ</b>.`
+    $('tvTom').innerHTML = ly ? `Kỳ đang xem: <b>${fmt(ly)} ly</b> thành viên (${(p => p == null ? 'kỳ chỉ có ngày đồng giá' : pct(p, 1) + ' số ly tại quầy ngày giá menu')(tlTvLy(sel()))}) · <b>${fmt(don)} đơn</b> · đã giảm <b>${fmt(giam)} đ</b>.`
       : 'Chưa có đơn thành viên trong kỳ (nhân viên gõ <b>tv</b> trên bot, vd "csm tv").';
     { const M = sel().filter(o => o.ml), lyM = M.reduce((x, o) => x + o.sl, 0);   // v1.7.221: mang ly / bình — 1 ly mang theo = −2.000 (gộp N ly vào 1 bình vẫn 1 lần)
       $('tvTom').innerHTML += '<br>' + (lyM ? `🥤 Mang ly / bình: <b>${fmt(lyM)} ly</b> (${pct(A.ly ? lyM / A.ly : 0)} số ly) · <b>${fmt(new Set(M.map(o => o.id)).size)} đơn</b> · đã giảm <b>${fmt(lyM * 2000)} đ</b>.`
@@ -2472,7 +2473,7 @@ function renderSales(){
       return {k, tong, ly:n, ptv:tlTvLy(l), lyM:m, pml:tong ? m / tong : 0, don:new Set(tl.map(o => o.id)).size, dt:tl.reduce((x, o) => x + o.tt, 0), giam:(n + m) * 2000}; });
     const sT = byK.reduce((x, r) => x + r.tong, 0), sM = byK.reduce((x, r) => x + r.lyM, 0);
     table({id:'tTv', rows:byK, sortDefault:{k:'k', d:-1}, total:byK.length ? {tong:sT, ly, ptv:tlTvLy(sel()), lyM:sM, pml:sT ? sM / sT : 0, don, dt:L.reduce((x, o) => x + o.tt, 0), giam:(ly + sM) * 2000} : null, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`},
-      {k:'tong', l:'Tổng ly', r:1, f:fmt}, {k:'ly', l:'Ly thành viên', r:1, f:fmt}, {k:'ptv', l:'Tỉ lệ thành viên (T2–T6, tại quầy)', r:1, f:v => v == null ? '—' : pct(v, 1)}, {k:'lyM', l:'Ly mang ly', r:1, f:fmt}, {k:'pml', l:'Tỉ lệ mang ly', r:1, f:v => pct(v, 1)},
+      {k:'tong', l:'Tổng ly', r:1, f:fmt}, {k:'ly', l:'Ly thành viên', r:1, f:fmt}, {k:'ptv', l:'Tỉ lệ thành viên (ngày giá menu, tại quầy)', r:1, f:v => v == null ? '—' : pct(v, 1)}, {k:'lyM', l:'Ly mang ly', r:1, f:fmt}, {k:'pml', l:'Tỉ lệ mang ly', r:1, f:v => pct(v, 1)},
       {k:'don', l:'Đơn thành viên', r:1, f:fmt}, {k:'dt', l:'Doanh thu thành viên (sau giảm)', r:1, f:fmt}, {k:'giam', l:'Tiền đã giảm (tv + mang ly)', r:1, f:fmt}]}); }
   const L = sel(), A = agg(L);
   const n = rangeDays(S.from, S.to).length;
@@ -2800,7 +2801,7 @@ function tdTvMl(ds, tom, nhanTom){
   let cot = ds.filter(k => by.has(k)).map(k => { const l = by.get(k), tv = sl(l.filter(o => o.tv)), ml = sl(l.filter(o => o.ml)), tong = agg(l).ly; return {k, tv, ml, tong, ptv:tlTvLy(l), pml:tong ? ml / tong : 0, giam:(tv + ml) * 2000}; });
   while (cot.length > 1 && !cot[0].tv && !cot[0].ml) cot.shift();   // v1.7.258: bỏ các ngày đầu chưa có tv / mang ly (trước khi phát thẻ)
   const T = agg(tom), tv = sl(tom.filter(o => o.tv)), ml = sl(tom.filter(o => o.ml));
-  $('tdTvTom').innerHTML = `${nhanTom}: <b>${fmt(tv)} ly thành viên</b> (${(p => p == null ? 'kỳ chỉ có T7/CN' : pct(p, 1) + ' ly tại quầy T2–T6')(tlTvLy(tom))}) · <b>${fmt(ml)} ly mang ly</b> (${pct(T.ly ? ml / T.ly : 0, 1)}) · đã giảm <b>${fmt((tv + ml) * 2000)} đ</b>`;
+  $('tdTvTom').innerHTML = `${nhanTom}: <b>${fmt(tv)} ly thành viên</b> (${(p => p == null ? 'kỳ chỉ có ngày đồng giá' : pct(p, 1) + ' ly tại quầy ngày giá menu')(tlTvLy(tom))}) · <b>${fmt(ml)} ly mang ly</b> (${pct(T.ly ? ml / T.ly : 0, 1)}) · đã giảm <b>${fmt((tv + ml) * 2000)} đ</b>`;
   const c1 = css('--c1'), c2 = css('--c2'), c3 = css('--c3'), k1 = v => v >= 1000 ? Math.round(v / 1000) + 'k' : String(v);
   mk('cTdTv', {type:'bar', data:{labels:cot.map(r => `${thu(r.k)} ${dShort(r.k)}`), datasets:[
       Object.assign({label:'Ly thành viên', data:cot.map(r => r.tv), yAxisID:'y', order:2}, barStyle(c1)),
@@ -2813,7 +2814,7 @@ function tdTvMl(ds, tom, nhanTom){
   /* v1.7.260 (chủ 13/11/2026): bảng số theo ngày ngay dưới biểu đồ (cùng ngày với biểu đồ, cùng cách tính bảng tTv tab Bán hàng — chủ chấp nhận trùng) */
   { const sT = cot.reduce((x, r) => x + r.tong, 0), sV = cot.reduce((x, r) => x + r.tv, 0), sM = cot.reduce((x, r) => x + r.ml, 0);
     table({id:'tTdTv', rows:cot, sortDefault:{k:'k', d:-1}, total:cot.length ? {tong:sT, tv:sV, ptv:tlTvLy(D.orders.filter(o => cot.some(r => r.k === o.k))), ml:sM, pml:sT ? sM / sT : 0, giam:(sV + sM) * 2000} : null, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`},
-      {k:'tong', l:'Tổng ly', r:1, f:fmt}, {k:'tv', l:'Ly thành viên', r:1, f:fmt}, {k:'ptv', l:'Tỉ lệ thành viên (T2–T6, tại quầy)', r:1, f:v => v == null ? '—' : pct(v, 1)}, {k:'ml', l:'Ly mang ly', r:1, f:fmt}, {k:'pml', l:'Tỉ lệ mang ly', r:1, f:v => pct(v, 1)}, {k:'giam', l:'Tiền đã giảm', r:1, f:fmt}]}); }
+      {k:'tong', l:'Tổng ly', r:1, f:fmt}, {k:'tv', l:'Ly thành viên', r:1, f:fmt}, {k:'ptv', l:'Tỉ lệ thành viên (ngày giá menu, tại quầy)', r:1, f:v => v == null ? '—' : pct(v, 1)}, {k:'ml', l:'Ly mang ly', r:1, f:fmt}, {k:'pml', l:'Tỉ lệ mang ly', r:1, f:v => pct(v, 1)}, {k:'giam', l:'Tiền đã giảm', r:1, f:fmt}]}); }
   $('lgTdTv').innerHTML = `<span><i style="background:${c1}"></i>Ly thành viên</span><span><i style="background:${c2}"></i>Ly mang ly</span><span><i style="background:${c3}"></i>Tiền đã giảm (đường, trục phải)</span>`;
 }
 function renderTdKy(){
@@ -3840,7 +3841,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.285';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.286';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3898,6 +3899,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.286', ngay:'15/11/2026', nd:['Dừng đồng giá 15K cuối tuần (cùng bot @268): CN 15/11 là ngày cuối, từ T7 21/11 T7/CN bán giá menu — nhịp kho, chip 🏷, giá đang bán, kế hoạch đều theo.', 'Thẻ thành viên / tặng / upsize áp cả T7, CN: tỉ lệ thành viên đổi mẫu số sang "ngày giá menu" (gồm T7/CN mới); Sổ tay mục bán hàng + Lịch sử chính sách cập nhật (SO_TAY_BAN 15/11 → nhân viên xác nhận lại); quiz tính tiền không ra câu đồng giá nữa.']},
   {v:'v1.7.285', ngay:'14/11/2026', nd:['Tab Hao hụt: cà phê phin ưu tiên nhãn "Đã biết lý do" (trước đó hiện "Ít mẫu" vì mới dùng 0,83 kg); mốc đếm xe quá 7 ngày ghi "mốc cũ" (rê chuột xem số ngày).']},
   {v:'v1.7.284', ngay:'14/11/2026', nd:['Tab Hao hụt: mục dùng theo công thức chưa tới 1 đơn vị mua (siro, matcha, thạch…) ghi "Ít mẫu"; mục hụt quá 5% mà lần đếm xe làm mốc đã quá 7 ngày ghi "Cần đếm lại" — không báo Đáng lo nữa, Tổng quan chỉ nhắc đếm lại xe.', 'Cà phê phin (mẻ pha sẵn dư, chủ đã chấp nhận) ghi "Đã biết lý do", không đẩy cảnh báo Tổng quan mỗi ngày.', 'Ô KPI chính chỉ tính tiền hụt VƯỢT mức hao hụt đã cộng vào giá vốn (5%; đơn vị theo ly 0%), thêm cột "Vượt mức giá vốn"; phần hụt trong mức ghi riêng.', 'Bảng "Theo người đứng ca" ghi rõ tham khảo (đếm xe ước bằng mắt) và gập sẵn. Số cộng dồn không đổi, bot /haohut giữ nguyên.']},
   {v:'v1.7.283', ngay:'14/11/2026', nd:['Sheet Tổng hợp cùng lãi dashboard: khi chủ mở dashboard, số hàng cho kèm (T11+ theo kho thực) + bao bì phụ từng tháng được gửi về tab ChoKemDash của Sheet; ô giá vốn (O13) các tab Chi tháng đọc tab này, nên lãi tháng trên Sheet = lãi dashboard.']},
@@ -4493,6 +4495,7 @@ function tuKiem(){
       ok('Chủ quán từ 01/11/2026: đủ 7 ca vẫn không có thưởng chuyên cần · nhân viên cùng chuỗi vẫn có', r.c.thuong.length === 0 && r.c.chuoi === 0 && r.n.thuong.length === 1, `chủ ${r.c.thuong.length} · nv ${r.n.thuong.length}`); }
     // 72. v1.7.89 — đồng giá cuối tuần: T7/CN từ 07/11/2026 là ngày KM (07/11 T7, 08/11 CN), T2–T6 không; trước 07/11 không
     ok('Đồng giá cuối tuần (bot dongia-tuan-v1 · @216): 14/11 T7 + 15/11 CN là ngày KM · 08/11 CN vẫn đồng giá · 07/11 bỏ (chủ chốt 08/11) · 09/11 T2 và 06/11 T6 không · 31/10 T7 chưa (chưa có luật tuần)', laNgayKM('2026-11-14') && laNgayKM('2026-11-15') && !laNgayKM('2026-11-07') && laNgayKM('2026-11-08') && !laNgayKM('2026-11-09') && !laNgayKM('2026-11-06') && !laNgayKM('2026-10-31'));
+    ok('Hết đồng giá cuối tuần (bot dgtuan-tat-v1 @268, chủ chốt 15/11): CN 15/11 còn 15K · T7 21/11, CN 22/11 giá menu và thẻ thành viên áp được', laNgayKM('2026-11-15') && !laNgayKM('2026-11-21') && !laNgayKM('2026-11-22') && ngayApTv('2026-11-22', '2026-11-03') && !ngayApTv('2026-11-15', '2026-11-03'));
     // 85. v1.7.130 — phút tính lương = caCong_ bot (ot-ra-v1): từ 01/11 chỉ cộng phút vào sớm (≤ 30), về muộn không trả; trước 01/11 OT vào sớm + về muộn ≤ 30; ca có ra + cột J của Sheet thì khớp
     { const caS = {ma:'S', bd:'05:30', kt:'10:30'}, d = (k, g) => new Date(k + 'T' + g + ':00'), pl = (k, a, b) => phutLuongCore(k, d(k, a), d(k, b), caS);
       const a = pl('2026-11-03', '05:28', '10:46'), b = pl('2026-11-05', '05:15', '10:58'), c0 = pl('2026-11-05', '04:50', '10:30'), e = pl('2026-11-05', '05:45', '11:20'), o = pl('2026-10-20', '05:20', '10:55'), n0 = phutLuongCore('2026-11-05', d('2026-11-05', '05:00'), d('2026-11-05', '06:10'), null);
@@ -5017,7 +5020,7 @@ const TAI_LIEU = [
   {nhom:'Pha chế & bán hàng', ten:'Sticker tròn: thân thiết −2K', mo:'Ø 10 cm dán standee vòm cạnh BEST SELLER · khách hàng thân thiết giảm 2K mỗi ly, T2–T6 (trừ T7, CN)', ngay:'03/11/2026', anh:'sticker-than-thiet-2K.png', file:[['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf'], ['PDF A4 (−2K & +5K)', 'sticker-tron_A4.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Sticker tròn: size lớn +5K', mo:'Ø 10 cm dán standee vòm bên trái nhãn “Giá chỉ từ 15K” · size L 500 ml thêm 5K', ngay:'03/11/2026', anh:'sticker-size-lon-5K.png', file:[['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf'], ['PDF A4 (−2K & +5K)', 'sticker-tron_A4.pdf']]},
   {nhom:'Pha chế & bán hàng', ten:'Sticker tròn: mua 5 tặng 1', mo:'Ø 10 cm dán standee vòm bên phải nhãn “Giá chỉ từ 15K” · mua 5 ly trong cùng 1 đơn tặng 1 món tự chọn', ngay:'03/11/2026', anh:'sticker-mua-5-tang-1.png', file:[['PDF A4 bộ dán standee (3 loại)', 'sticker-tron_A4_bo-dan-standee.pdf']]},
-  {nhom:'Pha chế & bán hàng', ten:'Tờ dán đồng giá 15K', mo:'Cuối tuần T7, CN đồng giá 15K · tờ dán 40 × 45 cm lên bảng giá', ngay:'02/11/2026', anh:'to-dan-dong-gia-15K.png', file:[['PDF khổ A2', 'to-dan-dong-gia-15K.pdf']]},
+  {nhom:'Pha chế & bán hàng', ten:'Tờ dán đồng giá 15K', mo:'ĐÃ DỪNG từ T7 21/11/2026 (gỡ khỏi bảng giá) · cuối tuần T7, CN đồng giá 15K · tờ dán 40 × 45 cm lên bảng giá', ngay:'02/11/2026', anh:'to-dan-dong-gia-15K.png', file:[['PDF khổ A2', 'to-dan-dong-gia-15K.pdf']]},
   {nhom:'Ấn phẩm xe', ten:'Setup mẫu', mo:'Xe 100 × 60 × 92 cm gắn khung biển tên, bảng 3 món, menu treo hông, QR, dù kẹp xe', ngay:'03/10/2026', anh:'setup-mau.png'},
   {nhom:'Ấn phẩm xe', ten:'Xe, dù và bảng', mo:'Mô phỏng xe Take-away Inox kèm dù đứng, bảng giá và bảng cà phê muối · tỉ lệ thật', ngay:'03/10/2026', anh:'xe-du-va-bang.png'},
   {nhom:'Ấn phẩm xe', ten:'Bảng 3 món trên mặt bàn', mo:'Cà phê muối 18K · Bạc xỉu 18K · Cà phê sữa máy 17K', ngay:'03/10/2026', anh:'bang-3-mon-mat-ban.png'},
@@ -5087,7 +5090,7 @@ const SO_CHE_IN = [
 const mlCfIn = t => { const m = /(\d+(?:,\d+)?) ml cf/.exec(t); return m ? +m[1].replace(',', '.') : null; };
 /* v1.7.188 — xác nhận đã đọc (dadoc-v1, Dashboard.gs): nhân viên tick + bấm → server ghi tab DaDocNoiQuy [lúc, tên đăng nhập, tên, bản].
    Nhân viên nhận lại dòng của mình, chủ nhận tất cả (res.dd). Sửa nội dung Nội quy / Chính sách thì đổi SO_TAY_BAN → mọi người phải xác nhận lại. */
-const SO_TAY_BAN = '14/11/2026';   // 14/11: mua 5 tặng 1 (tang) + mua 3 free upsize (up), mỗi đơn 1 chương trình · 13/11: thi Lên bậc từ L3 Gold · 12/11: trừ tiền trễ quá 30p + giờ dọn quầy → nhân viên xác nhận lại
+const SO_TAY_BAN = '15/11/2026';   // 15/11: dừng đồng giá 15K cuối tuần, tv / tặng / upsize áp cả T7, CN · 14/11: mua 5 tặng 1 (tang) + mua 3 free upsize (up), mỗi đơn 1 chương trình · 13/11: thi Lên bậc từ L3 Gold · 12/11: trừ tiền trễ quá 30p + giờ dọn quầy → nhân viên xác nhận lại
 let DD = [];
 const ddLuc = r => { const d = toDate(r[0]); return d ? d.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}) : esc(r[0]); };
 function renderSt(){ renderSoTay(); renderDaDoc(); renderQuizLs(); renderDanhBa(); }
@@ -5096,6 +5099,7 @@ const ANH_CT = {'Cà phê đen máy':'ca-phe-den-may', 'Cà phê sữa máy':'ca
   'Cacao latte':'cacao-latte', 'Matcha latte':'matcha-latte', 'Matcha coffee':'matcha-coffee', 'Trà sữa gạo rang':'tra-sua-gao-rang', 'Phindi':'phindi-hanh-nhan'};   // ảnh trong tai-lieu/mon (v1.7.191: 128×128 cắt từ ảnh vuông 1:1 nguyên ly ở 05_Anh mon - anh ly/31_anh-mon-1x1; cà phê phin dùng ảnh cà phê máy)
 /* Lịch sử thay đổi chính sách (nguồn: chú thích hằng trong bot + bộ nhớ chốt của chủ). Thêm bản mới lên ĐẦU; đổi nội quy / chính sách thì tăng SO_TAY_BAN. */
 const LS_CS = [
+  {ngay:'15/11/2026', nd:['Dừng đồng giá 15K cuối tuần (CN 15/11 là ngày cuối): từ T7 21/11, T7 và CN bán giá menu như ngày thường; thẻ thành viên, mua 5 tặng 1, mua 3 free upsize áp cả T7, CN. Khi mở lại chủ sẽ báo.']},
   {ngay:'13/11/2026', nd:['Lên bậc L3 🥇 Gold trở lên phải thi đạt bài Lên bậc: 20 câu, mỗi câu 1 phút (hết giờ tính sai), đúng từ 14/20 (70%). Tạm 1 bài chung cho các bậc từ Gold.']},
   {ngay:'12/11/2026', nd:['Check-in trễ quá 30 phút (ca 05:30 → sau 06:00): trừ 50% lương 1 giờ (căn bản + thâm niên), bot tự trừ vào tiền công và phiếu lương.', 'Cuối ca: 10:00 bắt đầu dọn quầy và /kiemxe, 10:30 dọn xong.']},
   {ngay:'11/11/2026', nd:['Dashboard có tab Sổ tay (nội quy, chính sách, công thức, checklist); nhân viên xác nhận đã đọc ngay trên dashboard.']},
@@ -5170,7 +5174,7 @@ function qzDonGia(m, o, bo){
   return Math.max(0, g);
 }
 function qzCauTien(menu, soDong, muc){
-  const ct = Math.random() < 0.4, thu = ct ? qzTron(['Thứ 7', 'Chủ nhật'])[0] : qzTron(['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'])[0];
+  const ct = dgTuanCon() && Math.random() < 0.4, thu = ct ? qzTron(['Thứ 7', 'Chủ nhật'])[0] : qzTron(['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'].concat(dgTuanCon() ? [] : ['Thứ 7', 'Chủ nhật']))[0];   // v1.7.286: hết đồng giá cuối tuần thì không ra câu đồng giá
   const tv = Math.random() < (ct ? 0.6 : 0.5), ly = Math.random() < 0.45;
   const dong = qzTron(menu).slice(0, soDong).map(m => ({m, n:soDong > 1 && Math.random() < 0.5 ? 2 : 1, L:Math.random() < 0.5}));
   if (muc === 'tb' && !tv && !ly && !ct && !dong[0].L) dong[0].L = true;
@@ -5577,11 +5581,11 @@ function renderSoTay(){
     ]) + '</ul>') +
     muc('6. Bán hàng tại quầy', '<ul>' + li([
       '<b>Size L</b> (500 ml): +' + d(CS_BOT.sizeL) + '/ly — gõ <code>L</code> sau món, vd <code>csp L</code>.',
-      '<b>' + thuDG + ' đồng giá ' + d(DONG_GIA_TUAN.gia) + '</b> (từ ' + dShort(DONG_GIA_TUAN.tu) + ') — bot tự tính giá.',
-      '<b>Thẻ thành viên: −' + d(CS_BOT.thanhVien) + '/ly</b>, chỉ T2–T6 (T7, CN đồng giá không áp dụng). Gõ <code>tv</code> trong đơn.',
-      '<b>Mua 5 tặng 1</b> (T2–T6): mỗi 5 ly trả tiền trong 1 đơn tặng 1 ly tự chọn size nhỏ — gõ <code>tang</code> + món, vd <code>5 csm tang bx</code>; khách muốn ly tặng size L thì <code>tang bx l</code> (+' + d(CS_BOT.sizeL) + '). Ly tặng không giảm thành viên / mang ly.',
-      '<b>Mua 3 free upsize</b> (T2–T6): đơn từ 3 ly, 1 ly được làm size L giá size nhỏ — gõ <code>up</code> + món đã có trong đơn, vd <code>csm 2 cdm up cdm</code>.',
-      'Mỗi đơn chỉ 1 trong 2 chương trình (đủ 5 ly thì tặng). T7, CN đồng giá, đơn app, đơn kai / lẩu không áp dụng — bot tự tính, có gõ cũng không giảm.',
+      (dgTuanCon() ? '<b>' + thuDG + ' đồng giá ' + d(DONG_GIA_TUAN.gia) + '</b> (từ ' + dShort(DONG_GIA_TUAN.tu) + ') — bot tự tính giá.' : '<b>Không còn đồng giá cuối tuần</b> (dừng từ ' + dShort(addDays(DONG_GIA_TUAN.den, 1)) + ', khi mở lại chủ sẽ báo): T7, CN bán giá menu như ngày thường — bot tự tính giá.'),
+      '<b>Thẻ thành viên: −' + d(CS_BOT.thanhVien) + '/ly</b>, mọi ngày giá menu (ngày đồng giá không áp dụng). Gõ <code>tv</code> trong đơn.',
+      '<b>Mua 5 tặng 1</b>: mỗi 5 ly trả tiền trong 1 đơn tặng 1 ly tự chọn size nhỏ — gõ <code>tang</code> + món, vd <code>5 csm tang bx</code>; khách muốn ly tặng size L thì <code>tang bx l</code> (+' + d(CS_BOT.sizeL) + '). Ly tặng không giảm thành viên / mang ly.',
+      '<b>Mua 3 free upsize</b>: đơn từ 3 ly, 1 ly được làm size L giá size nhỏ — gõ <code>up</code> + món đã có trong đơn, vd <code>csm 2 cdm up cdm</code>.',
+      'Mỗi đơn chỉ 1 trong 2 chương trình (đủ 5 ly thì tặng). Ngày đồng giá, đơn app, đơn kai / lẩu không áp dụng — bot tự tính, có gõ cũng không giảm.',
       '<b>Đơn app</b> (be, Xanh SM): ghi đúng loại app khi bấm đơn; tiền app <b>không</b> vào két, không tính trong /chotca.',
       'Gợi ý món, size L, giờ đông: thẻ Gợi ý bán hàng ở tab Báo cáo.',
     ]) + '</ul>');
@@ -5947,7 +5951,7 @@ function renderQo(){
   const bat = rows.filter(r => r.ban).length, coTat = rows.filter(r => r.tat).length, nHoc = rows.reduce((t, r) => t + (r.hoc ? r.hoc.split(', ').length : 0), 0);
   $('qoMaNote').innerHTML = `${bat} món đang bán, ${coTat} món có cột Gõ tắt, bot đã tự học ${nHoc} cụm (cột "Bot đã học", viền đứt: nhân viên bấm cùng món 3 lần liền khi bot hỏi; tab GoTatHoc do bot ghi, chủ xoá bằng <code>/gotat xoa &lt;cụm&gt;</code>). Chủ điền hoặc sửa cách gõ tắt ở tab Menu (cột F, cách nhau dấu phẩy); bảng này tự cập nhật theo Sheet sau khi tải lại dữ liệu. Món không có gõ tắt vẫn gõ được bằng mã hoặc tên.`;
   table({id:'tQoVd', rows:QO_VI_DU.map(([go, kq], i) => ({i, go, kq})), sortDefault:{k:'i', d:1}, cols:[{k:'go', l:'Gõ', f:v => `<code>${esc(v)}</code>`}, {k:'kq', l:'Bot hiểu'}]});
-  $('qoGia').innerHTML = `<b>Đợt khai trương (tới hết ${dShort(PROMO.to)}):</b> đồng giá ${fmt(PROMO_GIA)}, riêng matcha latte ${fmt(KM_RIENG.mt)}, matcha latte muối ${fmt(KM_RIENG.mtm)}, Phindi 4 vị ${fmt(KM_RIENG.pdh)}. <b>Từ ${dShort(addDays(PROMO.to, 1))}:</b> bán đúng giá tab Menu. <b>Từ ${dShort(DONG_GIA_TUAN.tu)}:</b> T7 và CN tự đồng giá ${fmt(DONG_GIA_TUAN.gia)} cho mọi món, T2–T6 giá tab Menu. Bot tự áp giá theo ngày, nhân viên chỉ cần gõ món; muốn bật đồng giá bằng tay thì chủ dùng <code>/dongia</code> (tắt bằng <code>/dongia 0</code>).`;
+  $('qoGia').innerHTML = `<b>Đợt khai trương (tới hết ${dShort(PROMO.to)}):</b> đồng giá ${fmt(PROMO_GIA)}, riêng matcha latte ${fmt(KM_RIENG.mt)}, matcha latte muối ${fmt(KM_RIENG.mtm)}, Phindi 4 vị ${fmt(KM_RIENG.pdh)}. <b>Từ ${dShort(addDays(PROMO.to, 1))}:</b> bán đúng giá tab Menu. <b>Từ ${dShort(DONG_GIA_TUAN.tu)}:</b> T7 và CN tự đồng giá ${fmt(DONG_GIA_TUAN.gia)} cho mọi món, T2–T6 giá tab Menu.${DONG_GIA_TUAN.den ? ` <b>Từ ${dShort(addDays(DONG_GIA_TUAN.den, 1))}:</b> dừng đồng giá cuối tuần, T7 và CN cũng bán giá tab Menu (khi mở lại chủ sẽ báo).` : ''} Bot tự áp giá theo ngày, nhân viên chỉ cần gõ món; muốn bật đồng giá bằng tay thì chủ dùng <code>/dongia</code> (tắt bằng <code>/dongia 0</code>).`;
 }
 
 /* ============ quy trình vận hành (v1.7.16) ============
