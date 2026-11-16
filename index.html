@@ -1614,13 +1614,16 @@ const laChu = ten => !!(D && D.chuTen && D.chuTen.has(ten));
  *  trong = phút nằm trong giờ ca; từ OT_RA_BO_TU: chỉ trả thêm phút VÀO SỚM trước giờ bắt đầu ca (tối đa OT_TOI_DA), ở lại sau giờ hết ca không trả;
  *  trước ngày đó: OT = mọi phút ngoài giờ ca (vào sớm + về muộn), tối đa OT_TOI_DA. Không có ca → phút thực. Hàm thuần (bất biến 85). */
 const OT_TOI_DA = 30, OT_RA_BO_TU = '2026-11-01', CA_GIO_CU = {S:{bd:'06:00', kt:'11:00'}}, CS_MOI_TU = '2026-10-16';
-function phutLuongCore(k, vao, ra, ca){
+/* v1.7.293 (bot otduyet-v1 @278, chủ chốt 16/11/2026): ca có ghi chú "duyệt OT … N p/phút" → riêng ca đó OT = vào sớm + về muộn, tối đa N phút (chỉ nâng trần, không cộng thêm N) */
+function otDuyet(ghi){ const m = /duyệt OT\D{0,20}?(\d+)\s*(?:p|phút)/i.exec(String(ghi || '')); return m ? +m[1] : 0; }
+function phutLuongCore(k, vao, ra, ca, duyet){
   const thuc = Math.max(0, Math.floor((ra - vao) / 6e4));
   if (!ca || !ca.bd || !ca.kt) return {phut:thuc, thuc, ot:0, otBo:0};
   const g = hhmm => { const [h, m] = hhmm.split(':').map(Number); return new Date(vao.getFullYear(), vao.getMonth(), vao.getDate(), h, m).getTime(); }, s0 = g(ca.bd), e0 = g(ca.kt);
   const trong = Math.min(thuc, Math.max(0, Math.floor((Math.min(ra.getTime(), e0) - Math.max(vao.getTime(), s0)) / 6e4)));
   let ot, otBo;
-  if (k >= OT_RA_BO_TU){ const som = Math.min(thuc - trong, Math.max(0, Math.floor((Math.min(ra.getTime(), s0) - vao.getTime()) / 6e4))); ot = Math.min(OT_TOI_DA, som); otBo = som - ot; }
+  if (k >= OT_RA_BO_TU && duyet > 0){ ot = Math.min(duyet, thuc - trong); otBo = thuc - trong - ot; }
+  else if (k >= OT_RA_BO_TU){ const som = Math.min(thuc - trong, Math.max(0, Math.floor((Math.min(ra.getTime(), s0) - vao.getTime()) / 6e4))); ot = Math.min(OT_TOI_DA, som); otBo = som - ot; }
   else { ot = Math.min(OT_TOI_DA, thuc - trong); otBo = thuc - trong - ot; }
   return {phut:trong + ot, thuc, ot, otBo};
 }
@@ -1637,14 +1640,14 @@ function caCuaCong(c){
 function gioLuong(c, het){
   if (c.ra && c.phutL != null) return c.phutL / 60;
   const h = het || c.ra; if (!h) return c.gio || 0;
-  return phutLuongCore(c.k, c.vao, h, caCuaCong(c)).phut / 60;
+  return phutLuongCore(c.k, c.vao, h, caCuaCong(c), otDuyet(c.note)).phut / 60;
 }
 /** v1.7.132 (chủ chốt 06/11/2026) — giờ DANH NGHĨA = phút trong giờ ca theo lịch, KHÔNG gồm OT vào sớm / về muộn (= bot c.phut − c.ot = cột J − K); ca sáng đủ = 5 giờ.
  *  Lương/giờ danh nghĩa = Tiền công ÷ giờ danh nghĩa: mỗi giờ ca thực tốn bao nhiêu khi đã cộng OT, phụ cấp. Tiền công 0 (chủ) → không tính. */
 function gioDN(c, het){
   if (c.ra && c.phutL != null) return Math.max(0, c.phutL - (c.otTinh || 0)) / 60;
   const h = het || c.ra; if (!h) return 0;
-  const x = phutLuongCore(c.k, c.vao, h, caCuaCong(c)); return (x.phut - x.ot) / 60;
+  const x = phutLuongCore(c.k, c.vao, h, caCuaCong(c), otDuyet(c.note)); return (x.phut - x.ot) / 60;
 }
 function gioRaTam(c){
   const v = c.vao, mac = new Date(v.getFullYear(), v.getMonth(), v.getDate(), 10, 30);
@@ -3874,7 +3877,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.292';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.293';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3932,6 +3935,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.293', ngay:'16/11/2026', nd:['Lương / chấm công: chủ duyệt OT riêng 1 ca bằng ghi chú ChamCong cột I "duyệt OT … N p" → ca đó tính cả vào sớm lẫn về muộn, tối đa N phút (chỉ nâng trần, không cộng thêm). Lần đầu: Bảo Duy 16/11 tối đa 60p (05:24→11:55: OT 60p, bỏ 31p). Cùng bot otduyet-v1 @278; bất biến 85 thêm ca mẫu này']},
   {v:'v1.7.292', ngay:'16/11/2026', nd:['Tab Hôm nay (xem 1 ngày): khối 🎁 Ưu đãi đã bán thôi lặp bảng theo ngày của tab Bán hàng (chỉ ra 1 dòng) — 1 dòng "ưu đãi đã giảm" so hôm qua / cùng thứ tuần trước tới cùng giờ + bảng từng loại (thẻ TV, mang ly, tặng, upsize, giá Kai / Lẩu, size lớn): ly, % số ly, đơn, tiền giảm, so hôm qua và tuần trước.', 'Xem tuần / tháng ở tab Hôm nay và tab Bán hàng giữ nguyên.']},
   {v:'v1.7.291', ngay:'16/11/2026', nd:['Tab Hôm nay: thẻ Thành viên & mang ly đổi thành "🎁 Ưu đãi đã bán" — dòng tóm tắt + bảng theo ngày y chang tab Bán hàng (dùng chung 1 hàm, theo kỳ đang xem); biểu đồ đếm ly thành viên gộp N ly = N ly.', 'Dòng tổng đổi tên "Tổng quán nhường" → "Ưu đãi đã giảm" (bot cùng chữ).']},
   {v:'v1.7.290', ngay:'16/11/2026', nd:['Tab Bán hàng: thẻ "🎁 Ưu đãi đã bán" — mỗi loại 1 dòng (thẻ thành viên, mang ly, tặng mua 5 tặng 1, free upsize, giá Kai / Lẩu) với số ly, % số ly, số đơn, tiền quán nhường + dòng Tổng quán nhường, size lớn khách trả; cùng cách đếm khối ưu đãi mới của bot (@276: /checkca, tóm tắt 12:00, báo cáo ngày, /tuan).', 'Ly thành viên gộp N ly vào 1 ly nay tính N ly (giảm N × 2.000đ) như bot.']},
@@ -4522,11 +4526,11 @@ function tuKiem(){
     ok('Hết đồng giá cuối tuần (bot dgtuan-tat-v1 @268, chủ chốt 15/11): CN 15/11 còn 15K · T7 21/11, CN 22/11 giá menu và thẻ thành viên áp được', laNgayKM('2026-11-15') && !laNgayKM('2026-11-21') && !laNgayKM('2026-11-22') && ngayApTv('2026-11-22', '2026-11-03') && !ngayApTv('2026-11-15', '2026-11-03'));
     // 85. v1.7.130 — phút tính lương = caCong_ bot (ot-ra-v1): từ 01/11 chỉ cộng phút vào sớm (≤ 30), về muộn không trả; trước 01/11 OT vào sớm + về muộn ≤ 30; ca có ra + cột J của Sheet thì khớp
     { const caS = {ma:'S', bd:'05:30', kt:'10:30'}, d = (k, g) => new Date(k + 'T' + g + ':00'), pl = (k, a, b) => phutLuongCore(k, d(k, a), d(k, b), caS);
-      const a = pl('2026-11-03', '05:28', '10:46'), b = pl('2026-11-05', '05:15', '10:58'), c0 = pl('2026-11-05', '04:50', '10:30'), e = pl('2026-11-05', '05:45', '11:20'), o = pl('2026-10-20', '05:20', '10:55'), n0 = phutLuongCore('2026-11-05', d('2026-11-05', '05:00'), d('2026-11-05', '06:10'), null);
-      const ss = D.cong.filter(c => c.k >= OT_RA_BO_TU && c.ra && c.phutL != null), lech = ss.filter(c => Math.abs(c.phutL - phutLuongCore(c.k, c.vao, c.ra, caCuaCong(c)).phut) > 1);
-      ok('Phút tính lương như bot ot-ra-v1: 03/11 05:28→10:46 = 302 · 05:15→10:58 = 315 · vào 04:50 = 330 (bỏ 10p) · vào trễ 05:45→11:20 = 285 · 20/10 luật cũ 05:20→10:55 = 330 (bỏ 5p) · không có ca = phút thực; ca từ 01/11 trên Sheet cột J khớp',
-        a.phut === 302 && a.ot === 2 && b.phut === 315 && c0.phut === 330 && c0.otBo === 10 && e.phut === 285 && e.ot === 0 && o.phut === 330 && o.otBo === 5 && n0.phut === 70 && !lech.length,
-        `${ss.length} ca từ 01/11 có cột J${lech.length ? ' · LỆCH: ' + lech.map(c => `${c.nv} ${dShort(c.k)} J=${c.phutL} / tính ${phutLuongCore(c.k, c.vao, c.ra, caCuaCong(c)).phut}`).join(', ') : ' · khớp hết'}`); }
+      const a = pl('2026-11-03', '05:28', '10:46'), b = pl('2026-11-05', '05:15', '10:58'), c0 = pl('2026-11-05', '04:50', '10:30'), e = pl('2026-11-05', '05:45', '11:20'), o = pl('2026-10-20', '05:20', '10:55'), n0 = phutLuongCore('2026-11-05', d('2026-11-05', '05:00'), d('2026-11-05', '06:10'), null), dy = phutLuongCore('2026-11-16', d('2026-11-16', '05:24'), d('2026-11-16', '11:55'), caS, otDuyet('Chủ duyệt OT tối đa 60p (16/11)'));
+      const ss = D.cong.filter(c => c.k >= OT_RA_BO_TU && c.ra && c.phutL != null), lech = ss.filter(c => Math.abs(c.phutL - phutLuongCore(c.k, c.vao, c.ra, caCuaCong(c), otDuyet(c.note)).phut) > 1);
+      ok('Phút tính lương như bot ot-ra-v1: 03/11 05:28→10:46 = 302 · 05:15→10:58 = 315 · vào 04:50 = 330 (bỏ 10p) · vào trễ 05:45→11:20 = 285 · 20/10 luật cũ 05:20→10:55 = 330 (bỏ 5p) · không có ca = phút thực · ghi chú "duyệt OT 60p" 05:24→11:55 = 360 (bỏ 31p); ca từ 01/11 trên Sheet cột J khớp',
+        a.phut === 302 && a.ot === 2 && b.phut === 315 && c0.phut === 330 && c0.otBo === 10 && e.phut === 285 && e.ot === 0 && o.phut === 330 && o.otBo === 5 && n0.phut === 70 && dy.phut === 360 && dy.otBo === 31 && !lech.length,
+        `${ss.length} ca từ 01/11 có cột J${lech.length ? ' · LỆCH: ' + lech.map(c => `${c.nv} ${dShort(c.k)} J=${c.phutL} / tính ${phutLuongCore(c.k, c.vao, c.ra, caCuaCong(c), otDuyet(c.note)).phut}`).join(', ') : ' · khớp hết'}`); }
     // 86. v1.7.132 — giờ danh nghĩa = cột J − K (bot c.phut − c.ot): J 301 · K 1 → 5 giờ; ca chưa ra 05:15→10:30 → 5 giờ; vào trễ 05:45 → 4,75 giờ
     { const L0 = D.lich; D.lich = {ca:[{ma:'S', bd:'05:30', kt:'10:30'}], dk:[]};
       try { const k = '2026-11-06', v = g => new Date(k + 'T' + g + ':00'), a = gioDN({k, vao:v('05:28'), ra:v('10:46'), phutL:301, otTinh:1}), b = gioDN({k, vao:v('05:15'), ra:null}, v('10:30')), c = gioDN({k, vao:v('05:45'), ra:v('11:00'), phutL:null});
@@ -5880,7 +5884,7 @@ function renderHr(){
     {k:'dt', l:'DT', r:1, f:fmt}, {k:'phaiCo', l:'Phải có (theo nút 💵 bot)', r:1, f:fmt}, {k:'thucThu', l:'TM thực', r:1, f:fmt}, {k:'ckThuc', l:'CK thực', r:1, f:v => v == null ? '—' : fmt(v)},
     {k:'chenh', l:'Chênh', r:1, f:v => v === 0 ? '<span class="up">khớp</span>' : fmt(v), cls:v => v < 0 ? 'dn' : ''}]});
   const tm = d => d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : '—';
-  table({id:'tCong', rows:C.map(c => { const h = c.ra || gioRaTam(c), x = h && !(c.ra && c.phutL != null) ? phutLuongCore(c.k, c.vao, h, caCuaCong(c)) : null;
+  table({id:'tCong', rows:C.map(c => { const h = c.ra || gioRaTam(c), x = h && !(c.ra && c.phutL != null) ? phutLuongCore(c.k, c.vao, h, caCuaCong(c), otDuyet(c.note)) : null;
     const dn = gioDN(c, h); return Object.assign({}, c, {t:c.vao.getTime(), nv:D.nhanNv(c), gioL:gioLuong(c, h), gioDN:dn, lgDN: c.tien && dn ? (c.tien + (c.ccPb || 0) + (c.tl || 0)) / dn : null, otT:x ? x.ot : c.otTinh, otB:x ? x.otBo : c.otBo, tam:!c.ra}); }), sortDefault:{k:'t', d:-1}, cols:[   // v1.7.42 (Fable 5 T-02)
     {k:'t', l:'Ngày', f:(v, r) => `${thu(r.k)} ${dShort(r.k)}`}, {k:'nv', l:'NV'}, {k:'vao', l:'Vào', f:v => tm(v)}, {k:'ra', l:'Ra', f:v => tm(v)},
     {k:'gio', l:'Giờ', r:1, f:v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:2})},
