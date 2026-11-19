@@ -3878,7 +3878,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.296';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.297';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3936,6 +3936,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.297', ngay:'19/11/2026', nd:['Sửa v1.7.296: cột Sinh nhật (Hồ sơ nhân viên) giờ hiện đúng dd/mm/yyyy — bản trước lỗi biểu thức kiểm ngày nên vẫn hiện chuỗi thô.']},
   {v:'v1.7.296', ngay:'19/11/2026', nd:['Kiểm toàn diện (logic · giao diện · trình bày): Tự kiểm 97/97, không lỗi JS ở 20 tab, không cuộn ngang ở cỡ điện thoại.', 'Nhân sự · Hồ sơ nhân viên: cột Sinh nhật hiện dd/mm/yyyy (trước hiện chuỗi thô D:2006-08-25 00:00:00).', 'Nhân sự · Ai làm ngày nào: ô ca đã xếp (nét đứt) chữ theo màu chủ đề — chế độ tối đọc được.', 'Nút ＋ mở chi tiết trong bảng to hơn trên điện thoại (16 → 28 px).']},
   {v:'v1.7.295', ngay:'19/11/2026', nd:['Tab Nhân sự · Ai làm ngày nào: chọn được cả tháng có lịch sắp tới (vd T12); ngày chưa tới (và hôm nay chưa chấm công) hiện ca đã xếp trong DangKyCa, khung nét đứt, chưa tính vào ngày / giờ / tiền công; ngày nghỉ bán ghi "nghỉ bán".', 'Thêm ô chọn Người (Mọi người / từng nhân viên) → lưới, vắng và bảng tổng chỉ người đó; bảng thêm cột Ca đã xếp sắp tới.']},
   {v:'v1.7.294', ngay:'19/11/2026', nd:['Lịch làm theo đợt: thêm nút Lọc người (Mọi người / từng nhân viên) và Lọc tháng (Từ hôm nay / từng tháng có lịch). Chọn tháng → lưới hiện cả tháng đó (ngày đã qua vẫn lấy chấm công ✓ ✗), các đợt + bảng ngày / giờ tính theo tháng (chuỗi chuyên cần dự kiến vẫn nối từ hôm nay); chọn người → chỉ hiện ô của người đó. Cùng bot lichthang-v1 @288: /lichca thang 12 trong group, chủ nhắn riêng /lichca thang 12 group → gửi lịch tháng vào group']},
@@ -5010,7 +5011,7 @@ function renderHoSo(){
     {k:'dau', l:'Làm từ ngày', f:v => v ? dShort(v) + '/' + v.slice(0, 4) : '—'}, {k:'soCa', l:'Tổng ca', r:1, f:fmt}, {k:'gio', l:'Tổng giờ', r:1, f:v => so(v)},
     {k:'caThang', l:'Ca tháng này', r:1, f:fmt}, {k:'gioThang', l:'Giờ tháng này', r:1, f:v => so(v)},
     {k:'ky', l:'Kỳ lương đang chạy', f:v => esc(v || '—')}, {k:'tam', l:'Lương tạm tính kỳ này', r:1, f:v => v == null ? '—' : `<b>${fmt(v)}</b>`},
-    {k:'tp', l:'Thưởng / phạt tháng này', r:1, f:v => v ? (v > 0 ? '+' : '−') + fmt(Math.abs(v)) : '—', cls:v => v < 0 ? 'dn' : v > 0 ? 'up' : ''}, {k:'sn', l:'Sinh nhật', f:v => (k => /^d{4}-dd-dd$/.test(k) ? `${k.slice(8, 10)}/${k.slice(5, 7)}/${k.slice(0, 4)}` : esc(v || '—'))(v ? dayKey(v) : '')}]});
+    {k:'tp', l:'Thưởng / phạt tháng này', r:1, f:v => v ? (v > 0 ? '+' : '−') + fmt(Math.abs(v)) : '—', cls:v => v < 0 ? 'dn' : v > 0 ? 'up' : ''}, {k:'sn', l:'Sinh nhật', f:v => (k => k.length === 10 && k[4] === '-' ? `${k.slice(8, 10)}/${k.slice(5, 7)}/${k.slice(0, 4)}` : esc(v || '—'))(v ? dayKey(v) : '')}]});
   $('hoSoNote').innerHTML = 'Lương nền, chức vụ, level đặt tay, ngày sinh: chủ sửa ở tab <b>NhanVien</b> của Sheet (hoặc bot /suanv, /sinhnhat). Cột giờ thâm niên, phụ cấp thâm niên, lương/giờ hiện tại, level do bot tự tính. Tổng ca / giờ đếm từ chấm công.';
 }
 /** v1.7.95 — Ai làm ngày nào (chủ nhờ 03/11): lưới tháng T2–CN từ ChamCong, chọn được tháng cũ; ngày đã qua có lịch (DangKyCa OK) mà không chấm công → ✗ vắng */
