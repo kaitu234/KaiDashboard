@@ -157,6 +157,7 @@ details.guide p{margin:4px 0;max-width:110ch}
 .kpi .lb .ki.ki-app{width:auto;padding:0 3px;gap:3px;display:inline-flex;align-items:center;background:#fff}.ki-app .lapp{margin:0;width:18px;height:18px}.ki-app .lapp-w{width:43px}
 .amons .amon{width:22px;height:22px;margin:-2px 3px -2px 0}.amons .amon:last-child{margin-right:7px}
 .dbtn + .amon{margin-left:4px}
+@media (pointer:coarse){.dbtn{width:28px;height:28px;font-size:15px;border-radius:6px}}   /* v1.7.296: nút ＋ trên điện thoại đủ to để bấm (16px → 28px) */
 .amon{width:26px;height:26px;border-radius:7px;object-fit:cover;vertical-align:middle;margin:-3px 8px -3px 0;background:#EAD9BE;box-shadow:0 0 0 1px var(--line)}
 .kpi.main .lb .ki{background:#FFF8EE;box-shadow:0 0 0 1px rgba(255,255,255,.35)}   /* v1.7.223 (chủ 12/11): ô icon trên thẻ nâu nền trắng kem — trước nền mờ tối, icon chìm */
 .kpi.tgt .lb .ki,.kpi.tgt:has(.v.dn) .lb .ki{background:#FFF8EE;box-shadow:0 0 0 1px var(--line)}   /* v1.7.225 (chủ 12/11): ô icon thẻ mục tiêu (%Hoà vốn, %Đạt mục tiêu…) cũng nền trắng kem */
@@ -3877,7 +3878,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.295';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.296';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3935,6 +3936,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.296', ngay:'19/11/2026', nd:['Kiểm toàn diện (logic · giao diện · trình bày): Tự kiểm 97/97, không lỗi JS ở 20 tab, không cuộn ngang ở cỡ điện thoại.', 'Nhân sự · Hồ sơ nhân viên: cột Sinh nhật hiện dd/mm/yyyy (trước hiện chuỗi thô D:2006-08-25 00:00:00).', 'Nhân sự · Ai làm ngày nào: ô ca đã xếp (nét đứt) chữ theo màu chủ đề — chế độ tối đọc được.', 'Nút ＋ mở chi tiết trong bảng to hơn trên điện thoại (16 → 28 px).']},
   {v:'v1.7.295', ngay:'19/11/2026', nd:['Tab Nhân sự · Ai làm ngày nào: chọn được cả tháng có lịch sắp tới (vd T12); ngày chưa tới (và hôm nay chưa chấm công) hiện ca đã xếp trong DangKyCa, khung nét đứt, chưa tính vào ngày / giờ / tiền công; ngày nghỉ bán ghi "nghỉ bán".', 'Thêm ô chọn Người (Mọi người / từng nhân viên) → lưới, vắng và bảng tổng chỉ người đó; bảng thêm cột Ca đã xếp sắp tới.']},
   {v:'v1.7.294', ngay:'19/11/2026', nd:['Lịch làm theo đợt: thêm nút Lọc người (Mọi người / từng nhân viên) và Lọc tháng (Từ hôm nay / từng tháng có lịch). Chọn tháng → lưới hiện cả tháng đó (ngày đã qua vẫn lấy chấm công ✓ ✗), các đợt + bảng ngày / giờ tính theo tháng (chuỗi chuyên cần dự kiến vẫn nối từ hôm nay); chọn người → chỉ hiện ô của người đó. Cùng bot lichthang-v1 @288: /lichca thang 12 trong group, chủ nhắn riêng /lichca thang 12 group → gửi lịch tháng vào group']},
   {v:'v1.7.293', ngay:'16/11/2026', nd:['Lương / chấm công: chủ duyệt OT riêng 1 ca bằng ghi chú ChamCong cột I "duyệt OT … N p" → ca đó tính cả vào sớm lẫn về muộn, tối đa N phút (chỉ nâng trần, không cộng thêm). Lần đầu: Bảo Duy 16/11 tối đa 60p (05:24→11:55: OT 60p, bỏ 31p). Cùng bot otduyet-v1 @278; bất biến 85 thêm ca mẫu này']},
@@ -5008,7 +5010,7 @@ function renderHoSo(){
     {k:'dau', l:'Làm từ ngày', f:v => v ? dShort(v) + '/' + v.slice(0, 4) : '—'}, {k:'soCa', l:'Tổng ca', r:1, f:fmt}, {k:'gio', l:'Tổng giờ', r:1, f:v => so(v)},
     {k:'caThang', l:'Ca tháng này', r:1, f:fmt}, {k:'gioThang', l:'Giờ tháng này', r:1, f:v => so(v)},
     {k:'ky', l:'Kỳ lương đang chạy', f:v => esc(v || '—')}, {k:'tam', l:'Lương tạm tính kỳ này', r:1, f:v => v == null ? '—' : `<b>${fmt(v)}</b>`},
-    {k:'tp', l:'Thưởng / phạt tháng này', r:1, f:v => v ? (v > 0 ? '+' : '−') + fmt(Math.abs(v)) : '—', cls:v => v < 0 ? 'dn' : v > 0 ? 'up' : ''}, {k:'sn', l:'Sinh nhật', f:v => esc(v || '—')}]});
+    {k:'tp', l:'Thưởng / phạt tháng này', r:1, f:v => v ? (v > 0 ? '+' : '−') + fmt(Math.abs(v)) : '—', cls:v => v < 0 ? 'dn' : v > 0 ? 'up' : ''}, {k:'sn', l:'Sinh nhật', f:v => (k => /^d{4}-dd-dd$/.test(k) ? `${k.slice(8, 10)}/${k.slice(5, 7)}/${k.slice(0, 4)}` : esc(v || '—'))(v ? dayKey(v) : '')}]});
   $('hoSoNote').innerHTML = 'Lương nền, chức vụ, level đặt tay, ngày sinh: chủ sửa ở tab <b>NhanVien</b> của Sheet (hoặc bot /suanv, /sinhnhat). Cột giờ thâm niên, phụ cấp thâm niên, lương/giờ hiện tại, level do bot tự tính. Tổng ca / giờ đếm từ chấm công.';
 }
 /** v1.7.95 — Ai làm ngày nào (chủ nhờ 03/11): lưới tháng T2–CN từ ChamCong, chọn được tháng cũ; ngày đã qua có lịch (DangKyCa OK) mà không chấm công → ✗ vắng */
@@ -5041,7 +5043,7 @@ function renderAiLam(){
       const list = theoNgay.get(k) || [], v = vang.filter(x => x.k === k), sp = sap.filter(x => x.k === k);
       const o = list.map(c => `<div style="background:${mau(ten(c))};color:#5E3B25;border-radius:6px;padding:2px 6px;margin:2px 0;font-size:12px;line-height:1.25" title="${esc(ten(c))} · vào ${gioHm(c.vao)}${c.ra ? ' · ra ' + gioHm(c.ra) : ' · chưa check-out'}${c.gio ? ' · ' + f1(c.gio) + ' giờ' : ''}"><b>${esc(ten(c))}</b>${c.ra ? ' <b style="color:#2E7D32">✓</b>' : c.k < tk ? ' <b style="color:#B3261E" title="Không chốt ca / không check-out">✗</b>' : ''}<br>${gioHm(c.vao)}–${c.ra ? gioHm(c.ra) : '…'}</div>`).join('')   /* v1.7.196 (chủ nhờ 11/11): ✓ đã làm (có check-out / chốt ca) · ✗ ngày đã qua mà không chốt ca */
         + v.map(x => `<div class="pill bad" style="margin:2px 0" title="Có lịch (DangKyCa) nhưng không chấm công">✗ ${esc(x.nv)}</div>`).join('')
-        + sp.map(x => { const c = caOf(x.ca); return `<div style="background:${mau(x.nv)}55;color:#5E3B25;border:1.5px dashed ${mau(x.nv)};border-radius:6px;padding:2px 6px;margin:2px 0;font-size:12px;line-height:1.25" title="${esc(x.nv)} · đã xếp ca ${esc(c.ten || x.ca)} (DangKyCa), chưa chấm công"><b>${esc(x.nv)}</b><br>${c.bd && c.kt ? c.bd + '–' + c.kt : 'ca ' + esc(x.ca)}</div>`; }).join('');
+        + sp.map(x => { const c = caOf(x.ca); return `<div style="background:${mau(x.nv)}55;color:var(--ink);border:1.5px dashed ${mau(x.nv)};border-radius:6px;padding:2px 6px;margin:2px 0;font-size:12px;line-height:1.25" title="${esc(x.nv)} · đã xếp ca ${esc(c.ten || x.ca)} (DangKyCa), chưa chấm công"><b>${esc(x.nv)}</b><br>${c.bd && c.kt ? c.bd + '–' + c.kt : 'ca ' + esc(x.ca)}</div>`; }).join('');
       return `<td style="vertical-align:top;min-width:78px;${k > tk && !sp.length ? 'opacity:.45' : ''}"><div class="muted" style="font-size:11px">${dShort(k)}${leOf(k) ? ' · ' + esc(leOf(k)) : ''}</div>${o || (k <= tk || !nghiB(k, 'ALL') ? (k <= tk ? '<span class="muted" style="font-size:11px">—</span>' : '') : '<span class="muted" style="font-size:11px">nghỉ bán</span>')}</td>`; }).join('') + '</tr>';
   }
   const tong = ds.filter(hopNv).map(nv => { const cs = C.filter(c => ten(c) === nv); return {nv, ngay:new Set(cs.map(c => c.k)).size, ca:cs.length, gio:cs.reduce((a, c) => a + (c.gio || 0), 0), tien:cs.reduce((a, c) => a + (c.tien || 0), 0), vang:vang.filter(x => x.nv === nv || cs.some(c => c.id && c.id === x.id)).length, sap:sap.filter(x => x.nv === nv).length}; });
