@@ -794,6 +794,7 @@ html.mcap{background:var(--paper)}
     <div class="fi fi-ky"><label>Kỳ xem</label>
       <div class="presets" id="gKy" role="group" aria-label="Xem theo"><button data-gky="ngay">Ngày</button><button data-gky="tuan">Tuần</button><button data-gky="thang">Tháng</button><button data-gky="khoang">Khoảng</button><button data-gky="tatca">Tất cả</button></div>
     </div>
+    <div class="fi" id="gThangW"><label for="gThang">Tháng</label><select id="gThang"></select></div>
     <div class="fi" id="gPickW"><label for="gPick" id="gPickL">Xem ngày khác</label><input type="date" id="gPick"></div>
     <div class="fi fi-ky" id="gNavW"><label>&nbsp;</label><div class="presets" id="gNav"><button id="gPrev">◀ Hôm trước</button><button id="gNow">Hôm nay</button><button id="gNext">Hôm sau ▶</button></div></div>
     <button class="lnk ftog" id="fTog" aria-expanded="false">Bộ lọc ▾</button>
@@ -3879,7 +3880,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.299';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.300';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3937,6 +3938,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.300', ngay:'19/11/2026', nd:['Thanh lọc: thêm drop list Tháng (cạnh Kỳ xem) — chọn tháng nào thì Kỳ xem = cả tháng đó, mọi thẻ / tab có lọc cùng theo; đang xem ngày / tuần / khoảng thì hiện "— chọn tháng —".', 'Lịch làm theo đợt: Lọc tháng đổi từ hàng nút sang drop list (Từ hôm nay / từng tháng có lịch), cùng kiểu Ai làm ngày nào.']},
   {v:'v1.7.299', ngay:'19/11/2026', nd:['Bộ lọc đồng bộ: tab Nhân sự dùng chung 1 người và 1 tháng. Chọn người ở Ai làm ngày nào / Lịch làm theo đợt = chọn Nhân viên ở thanh lọc (mọi thẻ, mọi tab cùng lọc; bỏ bằng ✕ ở chip). Chọn tháng đã qua / tháng này = đổi Kỳ xem; tháng sau chỉ áp 2 thẻ lịch, đổi Kỳ xem là bỏ.', 'Thanh lọc Nhân viên → Ai làm ngày nào và Lịch làm theo đợt cũng lọc theo; Kỳ xem tháng nào thì Ai làm ngày nào hiện tháng đó.', 'Thu chi · Kết quả tháng: mặc định tháng của Kỳ xem (trước nhảy tới 01/2027 vì khoản cố định tạm tính); đổi tháng ở Kết quả tháng hay bảng Chi thì ô kia theo cùng.']},
   {v:'v1.7.298', ngay:'19/11/2026', nd:['Kai\'s facts: mọi kỷ lục bán hàng (ly / giờ, ca kỷ lục, AOV, size L, thẻ thành viên, món tủ, đơn to nhất, giờ cháy nhất, ghi nhiều đơn, xanh nhất, đơn app, chuyên gia nhóm món; ngày kỷ lục, món số 1, khung giờ đông nhất) chỉ tính ngày giá thường — bỏ 10–16/10 đồng giá 10K và ngày đồng giá 15K (chủ nhờ 19/11). Gắn bó, thâm niên, đúng giờ, chốt két, kiểm kho, tổng ly vẫn tính từ ngày mở.']},
   {v:'v1.7.297', ngay:'19/11/2026', nd:['Sửa v1.7.296: cột Sinh nhật (Hồ sơ nhân viên) giờ hiện đúng dd/mm/yyyy — bản trước lỗi biểu thức kiểm ngày nên vẫn hiện chuỗi thô.']},
@@ -4912,7 +4914,7 @@ function renderLichDot(){
   if (LC.th && thBd > tk){ const Rc = lichDotCore(L.dk.filter(x => !(x.id && L.gocId.has(String(x.id)))), L.ca, tk, thKt, nv => luongMap[nv], ccNow);   /* tháng sau: chuỗi chuyên cần tính nối từ hôm nay (gồm ca còn lại tháng này), chỉ hiện mốc đạt trong tháng chọn */
     Rf.tong.forEach(t => { const c = Rc.tong.find(x => x.nv === t.nv); if (c && c.du) t.du = {nay:c.du.nay, dat:c.du.dat.filter(k => k.slice(0, 7) === LC.th), cuoi:c.du.cuoi}; }); }
   const nut = (js, chon, nhan, nen) => `<button type="button" onclick="${js}" style="margin:2px;padding:4px 10px;border-radius:14px;cursor:pointer;font:inherit;font-size:13px;border:${chon ? '2px solid #5E3B25' : '1px solid var(--line)'};background:${nen || 'var(--surface)'};color:${nen ? '#5E3B25' : 'var(--ink)'};font-weight:${chon ? 700 : 500};opacity:${chon || !nen ? 1 : .7}">${esc(nhan)}</button>`;
-  const loc = `<div style="margin-bottom:10px"><b>Lọc người:</b> ${nut("datNvChung('')", !LC.nv, 'Mọi người')}${ten.map((nv, i) => nut(`datNvChung(LICH_TEN[${i}])`, LC.nv === nv, nv, mau(nv))).join('')}<br><b>Lọc tháng:</b> ${nut("datHrThang('', 'lich')", !LC.th, 'Từ hôm nay')}${thangs.map(t => nut(`datHrThang('${t}', 'lich')`, LC.th === t, 'Tháng ' + +t.slice(5, 7))).join('')}</div>`;
+  const loc = `<div style="margin-bottom:10px"><b>Lọc người:</b> ${nut("datNvChung('')", !LC.nv, 'Mọi người')}${ten.map((nv, i) => nut(`datNvChung(LICH_TEN[${i}])`, LC.nv === nv, nv, mau(nv))).join('')}<br><label class="lbl" for="lichTh" style="margin-right:6px"><b>Lọc tháng:</b></label><select id="lichTh" onchange="datHrThang(this.value, 'lich')"><option value=""${LC.th ? '' : ' selected'}>Từ hôm nay</option>${thangs.map(t => `<option value="${t}"${LC.th === t ? ' selected' : ''}>${mlabel(t)}</option>`).join('')}</select></div>`;
   const chip = (nv, tt) => `<span style="display:inline-block;background:${mau(nv)};color:#5E3B25;border-radius:6px;padding:3px 8px;margin:1px 2px;font-weight:600">${esc(nv)}${tt === 'xong' || tt === 'dang' ? ' ✓' : tt === 'vang' ? ' ✗' : ''}</span>`;
   // v1.7.191 (chủ nhờ 11/11): ngày đã qua + hôm nay lấy từ lịch đối chiếu chấm công (✓ có chấm công · ✗ vắng), như thẻ Lịch làm cũ
   const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes(), daLam = k => lichCaNgay(L, D.cong, k, tk, nowMin).flatMap(c => c.nghi ? [] : c.ai).filter(a => !a.goc);   // v1.7.194: ẩn chủ gốc
@@ -6760,6 +6762,8 @@ function syncFilters(){
   if (S.nv && ![...$('fNv').options].some(o => o.value === S.nv)) $('fNv').add(new Option(S.nv, S.nv));   // v1.7.299
   $('dFrom').value = S.from; $('dTo').value = S.to; $('fNv').value = S.nv; $('fPt').value = S.pt; $('fMon').value = S.mon; $('fDay').value = S.day;
   document.querySelectorAll('#gKy button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.gky === S.gKy)));   // v1.7.98
+  if (D){ const cur = today().slice(0, 7), ms = []; for (let m = (D.first || today()).slice(0, 7); m <= cur; m = addDays(m + '-28', 7).slice(0, 7)) ms.push(m);   /* v1.7.300 (chủ 19/11): drop list Tháng — chọn = Kỳ xem cả tháng đó */
+    const v = S.gKy === 'thang' ? S.from.slice(0, 7) : ''; $('gThang').innerHTML = (v ? '' : '<option value="">— chọn tháng —</option>') + ms.reverse().map(m => `<option value="${m}">${m === cur ? 'Tháng này · ' : ''}${mlabel(m)}</option>`).join(''); $('gThang').value = v; }
   { const ky = S.gKy, kk = ky === 'khoang' || ky === 'tatca', t = today(), ten = {ngay:['Hôm trước', 'Hôm nay', 'Hôm sau'], tuan:['Tuần trước', 'Tuần này', 'Tuần sau'], thang:['Tháng trước', 'Tháng này', 'Tháng sau']}[kk ? 'ngay' : ky];
     $('gPickW').hidden = kk; $('gNavW').hidden = kk; $('gTuW').hidden = ky !== 'khoang'; $('gDenW').hidden = ky !== 'khoang';
     $('gPrev').textContent = '◀ ' + ten[0]; $('gNow').textContent = ten[1]; $('gNext').textContent = ten[2] + ' ▶';
@@ -6874,6 +6878,7 @@ try { const fb = $('fbar'), dat = () => document.documentElement.style.setProper
 $('gPrev').onclick = () => { if (!D) return; gDoi(-1); syncFilters(); render(); };
 $('gNext').onclick = () => { if (!D) return; gDoi(1); syncFilters(); render(); };
 $('gNow').onclick = () => { if (!D) return; S.gMoc = ''; gKyTinh(); syncFilters(); render(); };
+$('gThang').onchange = () => { if (!D) return; const v = $('gThang').value; if (!v) return; S.gKy = 'thang'; S.gMoc = v === today().slice(0, 7) ? '' : v + '-01'; gKyTinh(); syncFilters(); render(); };   // v1.7.300
 $('gPick').onchange = () => { if (!D) return; const v = $('gPick').value; S.gMoc = v && v < today() ? (D.first && v < D.first ? D.first : v) : ''; gKyTinh(); syncFilters(); render(); };
 $('dFrom').onchange = () => { S.preset = ''; S.gKy = 'khoang'; S.from = $('dFrom').value || S.from; if (S.to < S.from) S.to = S.from; syncFilters(); render(); };
 $('dTo').onchange = () => { S.preset = ''; S.gKy = 'khoang'; S.to = $('dTo').value || S.to; if (S.to < S.from) S.from = S.to; syncFilters(); render(); };
