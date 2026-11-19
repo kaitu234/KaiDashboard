@@ -3878,7 +3878,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.297';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.298';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3936,6 +3936,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.298', ngay:'19/11/2026', nd:['Kai\'s facts: mọi kỷ lục bán hàng (ly / giờ, ca kỷ lục, AOV, size L, thẻ thành viên, món tủ, đơn to nhất, giờ cháy nhất, ghi nhiều đơn, xanh nhất, đơn app, chuyên gia nhóm món; ngày kỷ lục, món số 1, khung giờ đông nhất) chỉ tính ngày giá thường — bỏ 10–16/10 đồng giá 10K và ngày đồng giá 15K (chủ nhờ 19/11). Gắn bó, thâm niên, đúng giờ, chốt két, kiểm kho, tổng ly vẫn tính từ ngày mở.']},
   {v:'v1.7.297', ngay:'19/11/2026', nd:['Sửa v1.7.296: cột Sinh nhật (Hồ sơ nhân viên) giờ hiện đúng dd/mm/yyyy — bản trước lỗi biểu thức kiểm ngày nên vẫn hiện chuỗi thô.']},
   {v:'v1.7.296', ngay:'19/11/2026', nd:['Kiểm toàn diện (logic · giao diện · trình bày): Tự kiểm 97/97, không lỗi JS ở 20 tab, không cuộn ngang ở cỡ điện thoại.', 'Nhân sự · Hồ sơ nhân viên: cột Sinh nhật hiện dd/mm/yyyy (trước hiện chuỗi thô D:2006-08-25 00:00:00).', 'Nhân sự · Ai làm ngày nào: ô ca đã xếp (nét đứt) chữ theo màu chủ đề — chế độ tối đọc được.', 'Nút ＋ mở chi tiết trong bảng to hơn trên điện thoại (16 → 28 px).']},
   {v:'v1.7.295', ngay:'19/11/2026', nd:['Tab Nhân sự · Ai làm ngày nào: chọn được cả tháng có lịch sắp tới (vd T12); ngày chưa tới (và hôm nay chưa chấm công) hiện ca đã xếp trong DangKyCa, khung nét đứt, chưa tính vào ngày / giờ / tiền công; ngày nghỉ bán ghi "nghỉ bán".', 'Thêm ô chọn Người (Mọi người / từng nhân viên) → lưới, vắng và bảng tổng chỉ người đó; bảng thêm cột Ca đã xếp sắp tới.']},
@@ -5682,14 +5683,17 @@ function renderKaiFacts(){
   const tk = today(), chuan = v => String(v || '').normalize('NFC').trim().toLowerCase(), f1 = v => (v || 0).toLocaleString('vi-VN', {maximumFractionDigits:1});
   const hm = m => `${Math.floor(m / 60)}:${p2(Math.round(m % 60))}`, ngay = k => `${k.slice(8, 10)}/${k.slice(5, 7)}`;
   const P = {};
-  D.cong.filter(c => !c.goc && !c.chu && !laChu(c.nv)).forEach(c => { const p = (P[c.id || c.nv] ??= {ten:c.nv, ca:0, gio:0, ly:0, tre:0, vao:[], k0:c.k, k1:c.k, best:{ly:0}});
+  /* v1.7.298 (chủ 19/11): kỷ lục bán hàng chỉ tính ngày giá thường — mấy ngày đầu đồng giá 10K (và ngày đồng giá 15K) khách dồn nên kỷ lục không khách quan; cùng định nghĩa bộ lọc Loại ngày = giá thường */
+  const thg = k => loaiNgay(k) === 'thuong', OT = D.orders.filter(o => thg(o.k));
+  D.cong.filter(c => !c.goc && !c.chu && !laChu(c.nv)).forEach(c => { const p = (P[c.id || c.nv] ??= {ten:c.nv, ca:0, gio:0, ly:0, caT:0, gioT:0, tre:0, vao:[], k0:c.k, k1:c.k, best:{ly:0}});
     p.ca++; p.gio += c.gio || 0; if (/trễ/i.test(c.note)) p.tre++; if (c.k < p.k0) p.k0 = c.k; if (c.k > p.k1) p.k1 = c.k;
     if (c.vao) p.vao.push(c.vao.getHours() * 60 + c.vao.getMinutes());
-    const het = c.ra || (c.k === tk ? new Date() : fromKey(addDays(c.k, 1))), n = D.orders.filter(o => o.k === c.k && o.t && o.t >= c.vao && o.t <= het).reduce((a, o) => a + o.sl, 0);
+    if (!thg(c.k)) return; p.caT++; p.gioT += c.gio || 0;
+    const het = c.ra || (c.k === tk ? new Date() : fromKey(addDays(c.k, 1))), n = OT.filter(o => o.k === c.k && o.t && o.t >= c.vao && o.t <= het).reduce((a, o) => a + o.sl, 0);
     p.ly += n; if (n > p.best.ly) p.best = {ly:n, k:c.k}; });
   const NV = D.nhanVien || [], ds = Object.values(P);
   ds.forEach(p => { const n = NV.find(x => chuan(x.ten) === chuan(p.ten)) || {}; p.cu = !!n.cu; p.gioTN = n.gioTN || 0; p.sn = dayKey(n.sn) || '';
-    const O = D.orders.filter(o => chuan(o.nv) === chuan(p.ten)), don = new Set(O.map(o => o.id)), lyO = O.reduce((a, o) => a + o.sl, 0), mon = {};
+    const O = OT.filter(o => chuan(o.nv) === chuan(p.ten)), don = new Set(O.map(o => o.id)), lyO = O.reduce((a, o) => a + o.sl, 0), mon = {};
     O.forEach(o => mon[o.mon] = (mon[o.mon] || 0) + o.sl);
     Object.assign(p, {don:don.size, dt:O.reduce((a, o) => a + o.tt, 0), lyO, lyL:O.filter(o => o.hs > 1 && o.hs < 2).reduce((a, o) => a + o.sl, 0), tv:new Set(O.filter(o => o.tv).map(o => o.id)).size,
       tu:Object.entries(mon).sort((a, b) => b[1] - a[1])[0], big:Object.values(O.reduce((m, o) => { const x = (m[o.id] ??= {tt:0, ly:0, k:o.k}); x.tt += o.tt; x.ly += o.sl; return m; }, {})).sort((a, b) => b.tt - a.tt)[0] || null, dau:O.filter(o => o.min != null).sort((a, b) => a.min - b.min)[0] || null, huy:new Set((D.cancel || []).filter(c => chuan(c.nv) === chuan(p.ten)).map(c => c.id)).size, ngay:nDays(p.k0, p.cu ? p.k1 : tk), vaoTB:p.vao.length ? p.vao.reduce((a, b) => a + b, 0) / p.vao.length : null}); });
@@ -5700,12 +5704,12 @@ function renderKaiFacts(){
   const C = [], top = (a, v) => a.slice().sort((x, y) => v(y) - v(x));
   { const a = top(ds, p => p.ngay); C.push(the('a1', '🏆', 'Gắn bó lâu nhất', a[0], `<b>${a[0].ngay} ngày</b> ở Kai · ca đầu ${ngay(a[0].k0)}`, `${a[0].ca} ca, ${f1(a[0].gio)} giờ đứng quầy`, bars(a, p => p.ngay, p => p.ngay + ' ngày'))); }
   { const a = top(ds, p => p.gioTN); if (a[0].gioTN) C.push(the('a3', '⏳', 'Thâm niên cao nhất', a[0], `<b>${f1(a[0].gioTN)} giờ</b> thâm niên`, `≈ ${f1(a[0].gioTN / 5)} buổi sáng 5 tiếng`, bars(a, p => p.gioTN, p => f1(p.gioTN) + 'h'))); }
-  { const a = top(ds.filter(p => p.ca >= 3 && p.gio), p => p.ly / p.gio); if (a.length) C.push(the('a2', '⚡', 'Tay pha nhanh nhất', a[0], `<b>${f1(a[0].ly / a[0].gio)} ly / giờ</b> trong ca`, `cứ ${Math.round(60 / (a[0].ly / a[0].gio))} phút ra 1 ly`, bars(a, p => p.ly / p.gio, p => f1(p.ly / p.gio)))); }
+  { const a = top(ds.filter(p => p.caT >= 3 && p.gioT && p.ly), p => p.ly / p.gioT); if (a.length) C.push(the('a2', '⚡', 'Tay pha nhanh nhất', a[0], `<b>${f1(a[0].ly / a[0].gioT)} ly / giờ</b> trong ca`, `cứ ${Math.round(60 / (a[0].ly / a[0].gioT))} phút ra 1 ly`, bars(a, p => p.ly / p.gioT, p => f1(p.ly / p.gioT)))); }
   { const a = top(ds.filter(p => p.don >= 15), p => p.dt / p.don); if (a.length) C.push(the('a4', '💎', 'AOV cao nhất', a[0], `<b>${fmt(a[0].dt / a[0].don)} đ</b> mỗi đơn`, `${fmt(a[0].don)} đơn đã ghi — khéo mời thêm món`, bars(a, p => p.dt / p.don, p => fmtK(p.dt / p.don)))); }
   { const a = top(ds.filter(p => p.vao.length >= 3), p => -p.vaoTB); if (a.length) C.push(the('a6', '🐓', 'Dậy sớm nhất', a[0], `check-in TB <b>${hm(a[0].vaoTB)}</b>`, `sớm nhất từng có: ${hm(Math.min(...a[0].vao))}`, bars(a, p => 24 * 60 - p.vaoTB, p => hm(p.vaoTB)))); }
   { const a = top(ds.filter(p => p.lyO >= 20), p => p.lyL / p.lyO); if (a.length && a[0].lyL) C.push(the('a5', '🥤', 'Vua size L', a[0], `<b>${pct(a[0].lyL / a[0].lyO, 0)}</b> ly ghi là size L`, `${fmt(a[0].lyL)} lần mời lên size thành công`, bars(a, p => p.lyL / p.lyO, p => pct(p.lyL / p.lyO, 0)))); }
   { const a = top(ds, p => p.tv); if (a[0].tv) C.push(the('a1', '💳', 'Vua thẻ thành viên', a[0], `<b>${fmt(a[0].tv)} đơn</b> khách có thẻ`, 'khách quen nhớ mặt nhất', bars(a.filter(p => p.tv), p => p.tv, p => fmt(p.tv)))); }
-  { const a = top(ds, p => p.best.ly); if (a[0].best.ly) C.push(the('a4', '🔥', 'Ca kỷ lục', a[0], `<b>${fmt(a[0].best.ly)} ly</b> trong ca ${thu(a[0].best.k)} ${ngay(a[0].best.k)}`, 'ca cháy máy nhất từ ngày mở', bars(a, p => p.best.ly, p => fmt(p.best.ly) + ' ly'))); }
+  { const a = top(ds, p => p.best.ly); if (a[0].best.ly) C.push(the('a4', '🔥', 'Ca kỷ lục', a[0], `<b>${fmt(a[0].best.ly)} ly</b> trong ca ${thu(a[0].best.k)} ${ngay(a[0].best.k)}`, 'ca cháy máy nhất (ngày giá thường)', bars(a, p => p.best.ly, p => fmt(p.best.ly) + ' ly'))); }
   { const a = top(ds.filter(p => p.ca >= 3), p => -p.tre / p.ca); if (a.length) C.push(the('a2', '⏰', 'Đúng giờ nhất', a[0], a[0].tre ? `trễ <b>${a[0].tre}/${a[0].ca}</b> ca` : `<b>${a[0].ca}/${a[0].ca}</b> ca không trễ`, a[0].tre ? '' : 'chưa trễ lần nào 👏', bars(a, p => 1 - p.tre / p.ca, p => pct(1 - p.tre / p.ca, 0)))); }
   { const a = ds.filter(p => p.sn && !p.cu).map(p => ({p, tuoi:(fromKey(tk) - fromKey(p.sn)) / 365.25 / 864e5})).sort((x, y) => y.tuoi - x.tuoi);
     if (a.length >= 2){ const g = a[0].tuoi - a[a.length - 1].tuoi;
@@ -5735,16 +5739,16 @@ function renderKaiFacts(){
   { const a = top(kkL, x => x.khop).filter(x => x.khop); if (a.length) C.push(the('a6', '📏', 'Kiểm kho / xe khớp nhiều nhất', a[0].p, `<b>${a[0].khop}/${a[0].n}</b> lần đếm khớp`, 'khớp = lệch dưới ngưỡng bot cảnh báo (ly 5 cái · cà phê 0,15 kg · khác 1 đơn vị)', bars(a, x => x.khop, x => x.khop + '/' + x.n))); }
   { const ca = D.cong.filter(c => !c.goc && !c.chu && !laChu(c.nv) && c.gio).sort((a, b) => b.gio - a.gio)[0], p = ca && ai(ca.nv);
     if (p) C.push(the('a1', '🏃', 'Ca dài nhất', p, `<b>${f1(ca.gio)} giờ</b> liền một ca`, `${thu(ca.k)} ${ngay(ca.k)} · vào ${hm(ca.vao.getHours() * 60 + ca.vao.getMinutes())}`, '')); }
-  { const g = {}; D.orders.forEach(o => { if (o.h == null) return; const p = ai(o.nv); if (!p) return; const key = p.ten + '|' + o.k + '|' + o.h; g[key] = (g[key] || 0) + o.sl; });
+  { const g = {}; OT.forEach(o => { if (o.h == null) return; const p = ai(o.nv); if (!p) return; const key = p.ten + '|' + o.k + '|' + o.h; g[key] = (g[key] || 0) + o.sl; });
     const best = {}; Object.entries(g).forEach(([key, n]) => { const [t, k, h] = key.split('|'); if (!best[t] || n > best[t].n) best[t] = {ten:t, p:ai(t), n, k, h:+h}; });
     const a = Object.values(best).sort((x, y) => y.n - x.n); if (a.length) C.push(the('a4', '🌋', 'Giờ cháy nhất', a[0].p, `<b>${a[0].n} ly</b> trong 1 tiếng`, `${a[0].h}h–${a[0].h + 1}h ${thu(a[0].k)} ${ngay(a[0].k)} · cứ ${f1(60 / a[0].n)} phút 1 ly`, bars(a, x => x.n, x => x.n + ' ly'))); }
-  { const a = top(ds.map(p => ({p, ten:p.ten, n:D.cong.filter(c => c.nv === p.ten && [0, 6].includes(fromKey(c.k).getDay())).length})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a5', '🎉', 'Vua cuối tuần', a[0].p, `<b>${a[0].n} ca</b> thứ 7 / chủ nhật`, 'ngày đông khách, đồng giá', bars(a, x => x.n, x => x.n + ' ca'))); }
+  { const a = top(ds.map(p => ({p, ten:p.ten, n:D.cong.filter(c => c.nv === p.ten && [0, 6].includes(fromKey(c.k).getDay())).length})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a5', '🎉', 'Vua cuối tuần', a[0].p, `<b>${a[0].n} ca</b> thứ 7 / chủ nhật`, 'ngày đông khách', bars(a, x => x.n, x => x.n + ' ca'))); }
   { const a = ds.map(p => { const ks = [...new Set(D.cong.filter(c => c.nv === p.ten).map(c => c.k))].sort(); let m = 0, r = 0; ks.forEach((k, i) => { r = i && addDays(ks[i - 1], 1) === k ? r + 1 : 1; if (r > m) m = r; }); return {p, ten:p.ten, n:m}; }).sort((x, y) => y.n - x.n);
     if (a.length && a[0].n >= 2) C.push(the('a3', '🔗', 'Chuỗi ngày làm liền dài nhất', a[0].p, `<b>${a[0].n} ngày</b> liên tiếp không nghỉ`, '', bars(a, x => x.n, x => x.n + ' ngày'))); }
-  { const a = top(ds.map(p => ({p, ten:p.ten, n:new Set(D.orders.filter(o => o.ml && chuan(o.nv) === chuan(p.ten)).map(o => o.id)).size})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a2', '🌱', 'Xanh nhất', a[0].p, `<b>${a[0].n} đơn</b> khách mang ly / bình`, 'bớt được ly nhựa', bars(a, x => x.n, x => x.n + ' đơn'))); }
-  { const a = top(ds.map(p => ({p, ten:p.ten, n:new Set(D.orders.filter(o => laApp(o) && chuan(o.nv) === chuan(p.ten)).map(o => o.id)).size})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a6', '🛵', 'Vua đơn app', a[0].p, `<b>${a[0].n} đơn</b> be / Xanh SM`, '', bars(a, x => x.n, x => x.n + ' đơn'))); }
-  { const nhom = o => (D.menu[o.mon] || {}).nhom || '', ten = [...new Set(D.orders.map(nhom).filter(Boolean))];
-    const dong = ten.map(nh => { const a = ds.map(p => { const O = D.orders.filter(o => chuan(o.nv) === chuan(p.ten)), t = O.reduce((x, o) => x + o.sl, 0), n = O.filter(o => nhom(o) === nh).reduce((x, o) => x + o.sl, 0); return {p, t, n, r:t >= 20 ? n / t : 0}; }).sort((x, y) => y.r - x.r)[0]; return a && a.n ? {nh, ...a} : null; }).filter(Boolean);
+  { const a = top(ds.map(p => ({p, ten:p.ten, n:new Set(OT.filter(o => o.ml && chuan(o.nv) === chuan(p.ten)).map(o => o.id)).size})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a2', '🌱', 'Xanh nhất', a[0].p, `<b>${a[0].n} đơn</b> khách mang ly / bình`, 'bớt được ly nhựa', bars(a, x => x.n, x => x.n + ' đơn'))); }
+  { const a = top(ds.map(p => ({p, ten:p.ten, n:new Set(OT.filter(o => laApp(o) && chuan(o.nv) === chuan(p.ten)).map(o => o.id)).size})), x => x.n).filter(x => x.n); if (a.length) C.push(the('a6', '🛵', 'Vua đơn app', a[0].p, `<b>${a[0].n} đơn</b> be / Xanh SM`, '', bars(a, x => x.n, x => x.n + ' đơn'))); }
+  { const nhom = o => (D.menu[o.mon] || {}).nhom || '', ten = [...new Set(OT.map(nhom).filter(Boolean))];
+    const dong = ten.map(nh => { const a = ds.map(p => { const O = OT.filter(o => chuan(o.nv) === chuan(p.ten)), t = O.reduce((x, o) => x + o.sl, 0), n = O.filter(o => nhom(o) === nh).reduce((x, o) => x + o.sl, 0); return {p, t, n, r:t >= 20 ? n / t : 0}; }).sort((x, y) => y.r - x.r)[0]; return a && a.n ? {nh, ...a} : null; }).filter(Boolean);
     if (dong.length) C.push(`<div class="kf-c a5"><div class="hd"><span class="em">🧑‍🔬</span><span class="t">Chuyên gia từng nhóm món</span></div>
       <div class="kf-bars">${dong.map(x => `<div><em>${esc(x.nh)}</em><i style="width:${x.r * 100}%"></i><small>${esc(x.p.ten)} · ${pct(x.r, 0)}</small></div>`).join('')}</div>
       <div class="fun">người có tỉ lệ ly nhóm đó cao nhất trong số ly họ ghi (ghi từ 20 ly trở lên)</div></div>`); }
@@ -5764,18 +5768,19 @@ function renderKaiFacts(){
   { const a = ds.map(p => ({p, ten:p.ten, n:(D.thuongPhat || []).filter(x => x.loai === 'PHAT' && chuan(x.nv) === chuan(p.ten)).length})).filter(x => x.n).sort((a, b) => b.n - a.n);
     if (a.length) X.push(xau('a4', '⚠️', 'Bị phạt nhiều lần nhất', a[0].p, `<b>${a[0].n} lần</b> chủ ghi phạt`, 'xem lý do ở /vipham trên bot', bars(a, x => x.n, x => x.n + ' lần'))); }
   const Q = D.orders, lyQ = Q.reduce((a, o) => a + o.sl, 0), nQ = new Set(Q.map(o => o.k)), byK = {}, byM = {}, byH = {};
-  Q.forEach(o => { byK[o.k] = (byK[o.k] || 0) + o.sl; byM[o.mon] = (byM[o.mon] || 0) + o.sl; if (o.h != null) byH[o.h] = (byH[o.h] || 0) + o.sl; });
+  const lyT = OT.reduce((a, o) => a + o.sl, 0);
+  OT.forEach(o => { byK[o.k] = (byK[o.k] || 0) + o.sl; byM[o.mon] = (byM[o.mon] || 0) + o.sl; if (o.h != null) byH[o.h] = (byH[o.h] || 0) + o.sl; });
   const kMax = Object.entries(byK).sort((a, b) => b[1] - a[1])[0], mMax = Object.entries(byM).sort((a, b) => b[1] - a[1])[0], hMax = Object.entries(byH).sort((a, b) => b[1] - a[1])[0];
   const gioQ = ds.reduce((a, p) => a + p.gio, 0);
   el.innerHTML = `<div class="kf-hero"><div class="kf-pills"><span class="kf-pill cam">☕ Kai's facts</span><span class="kf-pill">👥 ${ds.length} người từng đứng quầy</span><span class="kf-pill vang">🔄 tự cập nhật theo bot</span></div><h3>Kai's Team bằng <mark>những con số</mark><small>từ ${D.first ? ngay(D.first) + '/' + D.first.slice(0, 4) : '—'} tới nay · ${ds.length} người từng đứng quầy${ds.some(p => p.cu) ? ` (${ds.filter(p => !p.cu).length} đang làm)` : ''}</small></h3>
     <div class="kf-big"><div><b>${fmt(lyQ)}</b><span>ly đã bán · xếp chồng cao ≈ ${fmt(Math.round(lyQ * .12))} m</span></div><div><b>${fmt(nQ.size)}</b><span>ngày mở bán</span></div>
-      <div><b>${fmt(Math.round(gioQ))}</b><span>giờ đứng quầy của nhân viên</span></div>${kMax ? `<div><b>${fmt(kMax[1])}</b><span>ly · ngày kỷ lục ${thu(kMax[0])} ${ngay(kMax[0])}</span></div>` : ''}
-      ${mMax ? `<div><b style="font-size:22px">${esc(mMax[0])}</b><span>món số 1 · ${fmt(mMax[1])} ly (${pct(mMax[1] / lyQ, 0)})</span></div>` : ''}${hMax ? `<div><b>${hMax[0]}h–${+hMax[0] + 1}h</b><span>khung giờ đông nhất</span></div>` : ''}</div></div>
+      <div><b>${fmt(Math.round(gioQ))}</b><span>giờ đứng quầy của nhân viên</span></div>${kMax ? `<div><b>${fmt(kMax[1])}</b><span>ly · ngày kỷ lục giá thường ${thu(kMax[0])} ${ngay(kMax[0])}</span></div>` : ''}
+      ${mMax ? `<div><b style="font-size:22px">${esc(mMax[0])}</b><span>món số 1 ngày giá thường · ${fmt(mMax[1])} ly (${pct(mMax[1] / lyT, 0)})</span></div>` : ''}${hMax ? `<div><b>${hMax[0]}h–${+hMax[0] + 1}h</b><span>khung giờ đông nhất (giá thường)</span></div>` : ''}</div></div>
     <div class="kf-sec"><span class="ic">🌟</span><h4>Bảng <mark>vàng</mark></h4><p>ai đang dẫn đầu ở từng việc · thanh dưới mỗi thẻ là cả đội</p></div>
     <div class="kf-grid">${C.join('')}</div>
     ${X.length ? `<div class="kf-sec xau"><span class="ic">🛠️</span><h4>Góc <mark>cần cải thiện</mark></h4><p>chuyện chưa vui — ghi ra để cả đội cùng sửa, không phải để trách</p></div>
     <div class="kf-grid">${X.join('')}</div>` : ''}
-    <p class="kf-note">Ly / giờ và ca kỷ lục: đơn nằm trong giờ ca của người đó (hai người chung ca thì cả hai cùng được tính). AOV, size L, thẻ, món tủ: theo người ghi đơn trên bot. Tuổi lấy từ tab NhanVien (chỉ người đang làm có ngày sinh).</p>`;
+    <p class="kf-note"><b>Kỷ lục bán hàng chỉ tính ngày giá thường</b> (ly / giờ, ca kỷ lục, AOV, size L, thẻ, món tủ, đơn to nhất, giờ cháy, ngày kỷ lục, món số 1…): bỏ 10–16/10 đồng giá 10K và các ngày đồng giá 15K vì khách dồn, không phản ánh tay nghề. Tổng ly, ngày mở bán, giờ đứng quầy, gắn bó, đúng giờ, chốt két, kiểm kho vẫn tính từ ngày mở. Ly / giờ và ca kỷ lục: đơn nằm trong giờ ca của người đó (hai người chung ca thì cả hai cùng được tính). AOV, size L, thẻ, món tủ: theo người ghi đơn trên bot. Tuổi lấy từ tab NhanVien (chỉ người đang làm có ngày sinh).</p>`;
 }
 function renderHr(){
   try { renderNhatKy(); } catch(e){ console.warn(e); }
