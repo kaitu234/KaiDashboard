@@ -3880,7 +3880,7 @@ function renderPlan(){
 
 /* ============ render: KIỂM CHỨNG (định lượng · công thức · dữ liệu cần thêm · tự kiểm) ============
  * Nguyên tắc: (1) "Data sẵn sàng?" trước khi tin số, (2) chỉ kết luận khi đủ mẫu, (3) giả định và điểm mù hiện ra ở UI, (4) tự kiểm bất biến bằng code chạy trên chính data đang xem. */
-const BAN_DASH = 'v1.7.302';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
+const BAN_DASH = 'v1.7.303';   // bump ĐỦ 3 chỗ: hằng này · dòng đầu CHANGELOG · (chip thanh bên và tiêu đề "Có gì mới" tự lấy từ đây); bất biến 19 kiểm điều này
 const KIEM_NL = {   // nguồn số đang dùng + độ tin cậy (1 ước tính · 2 Kai chốt · 3 có hoá đơn / ghi trên bao bì) + cách kiểm cho từng nguyên liệu (mã tab Kho)
   cf:{nguon:'Kai chốt 18g = 45ml, 1 kg ≈ 55 ly; giá 240.000 đ/kg (sổ chi ghi 0 đ vì được tặng 5kg → dùng giá tham chiếu)', tin:2, cach:'Cân 5 lần pha thực tế; sau 3 ngày gõ /kiemkho cf so với số ước tính'},
   cfb:{nguon:'Cà phê Phố Núi 1,5 kg · 375.000 đ – chưa có món nào dùng trong công thức', tin:1, cach:'Xác nhận món phin dùng cà phê hạt hay bột rồi điền cột cfb'},
@@ -3938,6 +3938,7 @@ const GLOSS_KAI = [   // định nghĩa & công thức mọi con số quan trọ
   ['Dự báo ngày mai', 'Chỉ lấy ngày cùng loại giá với ngày mai (giá thường / đồng giá 15K; chưa đủ 3 ngày thì bỏ ngày khai trương 10K) · TB các ngày cùng thứ gần nhất (≥ 2 ngày, thiếu thì TB 7 ngày) × hệ số khuyến mãi / mưa khi đủ dữ liệu', 'Đơn bot', 'Hiệu suất'],
 ];
 const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều ý ngắn · v1.7.176: chỉ giữ ~12 bản mới nhất ở đây, bản cũ hơn nằm ở changelog-cu.json (tải khi mở Kiểm chứng) — quá 20 bản thì chuyển bớt sang file đó (thêm vào ĐẦU mảng json)
+  {v:'v1.7.303', ngay:'20/11/2026', nd:['Tài khoản nhân viên: bảng ca ở Nhân sự không còn hiện cột Thực nhận và số tiền chuyên cần / dậy sớm / ca 1 người của từng người (chỉ còn số lần); bỏ cảnh báo "% lương thấp hơn thật".', 'Tổng quan · Tổng hợp theo tháng: nhân viên không thấy cột Tiền cuối tháng (số này cần sổ chi, nhân viên không có nên ra sai). Cột CK thực nhận lúc chốt ca vẫn giữ.']},
   {v:'v1.7.302', ngay:'20/11/2026', nd:['Đối chiếu Sheet 20/11: doanh thu, giá vốn + cho kèm, nhân sự, vận hành, lãi hoạt động, dòng tiền, quỹ (TM 300.000 · CK 1.025.382), công nợ T10–T11 khớp từng đồng; lương khớp BangLuong (bảng giờ công lệch 1 đ do bot làm tròn từng ca); tồn kho 20/20 mặt hàng khớp Bảng kho. PNL kỳ tháng lệch Thu chi đúng bằng khối đối chiếu (lệch két + phí cả tháng giãn theo ngày).', 'Thu hồi vốn: dự kiến hơn 3 năm thì ghi "chưa ước được" kèm lãi TB 14 ngày, không còn ra ngày vô lý (trước: ~18/03/2953).']},
   {v:'v1.7.301', ngay:'19/11/2026', nd:['Kỳ xem: đổi từ tháng đầu (T10) sang Ngày / Tuần không còn nhảy về trước ngày bán đầu tiên (trước ra tuần 28/09–04/10 trống) — mốc tự kéo về ngày bán đầu.']},
   {v:'v1.7.300', ngay:'19/11/2026', nd:['Thanh lọc: thêm drop list Tháng (cạnh Kỳ xem) — chọn tháng nào thì Kỳ xem = cả tháng đó, mọi thẻ / tab có lọc cùng theo; đang xem ngày / tuần / khoảng thì hiện "— chọn tháng —".', 'Lịch làm theo đợt: Lọc tháng đổi từ hàng nút sang drop list (Từ hôm nay / từng tháng có lịch), cùng kiểu Ai làm ngày nào.']},
@@ -3950,20 +3951,6 @@ const CHANGELOG = [   // dòng đầu = bản hiện hành; mỗi bản nhiều 
   {v:'v1.7.293', ngay:'16/11/2026', nd:['Lương / chấm công: chủ duyệt OT riêng 1 ca bằng ghi chú ChamCong cột I "duyệt OT … N p" → ca đó tính cả vào sớm lẫn về muộn, tối đa N phút (chỉ nâng trần, không cộng thêm). Lần đầu: Bảo Duy 16/11 tối đa 60p (05:24→11:55: OT 60p, bỏ 31p). Cùng bot otduyet-v1 @278; bất biến 85 thêm ca mẫu này']},
   {v:'v1.7.292', ngay:'16/11/2026', nd:['Tab Hôm nay (xem 1 ngày): khối 🎁 Ưu đãi đã bán thôi lặp bảng theo ngày của tab Bán hàng (chỉ ra 1 dòng) — 1 dòng "ưu đãi đã giảm" so hôm qua / cùng thứ tuần trước tới cùng giờ + bảng từng loại (thẻ TV, mang ly, tặng, upsize, giá Kai / Lẩu, size lớn): ly, % số ly, đơn, tiền giảm, so hôm qua và tuần trước.', 'Xem tuần / tháng ở tab Hôm nay và tab Bán hàng giữ nguyên.']},
   {v:'v1.7.291', ngay:'16/11/2026', nd:['Tab Hôm nay: thẻ Thành viên & mang ly đổi thành "🎁 Ưu đãi đã bán" — dòng tóm tắt + bảng theo ngày y chang tab Bán hàng (dùng chung 1 hàm, theo kỳ đang xem); biểu đồ đếm ly thành viên gộp N ly = N ly.', 'Dòng tổng đổi tên "Tổng quán nhường" → "Ưu đãi đã giảm" (bot cùng chữ).']},
-  {v:'v1.7.290', ngay:'16/11/2026', nd:['Tab Bán hàng: thẻ "🎁 Ưu đãi đã bán" — mỗi loại 1 dòng (thẻ thành viên, mang ly, tặng mua 5 tặng 1, free upsize, giá Kai / Lẩu) với số ly, % số ly, số đơn, tiền quán nhường + dòng Tổng quán nhường, size lớn khách trả; cùng cách đếm khối ưu đãi mới của bot (@276: /checkca, tóm tắt 12:00, báo cáo ngày, /tuan).', 'Ly thành viên gộp N ly vào 1 ly nay tính N ly (giảm N × 2.000đ) như bot.']},
-  {v:'v1.7.289', ngay:'16/11/2026', nd:['Sổ tay · lệnh /xe (bot @273–274): nhóm 📦 Nguyên liệu khác thêm ống hút Phindi, bịch đá, túi đựng trà, thạch cà phê, siro, khăn giấy + dòng kho hết thì báo chủ mua ngay; /xe gõ được cả trong group.']},
-  {v:'v1.7.288', ngay:'16/11/2026', nd:['Sổ tay: lệnh /xe mới (bot @272 xequan-v2) — chia ⭐ Hàng quan trọng theo tối thiểu Checklist xe (cà phê hạt 2 kg, cà phê bột 1 hộp ước theo số bán, ly 100, sữa tươi 2, sữa đặc 2) và 📦 Nguyên liệu khác (ống hút, túi quai T, ly trà) nhắc chung; món khác tạm ẩn, xem /kho.']},
-  {v:'v1.7.287', ngay:'15/11/2026', nd:['Sổ tay: thêm lệnh /xe (bot @270 xelay-v1) — hàng trên xe + gợi ý cần lấy / không cần lấy kho; nhắc ca 21:00 kèm gợi ý này và nhắc fill nước.']},
-  {v:'v1.7.286', ngay:'15/11/2026', nd:['Dừng đồng giá 15K cuối tuần (cùng bot @268): CN 15/11 là ngày cuối, từ T7 21/11 T7/CN bán giá menu — nhịp kho, chip 🏷, giá đang bán, kế hoạch đều theo.', 'Thẻ thành viên / tặng / upsize áp cả T7, CN: tỉ lệ thành viên đổi mẫu số sang "ngày giá menu" (gồm T7/CN mới); Sổ tay mục bán hàng + Lịch sử chính sách cập nhật (SO_TAY_BAN 15/11 → nhân viên xác nhận lại); quiz tính tiền không ra câu đồng giá nữa.']},
-  {v:'v1.7.285', ngay:'14/11/2026', nd:['Tab Hao hụt: cà phê phin ưu tiên nhãn "Đã biết lý do" (trước đó hiện "Ít mẫu" vì mới dùng 0,83 kg); mốc đếm xe quá 7 ngày ghi "mốc cũ" (rê chuột xem số ngày).']},
-  {v:'v1.7.284', ngay:'14/11/2026', nd:['Tab Hao hụt: mục dùng theo công thức chưa tới 1 đơn vị mua (siro, matcha, thạch…) ghi "Ít mẫu"; mục hụt quá 5% mà lần đếm xe làm mốc đã quá 7 ngày ghi "Cần đếm lại" — không báo Đáng lo nữa, Tổng quan chỉ nhắc đếm lại xe.', 'Cà phê phin (mẻ pha sẵn dư, chủ đã chấp nhận) ghi "Đã biết lý do", không đẩy cảnh báo Tổng quan mỗi ngày.', 'Ô KPI chính chỉ tính tiền hụt VƯỢT mức hao hụt đã cộng vào giá vốn (5%; đơn vị theo ly 0%), thêm cột "Vượt mức giá vốn"; phần hụt trong mức ghi riêng.', 'Bảng "Theo người đứng ca" ghi rõ tham khảo (đếm xe ước bằng mắt) và gập sẵn. Số cộng dồn không đổi, bot /haohut giữ nguyên.']},
-  {v:'v1.7.283', ngay:'14/11/2026', nd:['Sheet Tổng hợp cùng lãi dashboard: khi chủ mở dashboard, số hàng cho kèm (T11+ theo kho thực) + bao bì phụ từng tháng được gửi về tab ChoKemDash của Sheet; ô giá vốn (O13) các tab Chi tháng đọc tab này, nên lãi tháng trên Sheet = lãi dashboard.']},
-  {v:'v1.7.282', ngay:'14/11/2026', nd:['Thu chi · Tổng hợp theo tháng: cột vận hành tính hàng cho kèm (T11+ theo kho thực) và bao bì phụ cùng cách PNL / Thu chi — cộng lãi các tháng lại khớp lãi Thu chi.']},
-  {v:'v1.7.281', ngay:'14/11/2026', nd:['Hàng cho kèm theo kho thực: số kho đếm cùng ngày với lần đếm xe (kể cả đếm sau vài phút) được ghép đúng; tồn cuối cao hơn đầu kỳ + mua (đếm sai) thì báo cần đếm lại, không đưa vào PNL. Thu chi tính hàng cho kèm & bao bì phụ cùng cách PNL.']},
-  {v:'v1.7.280', ngay:'14/11/2026', nd:['PNL: dòng "Hàng cho kèm & bao bì phụ" — từ T11 ly trà / trà sâm dứa / bịch trà tính theo KHO THỰC (tồn xe + kho lần đếm xe đầu tháng + mua − tồn lần đếm mới nhất, chia theo ly bán), báo rõ mục nào còn thiếu số đếm; bao bì phụ không có trong công thức (giấy chống tràn, hũ xốt, túi đựng ly) tính theo tiền mua.', 'Còn treo: đóng các mục chủ đã chốt 14/11 — giá siro / cà phê phin theo giá thực mua, quy đổi ly hồng 50 cái/cây (bao 500), bọc đá 500 cái/kg, sữa đặc 1.000 ml/hộp, ly 900 đ gồm nắp, kem muối 33.000 đ/hộp, P-24 giữ cách hiện tại.']},
-  {v:'v1.7.279', ngay:'14/11/2026', nd:['Đồng bộ bot @264 (botm-v1): giỏ hàng chỉ còn 1 nút ✅ Chốt đơn, tin xác nhận / tin group không ghi TM / CK (TM, CK chốt cuối ca); chữ hướng dẫn ở Hôm nay sửa theo.']},
-  {v:'v1.7.278', ngay:'14/11/2026', nd:['Hôm nay · Đơn trong kỳ / Đơn mới nhất: bỏ chip 💵 TM / 🏦 CK (TM, CK chỉ chốt cuối ca nên chip theo đơn dễ sai); vẫn giữ chip đơn app be / Xanh SM.']},
-  {v:'v1.7.277', ngay:'14/11/2026', nd:['Hôm nay · Đơn trong kỳ / Đơn mới nhất: thêm chip ☕ Kai 10K, 🍲 Lẩu 15K (đơn giá riêng bot kai / lau) và 🆙 free upsize (mua 3).']},
 ];
 /** Còn treo: nhóm · việc (chuỗi hoặc hàm) · cần gì / từ ai · xong() tự kiểm theo dữ liệu (không có thì chỉ xoá tay khỏi danh sách này khi đã giải quyết) · tt() chữ trạng thái */
 const BACKLOG = [
@@ -5873,7 +5860,7 @@ function renderHr(){
       const mau = pct == null ? '' : pct <= 25 ? ' hot' : pct <= 35 ? ' vang' : ' do', f0 = v => v.toLocaleString('vi-VN', {maximumFractionDigits:1});
       const homNay = today(), quen = C.filter(c => !c.ra && c.k < homNay), cb = [], gy = [];
       if (pct != null && pct > 35) cb.push(`Lương chiếm <b>${f0(pct)}%</b> doanh thu — trên 35%`);
-      if (chuaTinh) cb.push(`${chuaTinh} ca chưa có tiền công (bot chưa tính) — % lương đang thấp hơn thật`);
+      if (chuaTinh && VAI === 'chu') cb.push(`${chuaTinh} ca chưa có tiền công (bot chưa tính) — % lương đang thấp hơn thật`);
       if (quen.length) cb.push(`${quen.length} ca ngày cũ chưa check-out: ${quen.slice(0, 4).map(c => esc(c.nv) + ' ' + dShort(c.k)).join(', ')}${quen.length > 4 ? '…' : ''}`);
       if (ng.length) cb.push(`${ng.length} lượt ghi đơn ngoài giờ ca (xem dòng ⚠ phía dưới)`);
       if (tre) cb.push(`${tre} ca vào trễ trong kỳ`);
@@ -5922,8 +5909,8 @@ function renderHr(){
       {k:'ly', l:'Ly trong ca', r:1, f:fmt}, {k:'lyh', l:'Ly/giờ', r:1, f:v => v == null ? '—' : v.toLocaleString('vi-VN', {maximumFractionDigits:1})},
       {k:'tien', l:'Tiền công', r:1, f:(v, r) => fmt(v) + (r.chuaTinh ? ` <span class="pill warn" title="Ca chưa checkout hoặc bot chưa tính">${r.chuaTinh} ca chưa tính</span>` : '')},
       {k:'tp', l:'Thưởng / phạt', r:1, f:v => v ? (v > 0 ? '+' : '−') + fmt(Math.abs(v)) : '—', cls:v => v < 0 ? 'dn' : ''}, {k:'thucNhan', l:'Thực nhận', r:1, f:fmt}, {k:'lgDN', l:'Lương/giờ', r:1, f:v => v ? fmt(v) : '—'},   // v1.7.42 (Fable 5 V-04): /thuong /phat của chủ, cùng BangLuong
-      {k:'som', l:'Dậy sớm', r:1, f:v => v ? `${fmt(v)} ca <span class="muted">+${fmt(v * PHU_CAP.som)}</span>` : '—'}, {k:'mot', l:'Ca 1 người', r:1, f:v => v ? `${fmt(v)} ca <span class="muted">+${fmt(v * PHU_CAP.mot)}</span>` : '—'},
-      {k:'cc', l:'Chuyên cần', r:1, f:(v, r) => v == null ? '—' : v ? `${fmt(v)} lần <span class="muted">+${fmt(r.ccT || v * CHUYEN_CAN.tien)}</span>` : '—'}, {k:'tl', l:'Thưởng ly', r:1, f:v => v ? '+' + fmt(v) : '—'},
+      {k:'som', l:'Dậy sớm', r:1, f:v => v ? `${fmt(v)} ca` + (VAI === 'chu' ? ` <span class="muted">+${fmt(v * PHU_CAP.som)}</span>` : '') : '—'}, {k:'mot', l:'Ca 1 người', r:1, f:v => v ? `${fmt(v)} ca` + (VAI === 'chu' ? ` <span class="muted">+${fmt(v * PHU_CAP.mot)}</span>` : '') : '—'},   /* v1.7.303: nhân viên chỉ thấy số ca, không thấy tiền của từng người */
+      {k:'cc', l:'Chuyên cần', r:1, f:(v, r) => v == null ? '—' : v ? `${fmt(v)} lần` + (VAI === 'chu' ? ` <span class="muted">+${fmt(r.ccT || v * CHUYEN_CAN.tien)}</span>` : '') : '—'}, {k:'tl', l:'Thưởng ly', r:1, f:v => v ? '+' + fmt(v) : '—'},
       {k:'tre', l:'Trễ', r:1, f:fmt, cls:v => v ? 'dn' : ''}, {k:'quen', l:'Quên check-out', r:1, f:fmt, cls:v => v ? 'dn' : ''}]});
   table({id:'tChot', rows:chot, sortDefault:{k:'k', d:-1}, cols:[{k:'k', l:'Ngày', f:v => `${thu(v)} ${dShort(v)}`}, {k:'nv', l:'NV'}, {k:'ly', l:'Ly', r:1, f:fmt},
     {k:'dt', l:'DT', r:1, f:fmt}, {k:'phaiCo', l:'Phải có (theo nút 💵 bot)', r:1, f:fmt}, {k:'thucThu', l:'TM thực', r:1, f:fmt}, {k:'ckThuc', l:'CK thực', r:1, f:v => v == null ? '—' : fmt(v)},
@@ -6962,7 +6949,7 @@ function locNV(res){
 }
 /* v1.7.182 (chủ quán 11/11: "ẩn hết lãi/lương") — nhân viên: sau mỗi lần vẽ, ẩn thẻ số / cột bảng / dòng chữ / mục có lãi, lương, giá vốn, hoà vốn, vốn, nợ.
    Server đã không gửi số gốc (giá mua, lương, chi) nên các số này dù hiện cũng sai — ẩn cho gọn. Về tài khoản chủ thì trả lại hết (data-annv). */
-const NV_RE = /quỹ|dòng tiền|lãi|lời gộp|lương|tiền công|phụ cấp|thưởng|phạt|hoà vốn|hòa vốn|hoàn vốn|giá vốn|vốn góp|lợi nhuận|tỉ suất|tỷ suất|biên gộp|giá trị hàng|thu hồi|công nợ|còn nợ|chi cố định|chi vận hành/i;
+const NV_RE = /quỹ|dòng tiền|tiền cuối tháng|tiền đầu tháng|(?<!ck )thực nhận|lãi|lời gộp|lương|tiền công|phụ cấp|thưởng|phạt|hoà vốn|hòa vốn|hoàn vốn|giá vốn|vốn góp|lợi nhuận|tỉ suất|tỷ suất|biên gộp|giá trị hàng|thu hồi|công nợ|còn nợ|chi cố định|chi vận hành/i;
 const NV_AN_MUC = /^(Cơ cấu món và lãi|Món cần chỉnh giá|Dự phóng 12 tháng|Độ nhạy)/i;
 function anTienNV(){
   const an = el => { if (el.dataset.annv || el.closest('[data-nvok]')) return; el.dataset.annv = '1'; el.style.display = 'none'; };
